@@ -13,8 +13,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//khalid add comments
-//khaild test commit
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
