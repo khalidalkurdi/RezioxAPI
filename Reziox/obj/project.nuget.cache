@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9bH5lGNvRXgPySQOsDI+U4lHOk454XV9bti3/OzaBx0fX0CTdi92ChWlS2LqlTuEqyMijNsNQ1BhMw3Mf4/B3Q==",
+  "dgSpecHash": "+E20EsCL6qQEIgyitJ06vtopxV696KEaLe3iGFuNbUdLsMyo1499z1Mxtt1DVTVLUBAUtjKY0KYKW7BIz2G7aQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\khalid Al-kurdi\\source\\repos\\Reziox\\Reziox.csproj",
+  "projectFilePath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\Rezioxgithub.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",

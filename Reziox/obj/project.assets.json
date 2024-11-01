@@ -4462,11 +4462,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\khalid Al-kurdi\\source\\repos\\Reziox\\Reziox.csproj",
-      "projectName": "Reziox",
-      "projectPath": "C:\\Users\\khalid Al-kurdi\\source\\repos\\Reziox\\Reziox.csproj",
+      "projectUniqueName": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\Rezioxgithub.csproj",
+      "projectName": "Rezioxgithub",
+      "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\Rezioxgithub.csproj",
       "packagesPath": "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\khalid Al-kurdi\\source\\repos\\Reziox\\obj\\",
+      "outputPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\khalid Al-kurdi\\AppData\\Roaming\\NuGet\\NuGet.Config",
