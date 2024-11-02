@@ -19,6 +19,7 @@ namespace Reziox.DataAccess
         public DbSet<Review> Reviews { get; set; }
         public DbSet<PartTime> PartsTime { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<Notification> Notifications{ get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasData(

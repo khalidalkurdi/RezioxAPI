@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace Reziox.Model.TheUsers
 {
-    public class UserVM
+    public class SignUpVM  
     {
 
         [Required]

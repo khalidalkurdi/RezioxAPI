@@ -15,8 +15,6 @@ namespace Reziox.Model
         [MaxLength(100)]
         public string Message { get; set; }
         [Required]
-        public bool IsRead { get; set; }
-        [Required]
         public DateTime CreatedAt { get; set; }
         [Required]
         public User user { get; set; }

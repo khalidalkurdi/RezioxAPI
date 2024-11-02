@@ -15,8 +15,6 @@ namespace Reziox.Model.ThePlace
         [ForeignKey("place")]
         public int PlaceId { get; set; }
         [Required]
-        public int TotalPrice { get; set; }
-        [Required]
         public DateTime BookingDate { get; set; }
         [Required]
         public DateTime StartTime { get; set; }

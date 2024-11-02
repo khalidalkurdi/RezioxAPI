@@ -13,8 +13,8 @@ namespace Reziox.Model.ThePlace
         public int PlaceId { get; set; }
 
         [Required]
-        public DaysofWeek Day { get; set; } // Enum to store the day (e.g., Monday)
+        public DaysofWeek Day { get; set; } 
 
-        public Place place { get; set; } // Navigation property to the Place entity
+        public Place place { get; set; }
     }
 }
