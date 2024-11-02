@@ -44,14 +44,19 @@ namespace Reziox.Controllers
         [HttpGet("GetSuggestPlace")]
         public async Task<IActionResult> GetSuggestPlace(string city)
         {
-            var query = _db.Places.AsQueryable();
-
-            if (!string.IsNullOrEmpty(city) && Enum.TryParse(city, out Citys cityEnum))
+            if (string.IsNullOrEmpty(city))
             {
-                query = query.Where(p => p.City == cityEnum);
+                return BadRequest("city is not defind");
             }
-            var results = await query.ToListAsync();
-            return Ok(results);
+            if(Enum.TryParse(city, out Citys cityEnum))
+            {var suggestlist = await _db.Places
+                .Where(p => p.City == cityEnum)
+                .ToListAsync();
+                return Ok(suggestlist);
+            }
+            return BadRequest("city not valid");
+            
+            
         }
         [HttpGet("GetPlaceDetails")]
         public async Task<IActionResult> GetPlaceDetails(int id)

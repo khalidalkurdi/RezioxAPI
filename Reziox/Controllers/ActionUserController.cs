@@ -9,10 +9,10 @@ namespace Reziox.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class ActionUserController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public UserController(AppDbContext db)
+        public ActionUserController(AppDbContext db)
         {
 
             _db = db;
