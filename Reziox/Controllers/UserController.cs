@@ -1,5 +1,4 @@
-﻿using Azure.Messaging;
-using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
@@ -19,7 +18,7 @@ namespace Reziox.Controllers
             _db = db;
 
         }
-        [HttpGet("{id}")]
+        [HttpGet("GetNotifications")]
         public async Task<IActionResult> GetNotifications(int userId)
         {
             var notifications = await _db.Notifications
@@ -36,7 +35,7 @@ namespace Reziox.Controllers
             return Ok(notifications);
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("GetFavorites")]
         public async Task<IActionResult> GetFavorites(int userId)
         {
             var favorites = await _db.Favorites
@@ -51,7 +50,7 @@ namespace Reziox.Controllers
 
             return Ok(favorites);
         }
-        [HttpPost]
+        [HttpPost("AddToFavorites")]
         public async Task<IActionResult> AddToFavorites(int userId, int placeId)
         {
             var favorite = new Favorite { UserId = userId, PlaceId = placeId };
@@ -59,7 +58,7 @@ namespace Reziox.Controllers
             await _db.SaveChangesAsync();
             return Ok();
         }
-        [HttpDelete]
+        [HttpDelete("RemoveFromFavorites")]
         public async Task<IActionResult> RemoveFromFavorites(int userId, int placeId)
         {
             var favorite = await _db.Favorites
@@ -75,7 +74,8 @@ namespace Reziox.Controllers
 
             return Ok("Removed from favorites.");
         }
-        [HttpPost]
+
+        [HttpPost("AddBooking")]
         public async Task<IActionResult> AddBooking(int placeId, int userId,DateTime date)
         {
             var booking = new Booking { PlaceId = placeId, UserId = userId, BookingDate=date};
@@ -102,7 +102,7 @@ namespace Reziox.Controllers
             return Ok("Booking canceled successfully");
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("CancelBooking")]
         public async Task<IActionResult> CancelBooking(int bookingId , DateTime date)
         {
             var booking = await _db.Bookings.FindAsync(bookingId);
@@ -142,7 +142,7 @@ namespace Reziox.Controllers
             return Ok("Booking canceled successfully.");
 
         }
-        [HttpGet("{Id}")]
+        [HttpGet("GetBookingsForUser")]
         public async Task<IActionResult> GetBookingsForUser(int userId)
         {
             var bookings = await _db.Bookings
@@ -159,7 +159,7 @@ namespace Reziox.Controllers
 
             return Ok(bookings);
         }
-        [HttpGet("{Id}")]
+        [HttpGet("GetBookingsForOwner")]
         public async Task<IActionResult> GetBookingsForOwner(int OwnerId)
         {
             var bookings = await _db.Bookings
@@ -175,6 +175,24 @@ namespace Reziox.Controllers
             }
 
             return Ok(bookings);
+        }
+        [HttpPost("AddReview")]
+        public async Task<IActionResult> AddReview(int userId, int placeId, int rating)
+        {
+            // Check if User and Place exist
+            var userExists = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            var placeExists = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
+
+            if (userExists == null || placeExists == null)
+            {
+                return NotFound("User or Place not found.");
+            }
+            var review = new Review { PlaceId = placeId, UserId = userId, Rating = rating };
+
+            _db.Reviews.Add(review);
+            await _db.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }

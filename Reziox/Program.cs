@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Reziox.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +27,7 @@ else
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Reziox API");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Global API v1");
         c.RoutePrefix = string.Empty; // Sets Swagger UI to be the root URL
     });
 }

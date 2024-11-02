@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
@@ -16,7 +16,7 @@ namespace Reziox.Controllers
         {
             _db = db;
         }
-        [HttpGet]
+        [HttpGet("SearchPlaces")]
         public async Task<IActionResult> SearchPlaces(string? keyword, string? city, string? type, int? minPrice, int? maxPrice)
         {
             var query = _db.Places.AsQueryable();
@@ -41,7 +41,7 @@ namespace Reziox.Controllers
             var results = await query.ToListAsync();
             return Ok(results);
         }
-        [HttpGet]
+        [HttpGet("GetSuggestPlace")]
         public async Task<IActionResult> GetSuggestPlace(string city)
         {
             var query = _db.Places.AsQueryable();
@@ -53,7 +53,7 @@ namespace Reziox.Controllers
             var results = await query.ToListAsync();
             return Ok(results);
         }
-        [HttpGet("{id}")]
+        [HttpGet("GetPlaceDetails")]
         public async Task<IActionResult> GetPlaceDetails(int id)
         {
             var place = await _db.Places
@@ -69,25 +69,7 @@ namespace Reziox.Controllers
 
             return Ok(place);
         }
-        [HttpPost]
-        public async Task<IActionResult> AddReview(int userId, int placeId, int rating)
-        {
-            // Check if User and Place exist
-            var userExists = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
-            var placeExists = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
-
-            if (userExists==null || placeExists==null)
-            {
-                return NotFound("User or Place not found.");
-            }
-            var review = new Review { PlaceId= placeId, UserId=userId, Rating=rating };
-
-            _db.Reviews.Add(review);
-            await _db.SaveChangesAsync();
-
-            return Ok();
-        }
-        [HttpPost]
+        [HttpPost("AddPlace")]
         public async Task<IActionResult> AddPlace([FromBody]Place place, IFormFile? form)
         {
             if (!ModelState.IsValid)
@@ -101,7 +83,7 @@ namespace Reziox.Controllers
             return Ok();
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("EditPlace")]
         public async Task<IActionResult> EditPlace([FromBody] Place updatedPlace)
         {
             if (!ModelState.IsValid)
@@ -124,7 +106,7 @@ namespace Reziox.Controllers
             await _db.SaveChangesAsync();
             return Ok();
         }
-        [HttpDelete("{id}")]
+        [HttpDelete("RemovePlace")]
         public async Task<IActionResult> RemovePlace(int id)
         {
             var place = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==id);
@@ -138,7 +120,7 @@ namespace Reziox.Controllers
 
             return Ok();
         }
-        [HttpGet("{id}")]
+        [HttpGet("GetPlaceById")]
         public async Task<IActionResult> GetPlaceById(int id)
         {
             var place = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==id);

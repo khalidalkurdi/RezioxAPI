@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
@@ -18,7 +17,7 @@ namespace Reziox.Controllers
             _db = db;
 
         }
-        [HttpPost]
+        [HttpPost("SignUp")]
         public async Task<IActionResult> SignUp([FromBody] SignUpVM signUpRequest)
         {
             if (!ModelState.IsValid)
@@ -28,7 +27,7 @@ namespace Reziox.Controllers
 
             //checked if the email already exists
             var existemail = await _db.Users.FirstOrDefaultAsync(u => u.Email == signUpRequest.Email);
-            if (existemail!=null)
+            if (existemail != null)
             {
                 return BadRequest("Email is already in use , change it.");
             }
@@ -39,7 +38,7 @@ namespace Reziox.Controllers
             {
                 UserName = signUpRequest.UserName,
                 Email = signUpRequest.Email,
-                Password = hashedPassword, 
+                Password = hashedPassword,
                 PhoneNumber = signUpRequest.PhoneNumber,
                 City = signUpRequest.City
             };
@@ -49,8 +48,8 @@ namespace Reziox.Controllers
 
             return Ok();
         }
-        [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginVM loginRequest)
+        [HttpPost("LogIn")]
+        public async Task<IActionResult> LogIn([FromBody] LoginVM loginRequest)
         {
             if (!ModelState.IsValid)
             {
@@ -70,18 +69,33 @@ namespace Reziox.Controllers
             {
                 return Unauthorized("Invalid password.");
             }
-
             //return user information
-            
             return Ok(existuser);
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        [HttpPut("UpdateUser")]
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] SignUpVM updateUserRequest)
         {
-            var user = await _db.Users.ToListAsync();
-            return Ok(user);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            //find the user by id
+            var user = await _db.Users.FirstOrDefaultAsync (u=>u.UserId==userId);
+            if (user == null)
+            {
+                return NotFound($"User {userId} not found.");
+            }
+
+            //update user
+            user.UserName = updateUserRequest.UserName;
+            user.Email = updateUserRequest.Email;
+            user.PhoneNumber = updateUserRequest.PhoneNumber;
+            user.City = updateUserRequest.City;
+
+            await _db.SaveChangesAsync();
+
+            return NoContent();
         }
-       
     }
 }
