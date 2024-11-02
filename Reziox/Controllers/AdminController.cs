@@ -18,10 +18,10 @@ namespace Rezioxgithub.Controllers
         [HttpGet("GetPendingPlace")]
         public async Task<IActionResult> GetPendingPlace()
         {
-                var pendinglist = await _db.Places
-                .Where(p => p.Status ==Status.Pending )
-                .ToListAsync();              
-                return Ok(pendinglist);
+            var pendinglist = await _db.Places
+            .Where(p => p.Status ==Status.Pending )
+            .ToListAsync();
+            return Ok(pendinglist);
         }
         [HttpPut("EnablePlace")]
         public async Task<IActionResult> EnablePlace(int id)
