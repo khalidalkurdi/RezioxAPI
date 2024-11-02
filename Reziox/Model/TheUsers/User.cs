@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace Reziox.Model.TheUsers
-{
+{//class user
     public class User
     {
         [Key]
