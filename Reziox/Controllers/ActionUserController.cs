@@ -14,9 +14,7 @@ namespace Reziox.Controllers
         private readonly AppDbContext _db;
         public ActionUserController(AppDbContext db)
         {
-
             _db = db;
-
         }
         [HttpGet("GetNotifications")]
         public async Task<IActionResult> GetNotifications(int userId)
@@ -151,12 +149,10 @@ namespace Reziox.Controllers
                 .Include(b => b.place)
                 .OrderDescending()
                 .ToListAsync();
-
             if (bookings==null)
             {
                 return NotFound();
             }
-
             return Ok(bookings);
         }
         [HttpGet("GetBookingsForOwner")]
@@ -168,12 +164,10 @@ namespace Reziox.Controllers
                 .Include(b => b.place)
                 .OrderDescending()
                 .ToListAsync();
-
             if (bookings == null)
             {
                 return NotFound();
             }
-
             return Ok(bookings);
         }
         [HttpPost("AddReview")]
@@ -182,16 +176,13 @@ namespace Reziox.Controllers
             // Check if User and Place exist
             var userExists = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             var placeExists = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
-
             if (userExists == null || placeExists == null)
             {
                 return NotFound("User or Place not found.");
             }
             var review = new Review { PlaceId = placeId, UserId = userId, Rating = rating };
-
             _db.Reviews.Add(review);
             await _db.SaveChangesAsync();
-
             return Ok();
         }
     }
