@@ -10,9 +10,8 @@ namespace Reziox.Model.ThePlace
 
         [ForeignKey("place")]
         public int PlaceId { get; set; }
-        public DateTime Start { get; set; }
-        public DateTime End { get; set; }
-
+        public TimeSpan Start { get; set; }
+        public TimeSpan End { get; set; }
         public Place place { get; set; }
 
     }

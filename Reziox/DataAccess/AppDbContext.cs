@@ -31,7 +31,7 @@ namespace Reziox.DataAccess
                     Email = "khalid@gmail.com",
                     Password = "1234",
                     PhoneNumber = "0781234567",
-                    City = Citys.Zarqa
+                    City = Citys.zarqa
                 });
 
 

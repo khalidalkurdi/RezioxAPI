@@ -16,8 +16,6 @@ namespace Reziox.Model.TheUsers
         public string Email { get; set; }
         [Required]
         [PasswordPropertyText]
-        [MaxLength(30)]
-        [MinLength(8)]
         public string Password { get; set; }
         [Required]
         [Phone]
@@ -29,8 +27,6 @@ namespace Reziox.Model.TheUsers
         public ICollection<Booking> mybookings { get; set; }
         [ValidateNever]
         public ICollection<Place> myplaces { get; set; }
-        [ValidateNever]
-        public ICollection<Review> myreviews { get; set; }
         [ValidateNever]
         public ICollection<Favorite> myfavorites { get; set; }
 

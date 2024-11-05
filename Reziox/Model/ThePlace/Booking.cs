@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.VisualBasic;
 using Reziox.Model.TheUsers;
 
 namespace Reziox.Model.ThePlace
@@ -20,11 +21,7 @@ namespace Reziox.Model.ThePlace
         public DateTime StartTime { get; set; }
         [Required]
         public DateTime EndTime { get; set; }
-
         public User user { get; set; }
-
         public Place place { get; set; }
-
-
     }
 }

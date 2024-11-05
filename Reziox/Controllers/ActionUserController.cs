@@ -75,22 +75,26 @@ namespace Reziox.Controllers
 
         [HttpPost("AddBooking")]
         public async Task<IActionResult> AddBooking(int placeId, int userId,DateTime date)
-        {
-            var booking = new Booking { PlaceId = placeId, UserId = userId, BookingDate=date};
+        {   //find exist place and user
+            var existplace = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==placeId);
+            var existuser = await _db.Users.FirstOrDefaultAsync(u=>u.UserId==userId);
+            if(existplace == null||existuser ==null)
+            {
+                return NotFound("User or Place not found.");
+            }
+            var booking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate=date};
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
-
-            var place = await _db.Places.FindAsync(placeId);
             var notificationOwner = new Notification
             {
-                UserId = place.OwnerId,
+                UserId = existplace.OwnerId,
                 Message = $"A place you own is reserved on date{date}",
                 CreatedAt = DateTime.Now
             };
             _db.Notifications.Add(notificationOwner);
             var notificationUser = new Notification
             {
-                UserId = userId,
+                UserId = existuser.UserId,
                 Message = $"Your reservation has been successfully received on date {date}",
                 CreatedAt = DateTime.Now
             };
@@ -103,21 +107,20 @@ namespace Reziox.Controllers
         [HttpDelete("CancelBooking")]
         public async Task<IActionResult> CancelBooking(int bookingId , DateTime date)
         {
-            var booking = await _db.Bookings.FindAsync(bookingId);
-            if (booking == null)
+            var existbooking = await _db.Bookings.FindAsync(bookingId);
+            if (existbooking == null)
             {
                 return NotFound("Booking not found.");
             }
             //condtion for cancle
-            if(booking.BookingDate.Day==date.Day)
+            if(existbooking.BookingDate.Day==date.Day)
             {
                 return Ok("can not cancle");
             }
-
-            _db.Bookings.Remove(booking);
+            _db.Bookings.Remove(existbooking);
             await _db.SaveChangesAsync();
             //add notifiacation for  owner and user
-            var place = await _db.Places.FindAsync(booking.PlaceId);
+            var place = await _db.Places.FindAsync(existbooking.PlaceId);
             if (place == null)
             {
                 return NotFound("Place not found");
@@ -125,20 +128,19 @@ namespace Reziox.Controllers
             var notificationOwner = new Notification
             {
                 UserId = place.OwnerId,
-                Message = $"A booking at your place has been canceled for the date {booking.BookingDate}",
+                Message = $"A booking at your place has been canceled for the date {existbooking.BookingDate}",
                 CreatedAt = DateTime.Now
             };
             _db.Notifications.Add(notificationOwner);
             var notificationUser = new Notification
             {
-                UserId = booking.UserId,
-                Message = $"You canceled the booking on date {booking.BookingDate}",
+                UserId = existbooking.UserId,
+                Message = $"You canceled the booking on date {existbooking.BookingDate}",
                 CreatedAt = DateTime.Now
             };
             _db.Notifications.Add(notificationUser);
             await _db.SaveChangesAsync();
             return Ok("Booking canceled successfully.");
-
         }
         [HttpGet("GetBookingsForUser")]
         public async Task<IActionResult> GetBookingsForUser(int userId)
@@ -174,13 +176,13 @@ namespace Reziox.Controllers
         public async Task<IActionResult> AddReview(int userId, int placeId, int rating)
         {
             // Check if User and Place exist
-            var userExists = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
-            var placeExists = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
-            if (userExists == null || placeExists == null)
+            var existuser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            var existplace = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
+            if (existuser == null || existplace == null)
             {
                 return NotFound("User or Place not found.");
             }
-            var review = new Review { PlaceId = placeId, UserId = userId, Rating = rating };
+            var review = new Review { PlaceId = placeId, UserId = userId, Rating = rating};
             _db.Reviews.Add(review);
             await _db.SaveChangesAsync();
             return Ok();

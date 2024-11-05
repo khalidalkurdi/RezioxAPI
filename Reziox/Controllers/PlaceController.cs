@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
+using Rezioxgithub.Model.ThePlace;
 
 namespace Reziox.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class PlaceController : ControllerBase
@@ -75,19 +77,76 @@ namespace Reziox.Controllers
             return Ok(place);
         }
         [HttpPost("AddPlace")]
-        public async Task<IActionResult> AddPlace([FromBody]Place place, IFormFile? form)
+        public async Task<IActionResult> AddPlace([FromBody] PlaceVM placePost,ICollection<IFormFile> images)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
+            if (images == null || images.Count<2)
+            {
+                return BadRequest("please , Upload at least  2 Images for your place ");
+            }
+            if (!Enum.TryParse(placePost.City.ToLower(),out Citys cityEnum)) 
+            {
+                return BadRequest("invalid City");
+            } 
+            if (Enum.TryParse(placePost.Type.ToLower(), out Types typesEnum)) 
+            {
+                return BadRequest("invalid Type");
+            }
+            
+            var place = new Place
+            {
+                PlaceName=placePost.PlaceName,
+                OwnerId=placePost.OwnerId,
+                City =cityEnum,
+                Type = typesEnum,
+                Description=placePost.Description, 
+                Price=placePost.Price
+            };
+            foreach(var day in placePost.availabledays)
+            {
+                Enum.TryParse(day, out DaysofWeek dayEnum);
+                var availableDay = new AvailableDay
+                {
+                    PlaceId = place.PlaceId,
+                    Day = dayEnum
+                };
+                place.availabledays.Add(availableDay);
+            }
+            //add part time to table
+            foreach (var part in placePost.partsTime)
+            {              
+                var partTime = new PartTime
+                {
+                    PlaceId=place.PlaceId,
+                    Start=part.Start,
+                    End=part.End,
+                };
+                place.partsTime.Add(partTime);
+            }
+            //uploaded images
+            foreach (var image in images)
+            {              
+                var imageUrl = await SaveImageAsync(image);
+                var placeImage = new PlaceImage
+                {
+                    PlaceId = place.PlaceId,
+                    ImageUrl = imageUrl
+                };
+                place.listimage.Add(placeImage);
+            }
             _db.Places.Add(place);
             await _db.SaveChangesAsync();
 
             return Ok();
         }
 
+        private async Task<string> SaveImageAsync(IFormFile image)
+        {// here api upload
+            return null;
+        }
         [HttpPut("EditPlace")]
         public async Task<IActionResult> EditPlace([FromBody] Place updatedPlace)
         {

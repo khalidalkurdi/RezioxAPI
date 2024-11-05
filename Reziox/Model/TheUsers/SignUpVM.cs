@@ -20,6 +20,6 @@ namespace Reziox.Model.TheUsers
         [Phone]
         public string PhoneNumber { get; set; }
         [Required]
-        public Citys City { get; set; }
+        public string City { get; set; }
     }
 }

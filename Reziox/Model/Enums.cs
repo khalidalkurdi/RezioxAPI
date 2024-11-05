@@ -23,17 +23,17 @@
     }
     public enum Citys
     {
-        Amman = 1,
-        Zarqa = 2,
-        Irbid = 3,
-        Aqaba = 4,
-        Madaba = 5,
-        Mafraq = 6,
-        Jerash = 7,
-        Ajloun = 8,
-        Karak = 9,
-        Tafila = 10,
-        Maan = 11,
-        Salt = 12
+        amman = 1,
+        zarqa = 2,
+        irbid = 3,
+        aqaba = 4,
+        madaba = 5,
+        mafraq = 6,
+        jerash = 7,
+        ajloun = 8,
+        karak = 9,
+        tafila = 10,
+        maan = 11,
+        salt = 12
     }
 }
