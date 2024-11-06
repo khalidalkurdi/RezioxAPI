@@ -4525,24 +4525,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\pc\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\pc\\OneDrive\\سطح المكتب\\Reziox\\Reziox\\Rezioxgithub.csproj",
+      "projectUniqueName": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\Rezioxgithub.csproj",
       "projectName": "Rezioxgithub",
-      "projectPath": "C:\\Users\\pc\\OneDrive\\سطح المكتب\\Reziox\\Reziox\\Rezioxgithub.csproj",
-      "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\pc\\OneDrive\\سطح المكتب\\Reziox\\Reziox\\obj\\",
+      "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\Rezioxgithub.csproj",
+      "packagesPath": "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\pc\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\khalid Al-kurdi\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -4550,7 +4545,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -4563,11 +4557,6 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -4616,7 +4605,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

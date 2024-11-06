@@ -8,7 +8,7 @@ using Rezioxgithub.Model.ThePlace;
 
 namespace Reziox.Controllers
 {
-    //khalid
+
     [Route("api/[controller]")]
     [ApiController]
     public class PlaceController : ControllerBase
