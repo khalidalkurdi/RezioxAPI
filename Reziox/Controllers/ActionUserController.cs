@@ -10,7 +10,7 @@ namespace Reziox.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class ActionUserController : ControllerBase
-    {//test branch
+    {//test branch and merg to another
         private readonly AppDbContext _db;
         public ActionUserController(AppDbContext db)
         {
