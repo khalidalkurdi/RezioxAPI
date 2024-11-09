@@ -16,7 +16,6 @@ namespace Reziox.Model.ThePlace
         [Required]
         public Citys City { get; set; }
         [Required]
-        public Types Type { get; set; }
         public Status Status { get; set; } = Status.Pending;
         [Required]
         public string Description { get; set; }

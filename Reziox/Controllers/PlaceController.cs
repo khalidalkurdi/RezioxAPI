@@ -30,10 +30,6 @@ namespace Reziox.Controllers
             {
                 query = query.Where(p => p.City == cityEnum);
             }
-            if (!string.IsNullOrEmpty(type) && Enum.TryParse(type, out Types typeEnum))
-            {
-                query = query.Where(p => p.Type == typeEnum);
-            }
             if (minPrice.HasValue)
                 query = query.Where(p => p.Price >= minPrice);
 
@@ -91,17 +87,13 @@ namespace Reziox.Controllers
             {
                 return BadRequest("invalid City");
             } 
-            if (Enum.TryParse(placePost.Type.ToLower(), out Types typesEnum)) 
-            {
-                return BadRequest("invalid Type");
-            }
+           
             
             var place = new Place
             {
                 PlaceName=placePost.PlaceName,
                 OwnerId=placePost.OwnerId,
                 City =cityEnum,
-                Type = typesEnum,
                 Description=placePost.Description, 
                 Price=placePost.Price
             };
@@ -163,7 +155,6 @@ namespace Reziox.Controllers
             //update fields
             existingPlace.PlaceName = updatedPlace.PlaceName;
             existingPlace.City = updatedPlace.City;
-            existingPlace.Type = updatedPlace.Type;
             existingPlace.Status = updatedPlace.Status;
             existingPlace.Description = updatedPlace.Description;
             existingPlace.Price = updatedPlace.Price;

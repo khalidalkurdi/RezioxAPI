@@ -15,8 +15,6 @@ namespace Rezioxgithub.Model.ThePlace
         [Required]
         public string City { get; set; }
         [Required]
-        public string Type { get; set; }
-        [Required]
         public string Description { get; set; }
         [Required]
         public int Price { get; set; }

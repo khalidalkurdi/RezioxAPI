@@ -17,11 +17,6 @@
         Pending = 0,
         Diseabled = -1,
     }
-    public enum Types
-    {
-        Chalet = 1,
-        FootballFeld = 2
-    }
     public enum Citys
     {
         amman = 1,
