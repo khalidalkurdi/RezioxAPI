@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Reziox/obj/Debug/net8.0/apphost.exe
+/Reziox/obj/project.assets.json
+/Reziox/obj/project.nuget.cache
