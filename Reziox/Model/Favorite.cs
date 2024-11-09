@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Reziox.Model
 {
     public class Favorite
-    {
+    {//updatetest
         public int FavoriteId { get; set; }
         [ForeignKey("user")]
         public int UserId { get; set; }
