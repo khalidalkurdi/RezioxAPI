@@ -15,7 +15,7 @@ namespace Reziox.Controllers
     {
         private readonly AppDbContext _db;
         public PlaceController(AppDbContext db)
-        {   // tesssssssssssssssssst
+        {   
             _db = db;
         }
         [HttpGet("SearchPlaces")]
