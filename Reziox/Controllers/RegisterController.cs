@@ -1,9 +1,12 @@
 ﻿
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.TheUsers;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Reziox.Controllers
 {
@@ -12,14 +15,30 @@ namespace Reziox.Controllers
     public class RegisterController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public RegisterController(AppDbContext db)
+        private readonly Cloudinary _cloudinary;
+        public RegisterController(AppDbContext db , Cloudinary cloudinary)
         {
-
             _db = db;
-
+            _cloudinary = cloudinary;
         }
+        private async Task<string> SaveImageAsync(IFormFile image)
+        {
+            if (image == null || image.Length == 0)
+                return null;
+            //requst
+            using var stream = image.OpenReadStream();
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(image.FileName, stream)
+            };
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            if (uploadResult.Error != null)
+                return null;
+            return uploadResult.SecureUrl.ToString();
+        }
+
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp([FromBody]SignUpVM signUpRequest)
+        public async Task<IActionResult> SignUp([FromBody]SignUpDto signUpRequest)
         {
             if (!ModelState.IsValid)
             {
@@ -29,12 +48,12 @@ namespace Reziox.Controllers
             var existemail = await _db.Users.FirstOrDefaultAsync(u => u.Email == signUpRequest.Email);
             if (existemail != null)
             {
-                return BadRequest("Email is already in use , change it.");
+                return BadRequest("email is already in use , change it.");
             }
             //convert password to hash for more scurity 
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(signUpRequest.Password);
             //convert string to enum value
-            if (!Enum.TryParse(signUpRequest.City.ToLower(), out Citys cityEnum))
+            if (!Enum.TryParse(signUpRequest.City.ToLower(), out MyCitys cityEnum))
             {
                 return BadRequest(signUpRequest.City);
             }
@@ -47,12 +66,12 @@ namespace Reziox.Controllers
                 City = cityEnum
             };
             //add user
-            _db.Users.AddAsync(user);
-            _db.SaveChanges();
-            return Ok("Your Account Created Successfuly !");
+            await _db.Users.AddAsync(user);
+            await _db.SaveChangesAsync();
+            return Ok($"Your Account Created Successfuly !");
         }
         [HttpPost("LogIn")]
-        public async Task<IActionResult> LogIn([FromBody] LoginVM loginRequest)
+        public async Task<IActionResult> LogIn([FromBody] LoginDto loginRequest)
         {
             if (!ModelState.IsValid)
             {
@@ -62,55 +81,62 @@ namespace Reziox.Controllers
             var existuser = await _db.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
             if (existuser == null)
             {
-                return Unauthorized("Invalid email");
+                return Unauthorized("invalid email");
             }
             //verify the password 
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password, existuser.Password);
             if (!isPasswordValid)
             {
-                return Unauthorized("Invalid password.");
+                return Unauthorized("invalid password.");
             }
             //return user information
             return Ok(existuser);
         }
-        [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser(int userId, [FromBody] SignUpVM updateUserRequest)
+        [HttpPut("Edit")] // try create class for update
+        public async Task<IActionResult> UpdateUser(int userId ,[FromBody] SignUpDto updateUserRequest,IFormFile? edituserimage)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            if (userId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
             //find the user by id
-            var user = await _db.Users.FirstOrDefaultAsync (u=>u.UserId==userId);
+            var user = await _db.Users.FirstOrDefaultAsync(u=>u.UserId==userId);
             if (user == null)
             {
-                return NotFound($"User {userId} not found.");
+                return NotFound($"user {userId} not found.");
             }
-            //update user
-            if (!Enum.TryParse(updateUserRequest.City.ToLower(), out Citys cityEnum))
+            //update user info
+            var userimage = await SaveImageAsync(edituserimage);
+            if (userimage != null)
+            {
+                user.UserImage = userimage;
+            }
+            if (!Enum.TryParse(updateUserRequest.City.ToLower(), out MyCitys cityEnum))
             {
                 return BadRequest(updateUserRequest.City);
             }
             user.UserName = updateUserRequest.UserName;
             user.Email = updateUserRequest.Email;
             user.PhoneNumber = updateUserRequest.PhoneNumber;
-            user.City = cityEnum;
-            _db.SaveChanges();
+            user.City = cityEnum;         
+            await _db.SaveChangesAsync();
             return Ok(user);
         }
-
-        // it is just for test   !!!!!!!!!!!!!
-        [HttpDelete("DeleteUser")]
-        public async Task<IActionResult> DeleteUser(int id)
+        [HttpDelete("DeleteUser/{userid}")]
+        public async Task<IActionResult> DeleteUser(int userid)
         {
-            var user = await _db.Users.FindAsync(id);
+            var user = await _db.Users.FindAsync(userid);
             if (user == null)
             {
-                return NotFound();
+                return NotFound($" user {userid} not found.");
             }
             _db.Users.Remove(user);
-            _db.SaveChanges();
-            return Ok("Delet Successfuly ...");
+            await _db.SaveChangesAsync();
+            return Ok("user deleted successfuly ...");
         }
 
     }

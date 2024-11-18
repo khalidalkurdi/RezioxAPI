@@ -10,15 +10,19 @@ namespace Reziox.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class ActionUserController : ControllerBase
-    {//test branch and merg to another
-        private readonly AppDbContext _db;
+    {
+        private readonly AppDbContext _db; 
         public ActionUserController(AppDbContext db)
         {
             _db = db;
         }
-        [HttpGet("GetNotifications")]
+        [HttpGet("GetNotifications{userId}")]
         public async Task<IActionResult> GetNotifications(int userId)
         {
+            if (userId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
             var notifications = await _db.Notifications
                 .Where(n => n.UserId == userId)
                 //order form new to old
@@ -27,163 +31,108 @@ namespace Reziox.Controllers
 
             if (notifications == null)
             {
-                return NotFound("No notifications found for this user.");
+                return NotFound("no notifications found for this user.");
             }
 
             return Ok(notifications);
         }
 
-        [HttpGet("GetFavorites")]
+        [HttpGet("GetFavorites{userId}")]
         public async Task<IActionResult> GetFavorites(int userId)
         {
+            if (userId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
+
+            var existuser = await _db.Users.FindAsync(userId);
+            if (existuser==null)
+            {
+                return NotFound("no favorites found for this user");
+            }
+            
             var favorites = await _db.Favorites
                 .Where(f => f.UserId == userId)
                 .Include(f => f.place)
                 .ToListAsync();
-
-            if (favorites==null)
-            {
-                return NotFound("No favorites found for this user");
-            }
-
+            
             return Ok(favorites);
         }
-        [HttpPost("AddToFavorites")]
+        [HttpPost("AddFavorites{userId}")]
         public async Task<IActionResult> AddToFavorites(int userId, int placeId)
         {
+            if (userId==0|| placeId==0) 
+            {
+                return BadRequest("0 id is not correct");
+            }
+            var existuser = await _db.Users.FindAsync(userId);
+            if (existuser == null)
+            {
+                return NotFound($"{userId} is not exist");
+            }
+            var existplace = await _db.Places.FindAsync(placeId);
+            if (existplace == null)
+            {
+                return NotFound($"{placeId} is not exist");
+            }
+            var fav=await _db.Favorites.Where(u=>u.UserId==userId)
+                                       .Where(p=>p.PlaceId==placeId)
+                                       .FirstOrDefaultAsync();
+            if (fav != null)
+            {
+                return BadRequest("already added");
+            }
             var favorite = new Favorite { UserId = userId, PlaceId = placeId };
-            _db.Favorites.Add(favorite);
+
+            await _db.Favorites.AddAsync(favorite);
             await _db.SaveChangesAsync();
-            return Ok();
+            return Ok(existuser.Myfavorites.Count);
         }
-        [HttpDelete("RemoveFromFavorites")]
+        [HttpDelete("RemoveFavorites{userId}")]
         public async Task<IActionResult> RemoveFromFavorites(int userId, int placeId)
         {
-            var favorite = await _db.Favorites
-                .FirstOrDefaultAsync(f => f.UserId == userId && f.PlaceId == placeId);
-
-            if (favorite == null)
+            if (userId == 0 || placeId == 0)
             {
-                return NotFound("Favorite not found.");
+                return BadRequest("0 id is not correct");
             }
+            var existfavorite = await _db.Favorites
+                .Where(f => f.UserId == userId)
+                .Where(f =>f.PlaceId == placeId)
+                .FirstOrDefaultAsync();
 
-            _db.Favorites.Remove(favorite);
+            if (existfavorite == null)
+            {
+                return NotFound("Favorite not found ");
+            }
+            _db.Favorites.Remove(existfavorite);
             await _db.SaveChangesAsync();
 
             return Ok("Removed from favorites.");
         }
-
-        [HttpPost("AddBooking")]
-        public async Task<IActionResult> AddBooking(int placeId, int userId,DateTime date)
-        {   //find exist place and user
-            var existplace = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==placeId);
-            var existuser = await _db.Users.FirstOrDefaultAsync(u=>u.UserId==userId);
-            if(existplace == null||existuser ==null)
-            {
-                return NotFound("User or Place not found.");
-            }
-            var booking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate=date};
-            _db.Bookings.Add(booking);
-            await _db.SaveChangesAsync();
-            var notificationOwner = new Notification
-            {
-                UserId = existplace.OwnerId,
-                Message = $"A place you own is reserved on date{date}",
-                CreatedAt = DateTime.Now
-            };
-            _db.Notifications.Add(notificationOwner);
-            var notificationUser = new Notification
-            {
-                UserId = existuser.UserId,
-                Message = $"Your reservation has been successfully received on date {date}",
-                CreatedAt = DateTime.Now
-            };
-            _db.Notifications.Add(notificationUser);
-            await _db.SaveChangesAsync();
-
-            return Ok("Booking canceled successfully");
-        }
-
-        [HttpDelete("CancelBooking")]
-        public async Task<IActionResult> CancelBooking(int bookingId , DateTime date)
-        {
-            var existbooking = await _db.Bookings.FindAsync(bookingId);
-            if (existbooking == null)
-            {
-                return NotFound("Booking not found.");
-            }
-            //condtion for cancle
-            if(existbooking.BookingDate.Day==date.Day)
-            {
-                return Ok("can not cancle");
-            }
-            _db.Bookings.Remove(existbooking);
-            await _db.SaveChangesAsync();
-            //add notifiacation for  owner and user
-            var place = await _db.Places.FindAsync(existbooking.PlaceId);
-            if (place == null)
-            {
-                return NotFound("Place not found");
-            }
-            var notificationOwner = new Notification
-            {
-                UserId = place.OwnerId,
-                Message = $"A booking at your place has been canceled for the date {existbooking.BookingDate}",
-                CreatedAt = DateTime.Now
-            };
-            _db.Notifications.Add(notificationOwner);
-            var notificationUser = new Notification
-            {
-                UserId = existbooking.UserId,
-                Message = $"You canceled the booking on date {existbooking.BookingDate}",
-                CreatedAt = DateTime.Now
-            };
-            _db.Notifications.Add(notificationUser);
-            await _db.SaveChangesAsync();
-            return Ok("Booking canceled successfully.");
-        }
-        [HttpGet("GetBookingsForUser")]
-        public async Task<IActionResult> GetBookingsForUser(int userId)
-        {
-            var bookings = await _db.Bookings
-                .Where(b => b.UserId == userId)
-                .Include(u=>u.user)
-                .Include(b => b.place)
-                .OrderDescending()
-                .ToListAsync();
-            if (bookings==null)
-            {
-                return NotFound();
-            }
-            return Ok(bookings);
-        }
-        [HttpGet("GetBookingsForOwner")]
-        public async Task<IActionResult> GetBookingsForOwner(int OwnerId)
-        {
-            var bookings = await _db.Bookings
-                .Where(p => p.place.OwnerId == OwnerId)
-                .Include(u => u.user)
-                .Include(b => b.place)
-                .OrderDescending()
-                .ToListAsync();
-            if (bookings == null)
-            {
-                return NotFound();
-            }
-            return Ok(bookings);
-        }
-        [HttpPost("AddReview")]
+        [HttpPost("AddReview{placeId}")]
         public async Task<IActionResult> AddReview(int userId, int placeId, int rating)
         {
+            if(userId==0 || placeId == 0)
+            {
+                return BadRequest("0 id is not correct");
+            }
             // Check if User and Place exist
             var existuser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             var existplace = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
             if (existuser == null || existplace == null)
             {
-                return NotFound("User or Place not found.");
+                return NotFound("user or place not found");
+            }
+            var existbokking = await _db.Bookings
+               .Where(f => f.UserId == userId)
+               .Where(f => f.PlaceId == placeId)
+               .FirstOrDefaultAsync();
+            if(existbokking == null || existbokking.BookingDate.Date>DateTime.Today)
+            {
+                return BadRequest("can not review this place !");
             }
             var review = new Review { PlaceId = placeId, UserId = userId, Rating = rating};
-            _db.Reviews.Add(review);
+            existplace.ListReviews.Add(review);
             await _db.SaveChangesAsync();
             return Ok();
         }

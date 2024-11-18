@@ -17,11 +17,15 @@ namespace Reziox.Model.ThePlace
         public int PlaceId { get; set; }
         [Required]
         public DateTime BookingDate { get; set; }
+        public MyShifts Typeshifts { get; set; }
+        /*
         [Required]
         public DateTime StartTime { get; set; }
         [Required]
-        public DateTime EndTime { get; set; }
+        public DateTime EndTime { get; set; }*/
+        [Required]
         public User user { get; set; }
+        [Required]
         public Place place { get; set; }
     }
 }

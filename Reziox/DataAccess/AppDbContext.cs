@@ -17,8 +17,6 @@ namespace Reziox.DataAccess
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<PlaceImage> PlaceImages { get; set; }
         public DbSet<Review> Reviews { get; set; }
-        public DbSet<AvailableDay> availableDays { get; set; }
-        public DbSet<PartTime> PartsTime { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
         public DbSet<Notification> Notifications{ get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,9 +27,9 @@ namespace Reziox.DataAccess
                     UserId = 1,
                     UserName = "khalid",
                     Email = "khalid@gmail.com",
-                    Password = "1234",
+                    Password = "khalid1234",
                     PhoneNumber = "0781234567",
-                    City = Citys.zarqa
+                    City = MyCitys.zarqa
                 });
 
 

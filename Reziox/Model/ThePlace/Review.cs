@@ -14,12 +14,12 @@ namespace Reziox.Model.ThePlace
         [Required]
         [ForeignKey("place")]
         public int PlaceId { get; set; }
-        [Range(0, 10)]
+        [Range(0.0, 5.0)]
         [Required]
-        public int Rating { get; set; }
-
+        public double Rating { get; set; }
+        [Required]
         public User user { get; set; }
-
+        [Required]
         public Place place { get; set; }
     }
 }

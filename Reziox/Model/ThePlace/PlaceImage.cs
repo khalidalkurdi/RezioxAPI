@@ -12,7 +12,7 @@ namespace Reziox.Model.ThePlace
         public int PlaceId { get; set; }
         [Required]
         public string ImageUrl { get; set; }
-
+        [Required]
         public Place place { get; set; }
     }
 }

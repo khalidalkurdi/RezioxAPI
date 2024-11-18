@@ -19,7 +19,7 @@ namespace Rezioxgithub.Controllers
         public async Task<IActionResult> GetPendingPlace()
         {
             var pendinglist = await _db.Places
-            .Where(p => p.Status ==Status.Pending )
+            .Where(p => p.Status ==MyStatus.pending )
             .ToListAsync();
             return Ok(pendinglist);
         }
@@ -31,7 +31,7 @@ namespace Rezioxgithub.Controllers
             {
                 return NotFound();
             }
-            place.Status = Status.Enabled;
+            place.Status = MyStatus.enabled;
             var notification = new Notification
             {
                 UserId = place.OwnerId,
@@ -51,7 +51,7 @@ namespace Rezioxgithub.Controllers
             {
                 return NotFound();
             }
-            place.Status = Status.Diseabled;
+            place.Status = MyStatus.diseabled;
             var notification = new Notification
             {
                 UserId = place.OwnerId,

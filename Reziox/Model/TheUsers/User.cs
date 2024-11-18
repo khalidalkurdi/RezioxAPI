@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace Reziox.Model.TheUsers
-{//class user
+{
     public class User
     {
         [Key]
@@ -21,15 +21,12 @@ namespace Reziox.Model.TheUsers
         [Phone]
         [StringLength(10)]
         public string PhoneNumber { get; set; }
+        public string? UserImage { get; set; }
         [Required]
-        public Citys City { get; set; }
-        [ValidateNever]
-        public ICollection<Booking> mybookings { get; set; }
-        [ValidateNever]
-        public ICollection<Place> myplaces { get; set; }
-        [ValidateNever]
-        public ICollection<Favorite> myfavorites { get; set; }
-
-
+        public MyCitys City { get; set; }
+        public ICollection<Booking> Mybookings { get; set; } = new List<Booking>();
+        public ICollection<Place> Myplaces { get; set; }=new List<Place>();
+        public ICollection<Favorite> Myfavorites { get; set; }= new List<Favorite>();
+        public ICollection<Notification> MyNotifications { get; set; }= new List<Notification>();
     }
 }

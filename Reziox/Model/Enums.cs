@@ -1,23 +1,30 @@
 ﻿namespace Reziox.Model
 {
-    public enum DaysofWeek
+    [Flags]
+    public enum MYDays
     {
-        
-        Monday = 1,
-        Tuesday = 2,
-        Wednesday = 3,
-        Thursday = 4,
-        Friday = 5,
-        Saturday = 6,
-        Sunday = 7
-    }
-    public enum Status
+        monday =    0b_0000_0001,
+        tuesday =   0b_0000_0010,
+        wednesday = 0b_0000_0100,
+        thursday =  0b_0000_1000,
+        friday =    0b_0001_0000,
+        saturday =  0b_0010_0000,
+        sunday =    0b_0100_0000
+    } 
+    [Flags]
+    public enum MyShifts
     {
-        Enabled = 1,
-        Pending = 0,
-        Diseabled = -1,
+        morning =    0b_01,
+        night  =     0b_10,
+        full  =  morning | night 
     }
-    public enum Citys
+    public enum MyStatus
+    {
+        enabled = 1,
+        pending = 0,
+        diseabled = -1,
+    }
+    public enum MyCitys
     {
         amman = 1,
         zarqa = 2,

@@ -12,7 +12,6 @@ namespace Reziox.Model
         [ForeignKey("user")]
         public int UserId { get; set; }
         [Required]
-        [MaxLength(100)]
         public string Message { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; }
