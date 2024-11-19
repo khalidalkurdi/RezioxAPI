@@ -23,17 +23,25 @@ namespace Reziox.Controllers
             {
                 return BadRequest("0 id is not correct !");
             }
-            var notifications = await _db.Notifications
+            var existnotifications = await _db.Notifications
                 .Where(n => n.UserId == userId)
                 //order form new to old
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
 
-            if (notifications == null)
+            if (existnotifications == null)
             {
                 return NotFound("no notifications found for this user.");
             }
-
+            var notifications=new List<NotificationDTO>();
+            foreach (var item in existnotifications)
+            {
+                notifications.Add(new NotificationDTO
+                {
+                    Message = item.Message,
+                    CreatedAt = item.CreatedAt,
+                });
+            }
             return Ok(notifications);
         }
 
@@ -51,9 +59,10 @@ namespace Reziox.Controllers
                 return NotFound("no favorites found for this user");
             }
             
-            var favorites = await _db.Favorites
+            var favorites = await _db.Users
                 .Where(f => f.UserId == userId)
-                .Include(f => f.place)
+                .Include(f => f.Myfavorites.OrderBy(f=>f.FavoriteId))                
+                .ThenInclude(p=>p.place)               
                 .ToListAsync();
             
             return Ok(favorites);
@@ -84,7 +93,7 @@ namespace Reziox.Controllers
             }
             var favorite = new Favorite { UserId = userId, PlaceId = placeId };
 
-            await _db.Favorites.AddAsync(favorite);
+            existuser.Myfavorites.Add(favorite);
             await _db.SaveChangesAsync();
             return Ok(existuser.Myfavorites.Count);
         }

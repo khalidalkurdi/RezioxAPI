@@ -8,6 +8,7 @@ using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
 using Reziox.Model.TheUsers;
+using Rezioxgithub.Model.DTO;
 using Rezioxgithub.Model.ThePlace;
 using System.Text.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -185,7 +186,9 @@ namespace Reziox.Controllers
             {
                 return NotFound($"place {place.PlaceId} not found."); ;
             }
-            return Ok(place);
+            var sentplace = new SentPlaceDTO();
+            sentplace.pl
+            return Ok();
         }
         [HttpGet("Search")]
         public async Task<IActionResult> SearchPlaces(DateTime choicdate, int? minPrice, int? maxPrice, int? gusts, string? typeshift, string? city,ICollection<string>? features)

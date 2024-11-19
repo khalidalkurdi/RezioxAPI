@@ -8,6 +8,7 @@ namespace Rezioxgithub.Model.ThePlace
 {
     public class PlaceDto
     {
+
         [Required]
         public int OwnerId { get; set; }
         [Required]
@@ -18,8 +19,6 @@ namespace Rezioxgithub.Model.ThePlace
         public string Description { get; set; }
         [Required]
         public int Price { get; set; }
-        [Required]
-        public ICollection<string> WorkDays { get; set; }
         [Required]
         public int MorrningShift { get; set; }
         [Required]

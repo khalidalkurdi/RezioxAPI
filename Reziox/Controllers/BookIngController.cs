@@ -55,15 +55,27 @@ namespace Rezioxgithub.Controllers
                 .Where(b => b.PlaceId == placeId)
                 .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
                 .FirstOrDefaultAsync();
-            if (existbooking.Typeshifts==MyShifts.full)
+            if (existbooking!=null && existbooking.Typeshifts==MyShifts.full)
             {
                 return BadRequest("this palce is booking now!");
             }
             //end check is booked or not
-            
-            bool mornningshift= existbooking.Typeshifts==MyShifts.morning?true:false;
-            bool nightshift= existbooking.Typeshifts==MyShifts.night?true:false;   
-            return Ok( new{ Mornning =mornningshift , Night =nightshift, Full=false }) ;
+
+            bool fullshift = existbooking == null;
+            bool mornningshift = existbooking.Typeshifts != MyShifts.morning;
+            bool nightshift= existbooking.Typeshifts!=MyShifts.night;
+ 
+            var mornningtime = $"{existplace.MorrningShift} AM - {existplace.NightShift} PM";
+            var nighttime = $"{existplace.NightShift } PM - {existplace.MorrningShift} AM";
+            var fulltime = $"24 hours after start({existplace.NightShift } PM or {existplace.MorrningShift} AM)";
+            return Ok( new{ 
+                Mornning =mornningshift ,
+                Night =nightshift,
+                Full=fullshift,
+                TimeMornning=mornningtime,
+                TimeNight=nighttime,
+                TimeFull=fulltime
+            }) ;
         }
 
         [HttpPost("Add")]
