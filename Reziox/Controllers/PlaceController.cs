@@ -181,17 +181,17 @@ namespace Reziox.Controllers
             {
                 return BadRequest(" 0 id is not correct !");
             }
-            var place = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==placeid);
+            var place = await _db.Places
+                                 .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))   
+                                 .FirstOrDefaultAsync(p=>p.PlaceId==placeid);
             if (place == null)
             {
                 return NotFound($"place {place.PlaceId} not found."); ;
-            }
-            var sentplace = new SentPlaceDTO();
-            sentplace.pl
-            return Ok();
+            }        
+            return Ok(place);
         }
         [HttpGet("Search")]
-        public async Task<IActionResult> SearchPlaces(DateTime choicdate, int? minPrice, int? maxPrice, int? gusts, string? typeshift, string? city,ICollection<string>? features)
+        public async Task<IActionResult> SearchPlaces(DateTime choicdate, int? minPrice, int? maxPrice, int? gusts, string typeshift, string? city,ICollection<string>? features)
         {
             var query = _db.Places.AsQueryable(); 
             if (minPrice.HasValue)
@@ -229,11 +229,8 @@ namespace Reziox.Controllers
                 }
             }
             var results = await query.ToListAsync();
+
             // is workeing ?
-            if (choicdate == null)
-            {
-                return BadRequest(choicdate);
-            }
             var daybooking = choicdate.DayOfWeek.ToString();
             if (!Enum.TryParse(daybooking.ToLower(), out MYDays daydate))
             {
@@ -272,6 +269,7 @@ namespace Reziox.Controllers
             }
             var suggestlist = await _db.Places
                                        .Where(p => p.City == cityEnum)
+                                       .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
                                        .ToListAsync();
             return Ok(suggestlist);
         }
@@ -283,13 +281,13 @@ namespace Reziox.Controllers
                 return BadRequest("0 id is not correct !");
             }
             var place = await _db.Places
-                .FirstOrDefaultAsync(p => p.PlaceId == placeid);
+                                 .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                 .FirstOrDefaultAsync(p => p.PlaceId == placeid);
 
             if (place == null)
             {
                 return NotFound($"place {placeid} is not founf");
             }
-
             return Ok(place);
         }
 

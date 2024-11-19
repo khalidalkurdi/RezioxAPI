@@ -8,17 +8,18 @@ namespace Rezioxgithub.Model.ThePlace
 {
     public class PlaceDto
     {
-
         [Required]
         public int OwnerId { get; set; }
         [Required]
         public string PlaceName { get; set; }
         [Required]
-        public string City { get; set; }
+        public string City { get; set; }        
         [Required]
         public string Description { get; set; }
         [Required]
         public int Price { get; set; }
+        [Required]
+        public List<string> WorkDays { get; set; }
         [Required]
         public int MorrningShift { get; set; }
         [Required]

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Reziox.Model.ThePlace
 {
@@ -13,6 +14,7 @@ namespace Reziox.Model.ThePlace
         [Required]
         public string ImageUrl { get; set; }
         [Required]
+        [JsonIgnore]
         public Place place { get; set; }
     }
 }

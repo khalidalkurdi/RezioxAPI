@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Reziox.Model.TheUsers;
 
 namespace Reziox.Model
@@ -16,6 +17,7 @@ namespace Reziox.Model
         [Required]
         public DateTime CreatedAt { get; set; }
         [Required]
+        [JsonIgnore]
         public User user { get; set; }
     }
 }

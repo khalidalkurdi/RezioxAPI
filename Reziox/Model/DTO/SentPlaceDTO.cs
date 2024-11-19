@@ -4,6 +4,6 @@ namespace Rezioxgithub.Model.DTO
 {
     public class SentPlaceDTO : PlaceDto
     {
-        public ICollection<PlaceImageDTO> placeImage {  get; set; }= new List<PlaceImageDTO>();
+        public ICollection<PlaceImageDTO> placeImages {  get; set; }= new List<PlaceImageDTO>();
     }
 }

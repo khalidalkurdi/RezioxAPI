@@ -2,6 +2,7 @@
 using Reziox.Model.TheUsers;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Reziox.Model
 {
@@ -16,6 +17,7 @@ namespace Reziox.Model
         [ForeignKey("place")]
         public int PlaceId { get; set; }
         [Required]
+        [JsonIgnore]
         public User user { get; set; }
         [Required]
         public Place place { get; set; }

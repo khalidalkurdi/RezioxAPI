@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Reziox.Model.TheUsers;
 
 namespace Reziox.Model.ThePlace
@@ -18,8 +19,10 @@ namespace Reziox.Model.ThePlace
         [Required]
         public double Rating { get; set; }
         [Required]
+        [JsonIgnore]
         public User user { get; set; }
         [Required]
+        [JsonIgnore]
         public Place place { get; set; }
     }
 }
