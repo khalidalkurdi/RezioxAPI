@@ -3,20 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Reziox.DataAccess;
 
 #nullable disable
 
-namespace Rezioxgithub.Migrations
+namespace DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241116144850_editsome")]
-    partial class editsome
+    partial class AppDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,14 +81,11 @@ namespace Rezioxgithub.Migrations
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("PlaceId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("Typeshifts")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -125,6 +119,15 @@ namespace Rezioxgithub.Migrations
                     b.Property<bool>("Barbecue")
                         .HasColumnType("bit");
 
+                    b.Property<int>("BathRoom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BedRoom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Beds")
+                        .HasColumnType("int");
+
                     b.Property<bool>("ChildrensPlayground")
                         .HasColumnType("bit");
 
@@ -150,6 +153,9 @@ namespace Rezioxgithub.Migrations
                     b.Property<bool>("Jacuzzi")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MasterRoom")
+                        .HasColumnType("int");
+
                     b.Property<int>("MorrningShift")
                         .HasColumnType("int");
 
@@ -162,11 +168,17 @@ namespace Rezioxgithub.Migrations
                     b.Property<bool>("Parking")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("PaymentByCard")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PlaceName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Shower")
                         .HasColumnType("int");
 
                     b.Property<int>("Status")
@@ -175,6 +187,9 @@ namespace Rezioxgithub.Migrations
                     b.Property<bool>("Tennis")
                         .HasColumnType("bit");
 
+                    b.Property<int>("Visitors")
+                        .HasColumnType("int");
+
                     b.Property<bool>("Volleyball")
                         .HasColumnType("bit");
 
@@ -182,9 +197,6 @@ namespace Rezioxgithub.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int>("WorkDays")
-                        .HasColumnType("int");
-
-                    b.Property<int>("visitors")
                         .HasColumnType("int");
 
                     b.HasKey("PlaceId");
@@ -292,6 +304,9 @@ namespace Rezioxgithub.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("UserImage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -306,7 +321,7 @@ namespace Rezioxgithub.Migrations
                             UserId = 1,
                             City = 2,
                             Email = "khalid@gmail.com",
-                            Password = "1234",
+                            Password = "khalid1234",
                             PhoneNumber = "0781234567",
                             UserName = "khalid"
                         });
@@ -334,7 +349,7 @@ namespace Rezioxgithub.Migrations
             modelBuilder.Entity("Reziox.Model.Notification", b =>
                 {
                     b.HasOne("Reziox.Model.TheUsers.User", "user")
-                        .WithMany()
+                        .WithMany("MyNotifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -386,7 +401,7 @@ namespace Rezioxgithub.Migrations
             modelBuilder.Entity("Reziox.Model.ThePlace.Review", b =>
                 {
                     b.HasOne("Reziox.Model.ThePlace.Place", "place")
-                        .WithMany("Reviews")
+                        .WithMany("ListReviews")
                         .HasForeignKey("PlaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -404,15 +419,17 @@ namespace Rezioxgithub.Migrations
 
             modelBuilder.Entity("Reziox.Model.ThePlace.Place", b =>
                 {
+                    b.Navigation("ListReviews");
+
                     b.Navigation("Listbookings");
 
                     b.Navigation("Listimage");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Reziox.Model.TheUsers.User", b =>
                 {
+                    b.Navigation("MyNotifications");
+
                     b.Navigation("Mybookings");
 
                     b.Navigation("Myfavorites");

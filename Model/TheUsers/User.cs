@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿
 using Reziox.Model.ThePlace;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;

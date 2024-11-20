@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.TheUsers;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Reziox.Controllers
 {
@@ -45,7 +44,7 @@ namespace Reziox.Controllers
                 return BadRequest(ModelState);
             }
             //checked if the email already exists
-            var existemail = await _db.Users.FirstOrDefaultAsync(u => u.Email == signUpRequest.Email);
+            var existemail = await _db.Users.FirstOrDefaultAsync(u => u.Email == signUpRequest.Email.ToLower());
             if (existemail != null)
             {
                 return BadRequest("email is already in use , change it.");
@@ -55,12 +54,12 @@ namespace Reziox.Controllers
             //convert string to enum value
             if (!Enum.TryParse(signUpRequest.City.ToLower(), out MyCitys cityEnum))
             {
-                return BadRequest(signUpRequest.City);
+                return BadRequest($"City :{signUpRequest.City}");
             }
             var user = new User
             {
                 UserName = signUpRequest.UserName,
-                Email = signUpRequest.Email,
+                Email = signUpRequest.Email.ToLower(),
                 Password = hashedPassword,
                 PhoneNumber = signUpRequest.PhoneNumber,
                 City = cityEnum
@@ -78,13 +77,13 @@ namespace Reziox.Controllers
                 return BadRequest(ModelState);
             }
             //find the user by email
-            var existuser = await _db.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
+            var existuser = await _db.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email.ToLower());
             if (existuser == null)
             {
                 return Unauthorized("invalid email");
             }
             //verify the password 
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password, existuser.Password);
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password.ToLower(), existuser.Password);
             if (!isPasswordValid)
             {
                 return Unauthorized("invalid password.");
@@ -117,7 +116,7 @@ namespace Reziox.Controllers
             }
             if (!Enum.TryParse(updateUserRequest.City.ToLower(), out MyCitys cityEnum))
             {
-                return BadRequest(updateUserRequest.City);
+                return BadRequest($"City :{updateUserRequest.City}");
             }
             user.UserName = updateUserRequest.UserName;
             user.Email = updateUserRequest.Email;

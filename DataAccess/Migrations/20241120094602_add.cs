@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Rezioxgithub.Migrations
+namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class addall : Migration
+    public partial class add : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,8 +34,9 @@ namespace Rezioxgithub.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    UserImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     City = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -50,7 +51,7 @@ namespace Rezioxgithub.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -79,7 +80,14 @@ namespace Rezioxgithub.Migrations
                     WorkDays = table.Column<int>(type: "int", nullable: false),
                     MorrningShift = table.Column<int>(type: "int", nullable: false),
                     NightShift = table.Column<int>(type: "int", nullable: false),
+                    Visitors = table.Column<int>(type: "int", nullable: false),
+                    Beds = table.Column<int>(type: "int", nullable: false),
+                    MasterRoom = table.Column<int>(type: "int", nullable: false),
+                    BedRoom = table.Column<int>(type: "int", nullable: false),
+                    BathRoom = table.Column<int>(type: "int", nullable: false),
+                    Shower = table.Column<int>(type: "int", nullable: false),
                     WiFi = table.Column<bool>(type: "bit", nullable: false),
+                    PaymentByCard = table.Column<bool>(type: "bit", nullable: false),
                     AirConditioning = table.Column<bool>(type: "bit", nullable: false),
                     Barbecue = table.Column<bool>(type: "bit", nullable: false),
                     EventArea = table.Column<bool>(type: "bit", nullable: false),
@@ -114,8 +122,7 @@ namespace Rezioxgithub.Migrations
                     UserId = table.Column<int>(type: "int", nullable: false),
                     PlaceId = table.Column<int>(type: "int", nullable: false),
                     BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Typeshifts = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,8 +216,8 @@ namespace Rezioxgithub.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "UserId", "City", "Email", "Password", "PhoneNumber", "UserName" },
-                values: new object[] { 1, 2, "khalid@gmail.com", "1234", "0781234567", "khalid" });
+                columns: new[] { "UserId", "City", "Email", "Password", "PhoneNumber", "UserImage", "UserName" },
+                values: new object[] { 1, 2, "khalid@gmail.com", "khalid1234", "0781234567", null, "khalid" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_PlaceId",

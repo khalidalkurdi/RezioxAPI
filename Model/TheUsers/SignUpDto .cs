@@ -7,8 +7,6 @@ namespace Reziox.Model.TheUsers
     public class SignUpDto  
     {
 
-        [Key]
-        public int UserId { get; set; }
         [Required]
         public string UserName { get; set; }
         [Required]
@@ -16,6 +14,7 @@ namespace Reziox.Model.TheUsers
         public string Email { get; set; }
         [Required]
         [PasswordPropertyText]
+        [MinLength(8)]
         public string Password { get; set; }
         [Required]
         [Phone]

@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
 using Reziox.Model.TheUsers;
-
 namespace Reziox.DataAccess
 {
     public class AppDbContext : DbContext

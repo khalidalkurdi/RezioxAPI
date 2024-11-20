@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Reziox.Model.TheUsers;
 
 namespace Reziox.Model.ThePlace
@@ -79,8 +80,7 @@ namespace Reziox.Model.ThePlace
         public double Rating =>ListReviews.Count==0 ? 0.0 : ListReviews.Average(r => r.Rating);
         //count reviews
         [NotMapped]
-        public int CountRating => ListReviews.Count;
-        
+        public int CountRating => ListReviews.Count;       
         public ICollection<PlaceImage> Listimage { get; set; }= new List<PlaceImage>();
         public ICollection<Booking> Listbookings { get; set; }=new List<Booking>();
         public ICollection<Review> ListReviews { get; set; } = new List<Review>();

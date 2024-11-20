@@ -16,6 +16,7 @@ namespace Reziox.Controllers
         {
             _db = db;
         }
+        
         [HttpGet("GetNotifications{userId}")]
         public async Task<IActionResult> GetNotifications(int userId)
         {
@@ -33,16 +34,8 @@ namespace Reziox.Controllers
             {
                 return NotFound("no notifications found for this user.");
             }
-            var notifications=new List<NotificationDTO>();
-            foreach (var item in existnotifications)
-            {
-                notifications.Add(new NotificationDTO
-                {
-                    Message = item.Message,
-                    CreatedAt = item.CreatedAt,
-                });
-            }
-            return Ok(notifications);
+            
+            return Ok(existnotifications);
         }
 
         [HttpGet("GetFavorites{userId}")]
@@ -59,11 +52,13 @@ namespace Reziox.Controllers
                 return NotFound("no favorites found for this user");
             }
             
-            var favorites = await _db.Users
-                .Where(f => f.UserId == userId)
-                .Include(f => f.Myfavorites.OrderBy(f=>f.FavoriteId))                
-                .ThenInclude(p=>p.place)               
-                .ToListAsync();
+            var favorites = await _db.Favorites
+                                     .Where(f => f.UserId == userId)
+                                     .Include(p=>p.place)                                    
+                                     .ThenInclude(p=>p.Listimage)
+                                     .Where(p => p.place.Status == MyStatus.enabled)
+                                     .OrderBy(f => f.FavoriteId)
+                                     .ToListAsync();
             
             return Ok(favorites);
         }
@@ -84,9 +79,12 @@ namespace Reziox.Controllers
             {
                 return NotFound($"{placeId} is not exist");
             }
-            var fav=await _db.Favorites.Where(u=>u.UserId==userId)
-                                       .Where(p=>p.PlaceId==placeId)
-                                       .FirstOrDefaultAsync();
+            var fav=await _db.Favorites
+                             .Where(u=>u.UserId==userId)
+                             .Include(p=>p.place)
+                             .Where(p => p.place.Status == MyStatus.enabled)
+                             .Where(p=>p.PlaceId==placeId)
+                             .FirstOrDefaultAsync();
             if (fav != null)
             {
                 return BadRequest("already added");
@@ -105,9 +103,9 @@ namespace Reziox.Controllers
                 return BadRequest("0 id is not correct");
             }
             var existfavorite = await _db.Favorites
-                .Where(f => f.UserId == userId)
-                .Where(f =>f.PlaceId == placeId)
-                .FirstOrDefaultAsync();
+                                         .Where(f => f.UserId == userId)
+                                         .Where(f =>f.PlaceId == placeId)
+                                         .FirstOrDefaultAsync();
 
             if (existfavorite == null)
             {
@@ -133,9 +131,9 @@ namespace Reziox.Controllers
                 return NotFound("user or place not found");
             }
             var existbokking = await _db.Bookings
-               .Where(f => f.UserId == userId)
-               .Where(f => f.PlaceId == placeId)
-               .FirstOrDefaultAsync();
+                                        .Where(f => f.UserId == userId)
+                                        .Where(f => f.PlaceId == placeId)
+                                        .FirstOrDefaultAsync();
             if(existbokking == null || existbokking.BookingDate.Date>DateTime.Today)
             {
                 return BadRequest("can not review this place !");

@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Reziox.Model.ThePlace;
 using Reziox.Model;
-using Reziox.DataAccess;
+
 using Microsoft.EntityFrameworkCore;
+using Reziox.DataAccess;
+using Reziox.Model.TheUsers;
 
 namespace Rezioxgithub.Controllers
 {
@@ -43,7 +45,7 @@ namespace Rezioxgithub.Controllers
             var daybooking = datebooking.DayOfWeek.ToString();
             if (!Enum.TryParse(daybooking, out MYDays day))
             {
-                return BadRequest(daybooking);
+                return BadRequest($"invalid day :{daybooking}");
             }
             if ((existplace.WorkDays & day) != day)
             {
@@ -104,7 +106,7 @@ namespace Rezioxgithub.Controllers
             var daybooking = datebooking.DayOfWeek.ToString();
             if (!Enum.TryParse(daybooking.ToLower(), out MYDays day))
             {
-                    return BadRequest(daybooking);
+                    return BadRequest($"invalid day :{daybooking}");
             }
             if ((existplace.WorkDays & day)!= day)
             {
@@ -130,21 +132,9 @@ namespace Rezioxgithub.Controllers
             //end check is booked or not
             var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate =datebooking,Typeshifts= typeshift  };
             await _db.Bookings.AddAsync(mybooking);
-
-            var notificationOwner = new Notification
-            {
-                UserId = existplace.OwnerId,
-                Message = $"A place you own is reserved on date{datebooking}",
-                CreatedAt = DateTime.Now
-            };
-            _db.Notifications.Add(notificationOwner);
-            var notificationUser = new Notification
-            {
-                UserId = existuser.UserId,
-                Message = $"Your reservation has been successfully received on date {datebooking}",
-                CreatedAt = DateTime.Now
-            };
-            await _db.Notifications.AddAsync(notificationUser);
+            await SentNotificationAsync(existuser.UserId, $"Your reservation has been successfully received on date {datebooking}");
+            await SentNotificationAsync(existplace.OwnerId, $"A place you own is reserved on date{datebooking}");
+           
             await _db.SaveChangesAsync();
             return Ok("Booking added successfully");
         }
@@ -171,32 +161,23 @@ namespace Rezioxgithub.Controllers
             }
             _db.Bookings.Remove(existbooking);
             //add notifiacation for  owner and user
-            var notificationOwner = new Notification
-            {
-                UserId = existbooking.place.OwnerId,
-                Message = $"A booking at your place has been canceled for the date {existbooking.BookingDate}",
-                CreatedAt = DateTime.Now
-            };
-            _db.Notifications.Add(notificationOwner);
-            var notificationUser = new Notification
-            {
-                UserId = existbooking.UserId,
-                Message = $"You canceled the booking on date {existbooking.BookingDate}",
-                CreatedAt = DateTime.Now
-            };
-
-            _db.Notifications.Add(notificationUser);
+            await SentNotificationAsync(existbooking.place.OwnerId, $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
+            await SentNotificationAsync(existbooking.UserId, $"You canceled the booking on date {existbooking.BookingDate}");
             await _db.SaveChangesAsync();
-            return Ok("Booking canceled successfully.");
+            return Ok("Booking canceled successfully..");
         }
         [HttpGet("BookingsUser{userId}")]
         public async Task<IActionResult> GetBookingsForUser(int userId)
         {
+            if(userId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
             var bookings = await _db.Bookings
-                .Where(b => b.UserId == userId)
-                .Include(b => b.place)
-                .OrderDescending()
-                .ToListAsync();
+                                    .Where(b => b.UserId == userId)
+                                    .Include(b => b.place)
+                                    .OrderDescending()
+                                    .ToListAsync();
             if (bookings == null)
             {
                 return NotFound("is not found");
@@ -206,17 +187,26 @@ namespace Rezioxgithub.Controllers
         [HttpGet("BookingsOwner{OwnerId}")]
         public async Task<IActionResult> GetBookingsForOwner(int OwnerId)
         {
+            if (OwnerId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
             var bookings = await _db.Bookings
-                .Where(p => p.place.OwnerId == OwnerId)
-                .Include(u => u.user.UserName)
-                .Include(b => b.place.PlaceName)
-                .OrderDescending()
-                .ToListAsync();
+                                    .Where(p => p.place.OwnerId == OwnerId)
+                                    .Include(u => u.user)
+                                    .Include(b => b.place)
+                                    .OrderDescending()
+                                    .ToListAsync();
             if (bookings == null)
             {
                 return NotFound("is not found");
             }
             return Ok(bookings);
         }
+        private async Task SentNotificationAsync(int userid, string message)
+        {
+            await _db.Notifications.AddAsync(new Notification { Id = userid, Message = message });
+        }
+
     }
 }

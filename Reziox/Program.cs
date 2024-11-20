@@ -1,4 +1,5 @@
 using CloudinaryDotNet;
+using DataAccess.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Reziox.DataAccess;
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnections")));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 //config cloudinary

@@ -43,19 +43,20 @@ namespace Reziox.Controllers
             return uploadResult.SecureUrl.ToString();
         }
         [HttpPost("Add")]
-        public async Task<IActionResult> AddPlace([FromForm] PlaceDto placePost, ICollection<IFormFile> images)
+        public async Task<IActionResult> AddPlace([FromForm] PlaceDto placePost /*, ICollection<IFormFile> images*/)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            /*
             if (images == null || images.Count<2)
             {
                 return BadRequest("please , upload at least  5 images for your place ");
-            }
+            }*/
             if (!Enum.TryParse(placePost.City.ToLower(),out MyCitys cityEnum)) 
             {
-                return BadRequest("invalid City");
+                return BadRequest($"invalid city :{placePost.City}");
             } 
             var place = new Place
             {
@@ -91,7 +92,7 @@ namespace Reziox.Controllers
             //parse work day to falgs
             foreach(var day in placePost.WorkDays)
             {
-                if (Enum.TryParse(day,out MYDays parsedDay))
+                if (Enum.TryParse(day.ToLower(),out MYDays parsedDay))
                 {
                     place.WorkDays |= parsedDay; // Combine flags
                 }
@@ -101,28 +102,23 @@ namespace Reziox.Controllers
                 }
             }
             //uploaded images
+            /*
             foreach (var image in images)
             {              
                 var imageUrl = await SaveImageAsync(image);
                 if (imageUrl == null)
                 {
-                    return BadRequest(image);
+                    return BadRequest($"invalid upload image {image}");
                 }
                 var placeImage = new PlaceImage
                 {
                     PlaceId = place.PlaceId,
                     ImageUrl = imageUrl
                 };
-                await _db.PlaceImages.AddAsync(placeImage);
-            }
+                place.Listimage.Add(placeImage);
+            }*/
             await _db.Places.AddAsync(place);
-            var notificationOwner = new Notification
-            {
-                UserId = place.OwnerId,
-                Message = $"your chalete is Pending ,it will check soon.. !",
-                CreatedAt = DateTime.Now
-            };
-            await _db.Notifications.AddAsync(notificationOwner);
+            await SentNotificationAsync(place.OwnerId,$"your chalete is Pending ,it will check soon.. !");
             await _db.SaveChangesAsync();
             return Ok("place sent to admin");
         }
@@ -133,17 +129,18 @@ namespace Reziox.Controllers
             {
                 return BadRequest();
             }
-            var existingPlace = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==updatedPlace.PlaceId);
-            if (existingPlace == null)
+            var existplace = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==updatedPlace.PlaceId);
+            if (existplace == null)
             {
                 return NotFound($"place {updatedPlace.PlaceId} not found."); ;
             }
             //update fields
-            existingPlace.PlaceName = updatedPlace.PlaceName;
-            existingPlace.City = updatedPlace.City;
-            existingPlace.Status = updatedPlace.Status;
-            existingPlace.Description = updatedPlace.Description;
-            existingPlace.Price = updatedPlace.Price;
+            existplace.PlaceName = updatedPlace.PlaceName;
+            existplace.City = updatedPlace.City;
+            existplace.Status = updatedPlace.Status;
+            existplace.Description = updatedPlace.Description;
+            existplace.Price = updatedPlace.Price;
+            await SentNotificationAsync(existplace.OwnerId, $"your chalete{existplace.PlaceName} edited !");
             await _db.SaveChangesAsync();
             return Ok();
         }
@@ -154,27 +151,29 @@ namespace Reziox.Controllers
             {
                 return BadRequest(" 0 id is not correct !");
             }
-            var place = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==placeid);
-            if (place == null)
+            var existplace = await _db.Places.FirstOrDefaultAsync(p=>p.PlaceId==placeid);
+            if (existplace == null)
             {
                 return NotFound($"place {placeid} not found."); ;
             }
             //check if have not any booking        &&      if have it can not deleted
-            
-
-            //end check if have not any booking
-            _db.Places.Remove(place);
-            var notificationOwner = new Notification
+            var existbookins = await _db.Bookings
+                                    .Where(p => p.PlaceId == existplace.PlaceId)
+                                    .Where(p => p.BookingDate.DayOfYear >= DateTime.Now.DayOfYear)
+                                    .AnyAsync();
+            if (existbookins)
             {
-                UserId = place.OwnerId,
-                Message = $"your chalete is deleted  !",
-                CreatedAt = DateTime.Now
-            };
-            await _db.Notifications.AddAsync(notificationOwner);
+                await SentNotificationAsync(existplace.OwnerId, $"can not delet your chalete because it has bookings!");
+                return BadRequest("it has bookings!");
+            }                                   
+            //end check if have not any booking
+
+            existplace.Status = MyStatus.diseabled;
+            await SentNotificationAsync(existplace.OwnerId,$"your chalete{existplace.PlaceName} is deleted !");
             await _db.SaveChangesAsync();
             return Ok("place deleted successfuly ! ");
         }
-        [HttpGet("Place{placeid}")]
+        [HttpGet("{placeid}")]
         public async Task<IActionResult> GetPlaceById(int placeid)
         {
             if (placeid == 0)
@@ -182,18 +181,22 @@ namespace Reziox.Controllers
                 return BadRequest(" 0 id is not correct !");
             }
             var place = await _db.Places
-                                 .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))   
+                                 .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
+                                 .Where(p=>p.Status==MyStatus.enabled)
                                  .FirstOrDefaultAsync(p=>p.PlaceId==placeid);
             if (place == null)
             {
-                return NotFound($"place {place.PlaceId} not found."); ;
+                return NotFound($"place {placeid} not found."); ;
             }        
             return Ok(place);
         }
         [HttpGet("Search")]
         public async Task<IActionResult> SearchPlaces(DateTime choicdate, int? minPrice, int? maxPrice, int? gusts, string typeshift, string? city,ICollection<string>? features)
         {
-            var query = _db.Places.AsQueryable(); 
+            var query = _db.Places
+                           .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                           .Where(p => p.Status == MyStatus.enabled)
+                           .AsQueryable(); 
             if (minPrice.HasValue)
                 query = query.Where(p => p.Price >= minPrice);
             if (maxPrice.HasValue)
@@ -234,14 +237,14 @@ namespace Reziox.Controllers
             var daybooking = choicdate.DayOfWeek.ToString();
             if (!Enum.TryParse(daybooking.ToLower(), out MYDays daydate))
             {
-                return BadRequest(daybooking);
+                return BadRequest($"invalid day :{ daybooking}");
             }
             query = query.Where(p => (p.WorkDays & daydate) != daydate);
             //end is working?
             //booked?
             if (!Enum.TryParse(typeshift.ToLower(), out MyShifts Typeshift))
             {
-                return BadRequest(typeshift);
+                return BadRequest($"invalid type shift :{typeshift}");
             }
             foreach (var place in results)
             {
@@ -269,11 +272,13 @@ namespace Reziox.Controllers
             }
             var suggestlist = await _db.Places
                                        .Where(p => p.City == cityEnum)
+                                       .Where(p => p.Status == MyStatus.enabled)
                                        .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
                                        .ToListAsync();
             return Ok(suggestlist);
         }
-        [HttpGet("Details/{placeid}")]
+
+        /*[HttpGet("Details/{placeid}")]
         public async Task<IActionResult> GetPlaceDetails(int placeid)
         {
             if(placeid == 0)
@@ -283,14 +288,17 @@ namespace Reziox.Controllers
             var place = await _db.Places
                                  .Include(p => p.Listimage.OrderBy(i => i.ImageId))
                                  .FirstOrDefaultAsync(p => p.PlaceId == placeid);
-
             if (place == null)
             {
                 return NotFound($"place {placeid} is not founf");
             }
             return Ok(place);
         }
-
+        */
+        private async Task SentNotificationAsync(int userid, string message)
+        {
+            await _db.Notifications.AddAsync(new Notification { Id = userid, Message = message });
+        }
     }
 
 }
