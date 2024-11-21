@@ -1,6 +1,6 @@
 ﻿namespace Rezioxgithub.Model.DTO
 {
-    public class OwnBookingDTO
+    public class dtoOwnBooking
     {
     }
 }

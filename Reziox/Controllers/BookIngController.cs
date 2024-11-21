@@ -155,7 +155,8 @@ namespace Rezioxgithub.Controllers
                 return NotFound("Booking not found.");
             }
             //condtion for cancle
-            if (existbooking.BookingDate.DayOfYear == datecancel.DayOfYear)
+            if (existbooking.BookingDate.DayOfYear == datecancel.DayOfYear ||
+                existbooking.BookingDate.DayOfYear-3==datecancel.DayOfYear)
             {
                 return BadRequest("can not cancle");
             }

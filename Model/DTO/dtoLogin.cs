@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 
-namespace Reziox.Model.TheUsers
+namespace Model.DTO
 {
-    public class LoginDto
+    public class dtoLogin
     {
         [Required]
         [EmailAddress]

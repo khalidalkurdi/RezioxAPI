@@ -2,9 +2,9 @@
 using System.ComponentModel;
 using Reziox.Model.ThePlace;
 
-namespace Reziox.Model.TheUsers
+namespace Model.DTO
 {
-    public class SignUpDto  
+    public class dtoSignUp
     {
 
         [Required]
@@ -20,7 +20,7 @@ namespace Reziox.Model.TheUsers
         [Phone]
         [StringLength(10)]
         public string PhoneNumber { get; set; }
-        public string? UserImage { get; set; } 
+        public string? UserImage { get; set; }
         [Required]
         public string City { get; set; }
     }

@@ -3,6 +3,7 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Model.DTO;
 using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.TheUsers;
@@ -37,7 +38,7 @@ namespace Reziox.Controllers
         }
 
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp([FromBody]SignUpDto signUpRequest)
+        public async Task<IActionResult> SignUp([FromBody]dtoSignUp signUpRequest)
         {
             if (!ModelState.IsValid)
             {
@@ -70,7 +71,7 @@ namespace Reziox.Controllers
             return Ok($"Your Account Created Successfuly !");
         }
         [HttpPost("LogIn")]
-        public async Task<IActionResult> LogIn([FromBody] LoginDto loginRequest)
+        public async Task<IActionResult> LogIn([FromBody] dtoLogin loginRequest)
         {
             if (!ModelState.IsValid)
             {
@@ -92,7 +93,7 @@ namespace Reziox.Controllers
             return Ok(existuser);
         }
         [HttpPut("Edit")] // try create class for update
-        public async Task<IActionResult> UpdateUser(int userId ,[FromBody] SignUpDto updateUserRequest,IFormFile? edituserimage)
+        public async Task<IActionResult> UpdateUser(int userId ,[FromBody] dtoSignUp updateUserRequest,IFormFile? edituserimage)
         {
             if (!ModelState.IsValid)
             {

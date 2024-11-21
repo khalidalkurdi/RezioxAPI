@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 namespace Reziox.Model
 {
-    public class NotificationDTO
+    public class dtoNotification
     {      
         [Required]
         public string Message { get; set; }

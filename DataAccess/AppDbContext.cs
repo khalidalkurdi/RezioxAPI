@@ -1,11 +1,14 @@
 ﻿
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Model.TheUsers;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
 using Reziox.Model.TheUsers;
+
 namespace Reziox.DataAccess
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<AppUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> op) : base(op)
         {
