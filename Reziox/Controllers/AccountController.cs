@@ -7,10 +7,6 @@ namespace Rezioxgithub.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly 
-        public AccountController()
-        {
-            
-        }
+        
     }
 }

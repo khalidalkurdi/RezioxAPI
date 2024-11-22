@@ -8,7 +8,7 @@ using Reziox.Model.TheUsers;
 
 namespace Reziox.DataAccess
 {
-    public class AppDbContext : IdentityDbContext<AppUser>
+    public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> op) : base(op)
         {
