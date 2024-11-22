@@ -2,6 +2,7 @@
 using Reziox.Model.ThePlace;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Reziox.Model.TheUsers
 {
@@ -24,6 +25,9 @@ namespace Reziox.Model.TheUsers
         public string? UserImage { get; set; }
         [Required]
         public MyCitys City { get; set; }
+        [NotMapped]
+        public int Places => Myplaces.Count == 0 ? 0 :Myplaces.Count;
+
         public ICollection<Booking> Mybookings { get; set; } = new List<Booking>();
         public ICollection<Place> Myplaces { get; set; }=new List<Place>();
         public ICollection<Favorite> Myfavorites { get; set; }= new List<Favorite>();

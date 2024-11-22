@@ -26,6 +26,7 @@ namespace Reziox.Controllers
             }
             var existnotifications = await _db.Notifications
                 .Where(n => n.UserId == userId)
+                .Where(n=>n.CreatedAt.DayOfYear>=DateTime.Now.DayOfYear-7)
                 //order form new to old
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
@@ -56,7 +57,7 @@ namespace Reziox.Controllers
                                      .Where(f => f.UserId == userId)
                                      .Include(p=>p.place)                                    
                                      .ThenInclude(p=>p.Listimage)
-                                     .Where(p => p.place.Status == MyStatus.enabled)
+                                     .Where(p => p.place.PlaceStatus == MyStatus.enabled)
                                      .OrderBy(f => f.FavoriteId)
                                      .ToListAsync();
             
@@ -82,7 +83,7 @@ namespace Reziox.Controllers
             var fav=await _db.Favorites
                              .Where(u=>u.UserId==userId)
                              .Include(p=>p.place)
-                             .Where(p => p.place.Status == MyStatus.enabled)
+                             .Where(p => p.place.PlaceStatus == MyStatus.enabled)
                              .Where(p=>p.PlaceId==placeId)
                              .FirstOrDefaultAsync();
             if (fav != null)

@@ -27,21 +27,6 @@ namespace Reziox.Controllers
             _db = db;
             _cloudinary = cloudinary;
         }
-        private async Task<string> SaveImageAsync(IFormFile image)
-        {
-            if (image == null || image.Length == 0)
-                return null;
-            //requst
-            using var stream = image.OpenReadStream();
-            var uploadParams = new ImageUploadParams
-            {
-                File = new FileDescription(image.FileName, stream)
-            };
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-            if (uploadResult.Error != null)
-                return null;
-            return uploadResult.SecureUrl.ToString();
-        }
         [HttpPost("Add")]
         public async Task<IActionResult> AddPlace([FromForm] PlaceDto placePost /*, ICollection<IFormFile> images*/)
         {
@@ -137,7 +122,7 @@ namespace Reziox.Controllers
             //update fields
             existplace.PlaceName = updatedPlace.PlaceName;
             existplace.City = updatedPlace.City;
-            existplace.Status = updatedPlace.Status;
+            existplace.PlaceStatus = updatedPlace.PlaceStatus;
             existplace.Description = updatedPlace.Description;
             existplace.Price = updatedPlace.Price;
             await SentNotificationAsync(existplace.OwnerId, $"your chalete{existplace.PlaceName} edited !");
@@ -168,7 +153,7 @@ namespace Reziox.Controllers
             }                                   
             //end check if have not any booking
 
-            existplace.Status = MyStatus.diseabled;
+            existplace.PlaceStatus = MyStatus.disabled;
             await SentNotificationAsync(existplace.OwnerId,$"your chalete{existplace.PlaceName} is deleted !");
             await _db.SaveChangesAsync();
             return Ok("place deleted successfuly ! ");
@@ -182,7 +167,7 @@ namespace Reziox.Controllers
             }
             var place = await _db.Places
                                  .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
-                                 .Where(p=>p.Status==MyStatus.enabled)
+                                 .Where(p=>p.PlaceStatus==MyStatus.enabled)
                                  .FirstOrDefaultAsync(p=>p.PlaceId==placeid);
             if (place == null)
             {
@@ -190,12 +175,73 @@ namespace Reziox.Controllers
             }        
             return Ok(place);
         }
+        [HttpGet("Places{city}")]
+        public async Task<IActionResult> GetSuggestPlace(string city)
+        {
+            if (string.IsNullOrEmpty(city))
+            {
+                return BadRequest("city is null or empty");
+            }
+            if(!Enum.TryParse(city.ToLower(), out MyCitys cityEnum))
+            {
+                return BadRequest("city not valid");
+            }
+            var suggestlist = await _db.Places
+                                       .Where(p => p.City == cityEnum)
+                                       .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                       .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
+                                       .ToListAsync();
+            return Ok(suggestlist);
+        }
+
+
+        [HttpGet("MostPlaces")]
+        public async Task<IActionResult> GetMostPlace()
+        {
+            
+            var mostplaces = await _db.Places
+                                       .Where(p => p.Rating>=4)
+                                       .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                       .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                       .OrderBy(p=>p.Rating)
+                                       .ToListAsync();
+            return Ok(mostplaces);
+        }
+        [HttpGet("OwnerPlaces")]
+        public async Task<IActionResult> OwnerPlaces(int ownerId)
+        {
+
+            var ownerplaces = await _db.Places
+                                       .Where(p => p.OwnerId==ownerId)
+                                       .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                       .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                       .OrderBy(p => p.PlaceId)
+                                       .ToListAsync();
+            return Ok(ownerplaces);
+        }
+        /*[HttpGet("Details/{placeid}")]
+        public async Task<IActionResult> GetPlaceDetails(int placeid)
+        {
+            if(placeid == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
+            var place = await _db.Places
+                                 .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                 .FirstOrDefaultAsync(p => p.PlaceId == placeid);
+            if (place == null)
+            {
+                return NotFound($"place {placeid} is not founf");
+            }
+            return Ok(place);
+        }
+        */
         [HttpGet("Search")]
         public async Task<IActionResult> SearchPlaces(DateTime choicdate, int? minPrice, int? maxPrice, int? gusts, string typeshift, string? city,ICollection<string>? features)
         {
             var query = _db.Places
                            .Include(p => p.Listimage.OrderBy(i => i.ImageId))
-                           .Where(p => p.Status == MyStatus.enabled)
+                           .Where(p => p.PlaceStatus == MyStatus.enabled)
                            .AsQueryable(); 
             if (minPrice.HasValue)
                 query = query.Where(p => p.Price >= minPrice);
@@ -259,45 +305,24 @@ namespace Reziox.Controllers
             }//end booked?
             return Ok(results);
         }
-        [HttpGet("Places{city}")]
-        public async Task<IActionResult> GetSuggestPlace(string city)
-        {
-            if (string.IsNullOrEmpty(city))
-            {
-                return BadRequest("city is null or empty");
-            }
-            if(!Enum.TryParse(city.ToLower(), out MyCitys cityEnum))
-            {
-                return BadRequest("city not valid");
-            }
-            var suggestlist = await _db.Places
-                                       .Where(p => p.City == cityEnum)
-                                       .Where(p => p.Status == MyStatus.enabled)
-                                       .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
-                                       .ToListAsync();
-            return Ok(suggestlist);
-        }
-
-        /*[HttpGet("Details/{placeid}")]
-        public async Task<IActionResult> GetPlaceDetails(int placeid)
-        {
-            if(placeid == 0)
-            {
-                return BadRequest("0 id is not correct !");
-            }
-            var place = await _db.Places
-                                 .Include(p => p.Listimage.OrderBy(i => i.ImageId))
-                                 .FirstOrDefaultAsync(p => p.PlaceId == placeid);
-            if (place == null)
-            {
-                return NotFound($"place {placeid} is not founf");
-            }
-            return Ok(place);
-        }
-        */
         private async Task SentNotificationAsync(int userid, string message)
         {
             await _db.Notifications.AddAsync(new Notification { Id = userid, Message = message });
+        }
+        private async Task<string> SaveImageAsync(IFormFile image)
+        {
+            if (image == null || image.Length == 0)
+                return null;
+            //requst
+            using var stream = image.OpenReadStream();
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(image.FileName, stream)
+            };
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            if (uploadResult.Error != null)
+                return null;
+            return uploadResult.SecureUrl.ToString();
         }
     }
 

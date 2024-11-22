@@ -22,7 +22,7 @@
     {
         enabled = 1,
         pending = 0,
-        diseabled = -1,
+        disabled = -1,
     }
     public enum MyCitys
     {

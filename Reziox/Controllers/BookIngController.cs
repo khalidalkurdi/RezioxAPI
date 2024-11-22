@@ -132,9 +132,7 @@ namespace Rezioxgithub.Controllers
             //end check is booked or not
             var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate =datebooking,Typeshifts= typeshift  };
             await _db.Bookings.AddAsync(mybooking);
-            await SentNotificationAsync(existuser.UserId, $"Your reservation has been successfully received on date {datebooking}");
-            await SentNotificationAsync(existplace.OwnerId, $"A place you own is reserved on date{datebooking}");
-           
+            await SentNotificationAsync(existplace.OwnerId, $"A place you own is reserved on date{datebooking}");          
             await _db.SaveChangesAsync();
             return Ok("Booking added successfully");
         }
@@ -167,6 +165,24 @@ namespace Rezioxgithub.Controllers
             await _db.SaveChangesAsync();
             return Ok("Booking canceled successfully..");
         }
+        [HttpGet("DetailsBooking{OwnerId}")]
+        public async Task<IActionResult> GetDetailsBooking(int bookingId)
+        {
+            if (bookingId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
+            var existbookings = await _db.Bookings
+                                         .Where(p => p.BookingId == bookingId)                                        
+                                         .Include(u => u.user)
+                                         .Include(b => b.place)                                         
+                                         .ToListAsync();
+            if (existbookings == null)
+            {
+                return NotFound("is not found");
+            }
+            return Ok(existbookings);
+        }
         [HttpGet("BookingsUser{userId}")]
         public async Task<IActionResult> GetBookingsForUser(int userId)
         {
@@ -176,6 +192,8 @@ namespace Rezioxgithub.Controllers
             }
             var bookings = await _db.Bookings
                                     .Where(b => b.UserId == userId)
+                                    .Where(b=>b.StatusBooking==MyStatus.enabled)
+                                    .Where(p => p.BookingDate.DayOfYear > DateTime.Now.DayOfYear)
                                     .Include(b => b.place)
                                     .OrderDescending()
                                     .ToListAsync();
@@ -186,14 +204,16 @@ namespace Rezioxgithub.Controllers
             return Ok(bookings);
         }
         [HttpGet("BookingsOwner{OwnerId}")]
-        public async Task<IActionResult> GetBookingsForOwner(int OwnerId)
+        public async Task<IActionResult> GetBookingsForOwner(int ownerId)
         {
-            if (OwnerId == 0)
+            if (ownerId == 0)
             {
                 return BadRequest("0 id is not correct !");
             }
             var bookings = await _db.Bookings
-                                    .Where(p => p.place.OwnerId == OwnerId)
+                                    .Where(p => p.place.OwnerId == ownerId)
+                                    .Where(p => p.StatusBooking==MyStatus.enabled)
+                                    .Where(p=>p.BookingDate.DayOfYear>DateTime.Now.DayOfYear)
                                     .Include(u => u.user)
                                     .Include(b => b.place)
                                     .OrderDescending()
@@ -203,6 +223,66 @@ namespace Rezioxgithub.Controllers
                 return NotFound("is not found");
             }
             return Ok(bookings);
+        }
+        [HttpGet("PendingBookings{OwnerId}")]
+        public async Task<IActionResult> PendingBookings(int ownerId)
+        {
+            if (ownerId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
+            var existbookings = await _db.Bookings
+                                    .Where(p => p.place.OwnerId == ownerId)
+                                    .Where(p => p.StatusBooking == MyStatus.disabled)
+                                    .Include(u => u.user)
+                                    .Include(b => b.place)
+                                    .OrderDescending()
+                                    .ToListAsync();
+            if (existbookings == null)
+            {
+                return NotFound("is not found");
+            }
+            return Ok(existbookings);
+        }
+        [HttpGet("EnableBooking{bookingId}")]
+        public async Task<IActionResult> EnableBooking(int bookingId)
+        {
+            if (bookingId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
+            var existbooking = await _db.Bookings
+                                    .Where(p => p.BookingId == bookingId)
+                                    .Where(p => p.StatusBooking == MyStatus.pending)
+                                    .FirstOrDefaultAsync();
+            if (existbooking == null)
+            {
+                return NotFound("is not found");
+            }
+            existbooking.StatusBooking = MyStatus.enabled;
+            await SentNotificationAsync(existbooking.UserId,"the owner accept your booking and it added to your bookings");
+            await _db.SaveChangesAsync();
+            return Ok();
+        }
+        [HttpGet("disabledBooking{bookingId}")]
+        public async Task<IActionResult> disabledBooking(int bookingId)
+        {
+            if (bookingId == 0)
+            {
+                return BadRequest("0 id is not correct !");
+            }
+            var existbooking = await _db.Bookings
+                                    .Where(p => p.BookingId == bookingId)
+                                    .Where(p => p.StatusBooking == MyStatus.pending)
+                                    .FirstOrDefaultAsync();
+            if (existbooking == null)
+            {
+                return NotFound("is not found");
+            }
+            existbooking.StatusBooking = MyStatus.disabled;
+            await SentNotificationAsync(existbooking.UserId, "the owner reject your booking");
+            await _db.SaveChangesAsync();
+            return Ok();
         }
         private async Task SentNotificationAsync(int userid, string message)
         {
