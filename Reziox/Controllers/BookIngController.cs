@@ -71,12 +71,11 @@ namespace Rezioxgithub.Controllers
             var nighttime = $"{existplace.NightShift } PM - {existplace.MorrningShift} AM";
             var fulltime = $"24 hours after start({existplace.NightShift } PM or {existplace.MorrningShift} AM)";
             return Ok( new{ 
-                Mornning =mornningshift ,
-                Night =nightshift,
-                Full=fullshift,
+                Mornning =mornningshift,
+                Night =nightshift,                
                 TimeMornning=mornningtime,
-                TimeNight=nighttime,
-                TimeFull=fulltime
+                TimeNight=nighttime
+                
             }) ;
         }
 
