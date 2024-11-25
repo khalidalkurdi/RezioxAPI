@@ -6,7 +6,6 @@ namespace Model.DTO
 {
     public class dtoSignUp
     {
-
         [Required]
         public string UserName { get; set; }
         [Required]

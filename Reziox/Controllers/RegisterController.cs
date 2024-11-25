@@ -15,26 +15,10 @@ namespace Reziox.Controllers
     public class RegisterController : ControllerBase
     {
         private readonly AppDbContext _db;
-        private readonly Cloudinary _cloudinary;
-        public RegisterController(AppDbContext db , Cloudinary cloudinary)
+        
+        public RegisterController(AppDbContext db )
         {
             _db = db;
-            _cloudinary = cloudinary;
-        }
-        private async Task<string> SaveImageAsync(IFormFile image)
-        {
-            if (image == null || image.Length == 0)
-                return null;
-            //requst
-            using var stream = image.OpenReadStream();
-            var uploadParams = new ImageUploadParams
-            {
-                File = new FileDescription(image.FileName, stream)
-            };
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-            if (uploadResult.Error != null)
-                return null;
-            return uploadResult.SecureUrl.ToString();
         }
 
         [HttpPost("SignUp")]
@@ -68,6 +52,16 @@ namespace Reziox.Controllers
             //add user
             await _db.Users.AddAsync(user);
             await _db.SaveChangesAsync();
+            var profileuser = new dtoProfile
+            {
+                UserId = user.UserId,
+                UserImage = user.UserImage,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                City = user.City.ToString(),
+            };
+            return Ok(profileuser);
             return Ok($"Your Account Created Successfuly !");
         }
         [HttpPost("LogIn")]
@@ -78,65 +72,29 @@ namespace Reziox.Controllers
                 return BadRequest(ModelState);
             }
             //find the user by email
-            var existuser = await _db.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email.ToLower());
-            if (existuser == null)
+            var existUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email.ToLower());
+            if (existUser == null)
             {
                 return Unauthorized("invalid email");
             }
             //verify the password 
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password.ToLower(), existuser.Password);
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password.ToLower(), existUser.Password);
             if (!isPasswordValid)
             {
                 return Unauthorized("invalid password.");
             }
             //return user information
-            return Ok(existuser);
-        }
-        [HttpPut("Edit")] // try create class for update
-        public async Task<IActionResult> UpdateUser(int userId ,[FromBody] dtoSignUp updateUserRequest,IFormFile? edituserimage)
-        {
-            if (!ModelState.IsValid)
+
+            var profileuser = new dtoProfile
             {
-                return BadRequest(ModelState);
-            }
-            if (userId == 0)
-            {
-                return BadRequest("0 id is not correct !");
-            }
-            //find the user by id
-            var user = await _db.Users.FirstOrDefaultAsync(u=>u.UserId==userId);
-            if (user == null)
-            {
-                return NotFound($"user {userId} not found.");
-            }
-            //update user info
-            var userimage = await SaveImageAsync(edituserimage);
-            if (userimage != null)
-            {
-                user.UserImage = userimage;
-            }
-            if (!Enum.TryParse(updateUserRequest.City.ToLower(), out MyCitys cityEnum))
-            {
-                return BadRequest($"City :{updateUserRequest.City}");
-            }
-            user.UserName = updateUserRequest.UserName;
-            user.Email = updateUserRequest.Email;
-            user.PhoneNumber = updateUserRequest.PhoneNumber;
-            user.City = cityEnum;         
-            await _db.SaveChangesAsync();
-            return Ok(user);
-        }
-        [HttpDelete("DeleteUser/{userid}")]
-        public async Task<IActionResult> DeleteUser(int userid)
-        {
-            var user = await _db.Users.FindAsync(userid);
-            if (user == null)
-            {
-                return NotFound($" user {userid} not found.");
-            }
-            _db.Users.Remove(user);
-            await _db.SaveChangesAsync();
-            return Ok("user deleted successfuly ...");
+                UserId = existUser.UserId,
+                UserImage = existUser.UserImage,
+                UserName = existUser.UserName,
+                Email = existUser.Email,
+                PhoneNumber = existUser.PhoneNumber,
+                City = existUser.City.ToString(),
+            };
+            return Ok(profileuser);
         }
 
     }

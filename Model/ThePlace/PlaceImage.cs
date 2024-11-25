@@ -14,7 +14,7 @@ namespace Reziox.Model.ThePlace
         [Required]
         public string ImageUrl { get; set; }
         [Required]
-        [JsonIgnore]
+        
         public Place place { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using Reziox.Model.ThePlace;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Reziox.Model.TheUsers
 {
@@ -27,6 +28,8 @@ namespace Reziox.Model.TheUsers
         public MyCitys City { get; set; }
         [NotMapped]
         public int Places => Myplaces.Count == 0 ? 0 :Myplaces.Count;
+        [NotMapped]
+        public int Bookings => Mybookings.Count == 0 ? 0 : Myplaces.Count;
 
         public ICollection<Booking> Mybookings { get; set; } = new List<Booking>();
         public ICollection<Place> Myplaces { get; set; }=new List<Place>();

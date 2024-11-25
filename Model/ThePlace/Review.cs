@@ -18,11 +18,9 @@ namespace Reziox.Model.ThePlace
         [Range(0.0, 5.0)]
         [Required]
         public double Rating { get; set; }
-        [Required]
-        [JsonIgnore]
+        [Required]       
         public User user { get; set; }
         [Required]
-        [JsonIgnore]
         public Place place { get; set; }
     }
 }

@@ -17,7 +17,7 @@ namespace Reziox.Model
         [ForeignKey("place")]
         public int PlaceId { get; set; }
         [Required]
-        [JsonIgnore]
+        
         public User user { get; set; }
         [Required]
         public Place place { get; set; }

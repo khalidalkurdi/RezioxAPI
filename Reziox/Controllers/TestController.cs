@@ -36,11 +36,6 @@ namespace Rezioxgithub.Controllers
             return Ok(uploadResult.SecureUrl.ToString());
         }
 
-
-
-
-
-
         [HttpPost]
         public async Task<IActionResult> SaveImageAsync(IFormFile image)
         {

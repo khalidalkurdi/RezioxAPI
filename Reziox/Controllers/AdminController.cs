@@ -60,7 +60,8 @@ namespace Rezioxgithub.Controllers
         {
             var existbookings = await _db.Places                                   
                                     .Where(p => p.PlaceStatus == MyStatus.pending)
-                                    .Include(u => u.user)                                   
+                                    .Include(p =>p.Listimage.OrderBy(i => i.ImageId))
+                                    .Include(p=>p.user)
                                     .OrderBy(p=>p.PlaceId)
                                     .ToListAsync();
             if (existbookings == null)
@@ -82,12 +83,12 @@ namespace Rezioxgithub.Controllers
                                     .FirstOrDefaultAsync();
             if (existplace == null)
             {
-                return NotFound("is not found");
+                return NotFound("is not found or enabled");
             }
             existplace.PlaceStatus = MyStatus.enabled;
             await SentNotificationAsync(existplace.OwnerId, "the admin accept your chalet and it added to your chalets");
             await _db.SaveChangesAsync();
-            return Ok();
+            return Ok("place is enableing");
         }
         [HttpGet("DisabledPlace{placeId}")]
         public async Task<IActionResult> DisabledPlace(int placeId)
@@ -156,7 +157,7 @@ namespace Rezioxgithub.Controllers
         }
         private async Task SentNotificationAsync(int userid, string message)
         {
-            await _db.Notifications.AddAsync(new Notification { Id = userid, Message = message });
+            await _db.Notifications.AddAsync(new Notification {UserId = userid, Message = message });
         }
 
     }

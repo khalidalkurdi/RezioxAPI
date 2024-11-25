@@ -17,19 +17,14 @@ namespace Reziox.Model.ThePlace
         [ForeignKey("place")]
         public int PlaceId { get; set; }
         [Required]
-        public DateTime BookingDate { get; set; }
+        public DateOnly BookingDate { get; set; }
         public MyShifts Typeshifts { get; set; }
         public MyStatus StatusBooking { get; set; } = MyStatus.pending;
-        /*
         [Required]
-        public DateTime StartTime { get; set; }
-        [Required]
-        public DateTime EndTime { get; set; }*/
-        [Required]
-        [JsonIgnore]
+        
         public User user { get; set; }
         [Required]
-        [JsonIgnore]
+        
         public Place place { get; set; }
     }
 }
