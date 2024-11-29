@@ -20,7 +20,7 @@ namespace Rezioxgithub.Controllers
             _db = db;
         }
 
-        [HttpPost("checkdate")]
+        [HttpPost("CheckBooking")]
         public async Task<IActionResult> FirstAddBooking(int placeId, int userId, DateOnly datebooking)
         {
             if (placeId == 0 || userId == 0)
@@ -32,8 +32,8 @@ namespace Rezioxgithub.Controllers
                 return BadRequest("this date in the past");
             }
             //find exist place and user
-            var existplace = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
-            var existuser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            var existplace = await _db.Places.Where(p => p.PlaceId == placeId).FirstOrDefaultAsync();
+            var existuser = await _db.Users.Where(u => u.UserId == userId).FirstOrDefaultAsync();
             if (existplace == null || existuser == null)
             {
                 return NotFound("User or Place not found.");
@@ -61,7 +61,7 @@ namespace Rezioxgithub.Controllers
                 .FirstOrDefaultAsync();
             if (existbooking!=null && existbooking.Typeshifts==MyShifts.full)
             {
-                return BadRequest("this palce is booking now!");
+                return Content("this palce is booking now!");
             }
             //end check is booked or not
 
@@ -86,7 +86,7 @@ namespace Rezioxgithub.Controllers
 
         }
 
-        [HttpPost("Add")]
+        [HttpPost("ConfirmBooking")]
         public async Task<IActionResult> SecondAddBooking(int placeId, int userId, DateOnly datebooking,string bookinshift)
         {
             if(placeId == 0 || userId == 0  )
@@ -98,8 +98,8 @@ namespace Rezioxgithub.Controllers
                 return BadRequest("this date in the past");
             }
             //find exist place and user
-            var existplace = await _db.Places.FirstOrDefaultAsync(p => p.PlaceId == placeId);
-            var existuser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            var existplace = await _db.Places.Where(p => p.PlaceId == placeId).FirstOrDefaultAsync();
+            var existuser = await _db.Users.Where(u => u.UserId == userId).FirstOrDefaultAsync();
             if (existplace == null || existuser == null)
             {
                 return NotFound("User or Place not found.");
@@ -145,28 +145,28 @@ namespace Rezioxgithub.Controllers
         }
 
         [HttpDelete("Cancel")]
-        public async Task<IActionResult> CancelBooking(int bookingId, DateOnly datecancel)
+        public async Task<IActionResult> CancelBooking(int bookingId)
         {
             if (bookingId == 0)
             {
-                return BadRequest("Id 0 is not crrect");
+                return BadRequest("id 0 is not crrect");
             }
             var existbooking = await _db.Bookings
-                .Where(b=>b.BookingId==bookingId)
-                .Where(b => b.StatusBooking == MyStatus.enabled)
-                .FirstOrDefaultAsync();
+                                        .Where(b=>b.BookingId==bookingId)
+                                        .Where(b => b.StatusBooking == MyStatus.enabled)
+                                        .Include(b => b.place)
+                                        .FirstOrDefaultAsync();
 
             if (existbooking == null)
             {
-                return NotFound("Booking not found.");
+                return NotFound("booking not found.");
             }
             //condtion for cancle
-            if (existbooking.BookingDate.DayOfYear == datecancel.DayOfYear ||
-                existbooking.BookingDate.DayOfYear-3==datecancel.DayOfYear)
+            if (existbooking.BookingDate.DayOfYear <= DateTime.Today.DayOfYear+2)
             {
-                return BadRequest("can not cancle");
+                return BadRequest("can not cancle condition must canceling date  at maximum 3 days before booking date ");
             }
-            _db.Bookings.Remove(existbooking);
+            existbooking.StatusBooking = MyStatus.cancel;
             //add notifiacation for  owner and user
             await SentNotificationAsync(existbooking.place.OwnerId, $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
             await SentNotificationAsync(existbooking.UserId, $"You canceled the booking on date {existbooking.BookingDate}");
@@ -214,7 +214,7 @@ namespace Rezioxgithub.Controllers
                 PlaceId = existbooking.PlaceId,
                 PlaceName = existbooking.place.PlaceName,
                 OwnerPhone = existbooking.place.user.PhoneNumber,
-                BookingDate = existbooking.BookingDate.ToString(),
+                BookingDate = $"{existbooking.BookingDate.DayOfWeek}-{existbooking.BookingDate}",
                 Time = rangetime,
                 Price = existbooking.place.Price,
                 City = existbooking.place.City.ToString(),
@@ -234,16 +234,16 @@ namespace Rezioxgithub.Controllers
             var existbookings = await _db.Bookings
                                          .Where(b => b.UserId == userId)
                                          .Where(b => b.StatusBooking == MyStatus.enabled)
-                                         .Where(p => p.BookingDate.DayOfYear > DateTime.Now.DayOfYear)
+                                         .Where(p => p.BookingDate.DayOfYear >= DateTime.Now.DayOfYear)
                                          .Include(b => b.place)
                                          .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
-                                         .OrderBy(p=>p.BookingDate)
+                                         .OrderBy(b => b.BookingDate)
                                          .ToListAsync();
             if (existbookings == null)
             {
                 return NotFound("is not found");
             }
-            var bookings = CardBookings(existbookings);
+            var bookings = CreateCardBookings(existbookings).Result;
             return Ok(bookings);
         }
         
@@ -251,9 +251,9 @@ namespace Rezioxgithub.Controllers
         {
             await _db.Notifications.AddAsync(new Notification { UserId = userid, Message = message });
         }
-        private async Task<List<dtoCardSchedule>> CardBookings(List<Booking> bookings)
+        private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
         {   string rangetime="hh:mm";
-            var cardbookings = new List<dtoCardSchedule>();
+            var cardbookings = new List<dtoCardBookingSchedule>();
             foreach (var booking in bookings)
             {
                 TimeSpan dif=booking.BookingDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now;
@@ -270,7 +270,7 @@ namespace Rezioxgithub.Controllers
                 {
                     rangetime = $"{booking.place.MorrningShift} - {booking.place.MorrningShift-1}:23 hours ";
                 }
-                cardbookings.Add(new dtoCardSchedule
+                cardbookings.Add(new dtoCardBookingSchedule
                 {
                     BookingId = booking.BookingId,
                     BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.ElementAt(0).ImageUrl : null,

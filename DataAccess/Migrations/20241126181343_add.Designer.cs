@@ -12,8 +12,8 @@ using Reziox.DataAccess;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241123190150_addall")]
-    partial class addall
+    [Migration("20241126181343_add")]
+    partial class add
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,31 @@ namespace DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Model.Inquiry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Inquirys");
+                });
 
             modelBuilder.Entity("Reziox.Model.Favorite", b =>
                 {
@@ -81,8 +106,8 @@ namespace DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
 
-                    b.Property<DateTime>("BookingDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("BookingDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("PlaceId")
                         .HasColumnType("int");
@@ -158,6 +183,10 @@ namespace DataAccess.Migrations
 
                     b.Property<bool>("Jacuzzi")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LocationUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MasterRoom")
                         .HasColumnType("int");
@@ -241,6 +270,10 @@ namespace DataAccess.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PlaceId")
                         .HasColumnType("int");
@@ -331,6 +364,17 @@ namespace DataAccess.Migrations
                             PhoneNumber = "0781234567",
                             UserName = "khalid"
                         });
+                });
+
+            modelBuilder.Entity("Model.Inquiry", b =>
+                {
+                    b.HasOne("Reziox.Model.TheUsers.User", "user")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("Reziox.Model.Favorite", b =>

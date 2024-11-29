@@ -23,6 +23,7 @@
         enabled = 1,
         pending = 0,
         disabled = -1,
+        cancel= -2,
     }
     public enum MyCitys
     {

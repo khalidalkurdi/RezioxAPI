@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "JEFSqVq/2Fe1BPE6++OMrNbm0xJqjOJfTnGXcwMVMn2klOR8fAkFuc3FQNSiGC6TB7fqcdSc+g20SG/tZSznSg==",
+  "dgSpecHash": "6kO+GmUz+aBgQVllPJtlL0oDBtlpwcS7qVBRpMI3D1QUU5I/a45jnwq7i9pGLqh1dRryvn98EygecGgSh5ArCw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\Rezioxgithub.csproj",
+  "projectFilePath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\RezioxAPIs.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
@@ -27,6 +27,7 @@
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\microsoft.entityframeworkcore.design\\8.0.10\\microsoft.entityframeworkcore.design.8.0.10.nupkg.sha512",
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\8.0.10\\microsoft.entityframeworkcore.relational.8.0.10.nupkg.sha512",
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\microsoft.entityframeworkcore.sqlserver\\8.0.10\\microsoft.entityframeworkcore.sqlserver.8.0.10.nupkg.sha512",
+    "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\8.0.10\\microsoft.entityframeworkcore.tools.8.0.10.nupkg.sha512",
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\8.0.0\\microsoft.extensions.caching.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\microsoft.extensions.caching.memory\\8.0.1\\microsoft.extensions.caching.memory.8.0.1.nupkg.sha512",

@@ -19,6 +19,8 @@ namespace Model.DTO
         public int Price { get; set; }
         [Required]
         public string City { get; set; }
+        [Required]
+        public string LocationUrl { get; set; }
         [Required]       
         public int Visitors { get; set; }
         [Required]

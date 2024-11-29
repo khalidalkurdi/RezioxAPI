@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Model.DTO
 {
-    public class dtoRequsetBooking
+    public class dtoCardRequsetBooking
     {
         [Required]
         public int BookingId { get; set; }

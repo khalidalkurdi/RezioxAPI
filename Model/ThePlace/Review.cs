@@ -18,6 +18,8 @@ namespace Reziox.Model.ThePlace
         [Range(0.0, 5.0)]
         [Required]
         public double Rating { get; set; }
+        [Required]
+        public string? Comment { get; set; }
         [Required]       
         public User user { get; set; }
         [Required]

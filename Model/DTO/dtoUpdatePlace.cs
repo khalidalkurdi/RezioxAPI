@@ -1,15 +1,16 @@
-﻿using Reziox.Model.TheUsers;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Reziox.Model.ThePlace;
-using Reziox.Model;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Model.DTO
 {
-    public class dtoAddPlace
+    public class dtoUpdatePlace
     {
         [Required]
-        public int OwnerId { get; set; }
+        public int PlaceId { get; set; }
         [Required]
         public string PlaceName { get; set; }
         [Required]
@@ -38,7 +39,6 @@ namespace Model.DTO
         public int BathRoom { get; set; }
         [Required]
         public int Shower { get; set; }
-
         #region  features
         [Required]
         public bool WiFi { get; set; }

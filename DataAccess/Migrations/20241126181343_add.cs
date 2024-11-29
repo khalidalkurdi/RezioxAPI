@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class addall : Migration
+    public partial class add : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -45,6 +45,27 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Inquirys",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Inquirys", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Inquirys_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
@@ -74,6 +95,7 @@ namespace DataAccess.Migrations
                     OwnerId = table.Column<int>(type: "int", nullable: false),
                     PlaceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     City = table.Column<int>(type: "int", nullable: false),
+                    LocationUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PlaceStatus = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<int>(type: "int", nullable: false),
@@ -121,7 +143,7 @@ namespace DataAccess.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     PlaceId = table.Column<int>(type: "int", nullable: false),
-                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BookingDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Typeshifts = table.Column<int>(type: "int", nullable: false),
                     StatusBooking = table.Column<int>(type: "int", nullable: false)
                 },
@@ -139,7 +161,7 @@ namespace DataAccess.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -165,7 +187,7 @@ namespace DataAccess.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -196,7 +218,8 @@ namespace DataAccess.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     PlaceId = table.Column<int>(type: "int", nullable: false),
-                    Rating = table.Column<double>(type: "float", nullable: false)
+                    Rating = table.Column<double>(type: "float", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -212,7 +235,7 @@ namespace DataAccess.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
@@ -238,6 +261,11 @@ namespace DataAccess.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Favorites_UserId",
                 table: "Favorites",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Inquirys_UserId",
+                table: "Inquirys",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -277,6 +305,9 @@ namespace DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "Favorites");
+
+            migrationBuilder.DropTable(
+                name: "Inquirys");
 
             migrationBuilder.DropTable(
                 name: "Notifications");

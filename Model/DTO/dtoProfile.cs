@@ -25,6 +25,8 @@ namespace Model.DTO
         public int UserPlaces { get; set; }
         [Required]
         public int UserBookings { get; set; }
+        [Required]
+        public int BookingsCanceling {  get; set; }
 
     }
 }

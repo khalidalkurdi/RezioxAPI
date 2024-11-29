@@ -28,27 +28,30 @@ namespace Reziox.Controllers
             _db = db;
            
         }
-        [HttpGet("{placeid}")]
+        [HttpGet("GetPlace{placeid}")]
         public async Task<IActionResult> GetPlaceById(int placeid)
         {
             if (placeid == 0)
             {
                 return BadRequest(" 0 id is not correct !");
             }
-            var existplace = await _db.Places
-                                 .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
-                                 .Where(p=>p.PlaceStatus==MyStatus.enabled)
-                                 .FirstOrDefaultAsync(p=>p.PlaceId==placeid);
+            var existplace = await _db.Places.Where(p => p.PlaceId == placeid)
+                                             .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
+                                             .Include(p=>p.ListReviews)
+                                             .Include(p=>p.user)
+                                             .Where(p=>p.PlaceStatus==MyStatus.enabled)
+                                             .FirstOrDefaultAsync();
             if (existplace == null)
             {
                 return NotFound($"place {placeid} not found."); ;
             }
-
+            
             var dtodetailsplace = new dtoDetailsPlace {
                 PlaceId = existplace.PlaceId,
                 PlaceName = existplace.PlaceName,
                 Price = existplace.Price,
                 City = existplace.City.ToString(),
+                LocationUrl=existplace.LocationUrl,
                 Visitors = existplace.Visitors,
                 PlacePhone = existplace.user.PhoneNumber,
                 Rating = existplace.Rating,
@@ -58,13 +61,16 @@ namespace Reziox.Controllers
                 BedRoom = existplace.BedRoom,
                 AllBeds = existplace.Beds,
                 BathRoom = existplace.BathRoom,
-                Shower = existplace.Shower,                
+                Shower = existplace.Shower               
             };
-            foreach (var image in existplace.Listimage)
+            if (existplace.Listimage.Count != 0 )
             {
-                dtodetailsplace.ListImage.Add(image.ImageUrl);
+                foreach (var image in existplace.Listimage)
+                {
+                    dtodetailsplace.ListImage.Add(image.ImageUrl);
+                }
             }
-            dtodetailsplace.Features = await ConvertFeaturesToString(existplace);
+            dtodetailsplace.Features = ConvertFeaturesToString(existplace).Result;
             return Ok(dtodetailsplace);
         }
         [HttpGet("Places{city}")]
@@ -83,7 +89,7 @@ namespace Reziox.Controllers
                                        .Where(p => p.PlaceStatus == MyStatus.enabled)
                                        .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
                                        .ToListAsync();
-            var cardplaces= await CardPlaces(suggestlist);
+            var cardplaces= await CreateCardPlaces(suggestlist);
             return Ok(cardplaces);
         }
         [HttpGet("MostPlaces")]
@@ -91,12 +97,27 @@ namespace Reziox.Controllers
         {
             
             var mostplaces = await _db.Places
-                                       .Where(p => p.Rating>=4)
                                        .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                       .Include(p=>p.ListReviews)
                                        .Include(p => p.Listimage.OrderBy(i => i.ImageId))
-                                       .OrderBy(p=>p.Rating)
+                                       .OrderByDescending(p=>p.Rating)
                                        .ToListAsync();
-            var cardplaces = await CardPlaces(mostplaces);
+            if(mostplaces.Count == 0)
+            {
+                return NotFound("is not found now !");
+            }
+            foreach (var place in mostplaces) 
+            {
+                if (place.Rating<4 /*&& place.CountReviews>10*/)
+                {
+                    mostplaces.Remove(place);
+                }
+            }
+            if (mostplaces.Count == 0)
+            {
+                return NotFound("is not found now !");
+            }
+            var cardplaces = await CreateCardPlaces(mostplaces);
             return Ok(cardplaces);
         }
         [HttpGet("Search")]
@@ -160,6 +181,7 @@ namespace Reziox.Controllers
                 var notavilable = await _db.Bookings.Where(b => b.PlaceId == place.PlaceId)
                                         .Where(b => b.BookingDate.DayOfYear == choicdate.DayOfYear)
                                         .Where(b => (b.Typeshifts & Typeshift) == Typeshift)
+                                        .Where(b=>b.StatusBooking==MyStatus.enabled)
                                         .FirstOrDefaultAsync();
                 if (notavilable!=null)
                 {
@@ -167,10 +189,10 @@ namespace Reziox.Controllers
                 }
             }//end booked?
 
-            var cardplaces = await CardPlaces(results);
+            var cardplaces = CreateCardPlaces(results).Result;
             return Ok(cardplaces);
         }
-        private  async Task<List<dtoCardPlace>> CardPlaces(List<Place> places)
+        private  async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
         {
             var cardplaces = new List<dtoCardPlace>();
             foreach (var place in places)
@@ -191,21 +213,21 @@ namespace Reziox.Controllers
         private  async Task<List<string>> ConvertFeaturesToString(Place place)
         {
             var features = new List<string>();
-            if(place.WiFi)
-            if(place.PaymentByCard ) features.Add(place.PaymentByCard.ToString());
-            if(place.AirConditioning ) features.Add(place.AirConditioning.ToString());
-            if(place.Barbecue ) features.Add(place.Barbecue.ToString());
-            if(place.EventArea) features.Add(place.EventArea.ToString());
-            if(place.ChildrensPlayground) features.Add(place.ChildrensPlayground.ToString());
-            if(place.ChildrensPool) features.Add(place.ChildrensPool.ToString());
-            if(place.Parking) features.Add(place.Parking.ToString());
-            if(place.Jacuzzi) features.Add(place.Jacuzzi.ToString());
-            if(place.HeatedSwimmingPool) features.Add(place.HeatedSwimmingPool.ToString());
-            if(place.Football) features.Add(place.Football.ToString());
-            if(place.BabyFoot) features.Add(place.BabyFoot.ToString());
-            if(place.Ballpool) features.Add(place.Ballpool.ToString());
-            if(place.Tennis) features.Add(place.Tennis.ToString());
-            if(place.Volleyball) features.Add(place.Volleyball.ToString());
+            if(place.WiFi) features.Add("Wi-Fi");
+            if (place.PaymentByCard ) features.Add("Payment By Card");
+            if(place.AirConditioning ) features.Add("Air Conditioning");
+            if(place.Barbecue ) features.Add("Barbecue");
+            if(place.EventArea) features.Add("Event Area");
+            if(place.ChildrensPlayground) features.Add("Childrens Playground");
+            if(place.ChildrensPool) features.Add("Childrens Pool");
+            if(place.Parking) features.Add("Parking");
+            if(place.Jacuzzi) features.Add("Jacuzzi");
+            if(place.HeatedSwimmingPool) features.Add("HeatedSwimming Pool");
+            if(place.Football) features.Add("Football");
+            if(place.BabyFoot) features.Add("BabyFoot");
+            if(place.Ballpool) features.Add("Ballpool");
+            if(place.Tennis) features.Add("Tennis");
+            if(place.Volleyball) features.Add("Volleyball");
        
             return features;
         }

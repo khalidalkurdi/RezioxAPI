@@ -17,6 +17,8 @@ namespace Reziox.Model.ThePlace
         [Required]
         public MyCitys City { get; set; }
         [Required]
+        public string? LocationUrl { get; set; }
+        [Required]
         public MyStatus PlaceStatus { get; set; } = MyStatus.pending;
         [Required]
         public string Description { get; set; }
@@ -74,8 +76,7 @@ namespace Reziox.Model.ThePlace
         public bool Volleyball { get; set;}
         #endregion
         //count of bookings for each place
-        [NotMapped]
-        public int Bookings => Listbookings.Count == 0 ? 0 :Listbookings.Count;
+
         //AVG of rating
         [NotMapped]
         [Range(0.0, 5.0)]

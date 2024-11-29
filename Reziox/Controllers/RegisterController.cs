@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Model.DTO;
 using Reziox.DataAccess;
 using Reziox.Model;
+using Reziox.Model.ThePlace;
 using Reziox.Model.TheUsers;
 
 namespace Reziox.Controllers
@@ -29,7 +30,7 @@ namespace Reziox.Controllers
                 return BadRequest(ModelState);
             }
             //checked if the email already exists
-            var existemail = await _db.Users.FirstOrDefaultAsync(u => u.Email == signUpRequest.Email.ToLower());
+            var existemail = await _db.Users.Where(u => u.Email == signUpRequest.Email.ToLower()).FirstOrDefaultAsync();
             if (existemail != null)
             {
                 return BadRequest("email is already in use , change it.");
@@ -72,7 +73,7 @@ namespace Reziox.Controllers
                 return BadRequest(ModelState);
             }
             //find the user by email
-            var existUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email.ToLower());
+            var existUser = await _db.Users.Where(u => u.Email == loginRequest.Email.ToLower()).FirstOrDefaultAsync();
             if (existUser == null)
             {
                 return Unauthorized("invalid email");

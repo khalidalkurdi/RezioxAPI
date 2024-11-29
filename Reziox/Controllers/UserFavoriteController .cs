@@ -45,18 +45,20 @@ namespace Reziox.Controllers
 
             var existfavorites = await _db.Favorites
                                      .Where(f => f.UserId == userId)
-                                     .Include(p => p.place)
+                                     .Include(p => p.place)                             
                                      .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
                                      .Where(p => p.place.PlaceStatus == MyStatus.enabled)
                                      .OrderBy(f => f.FavoriteId)
                                      .ToListAsync();
-            var favorites = new List<dtoFavorite>();
+            var favorites = new List<dtoCardPlace>();
             foreach (var fav in existfavorites)
             {
-                favorites.Add(new dtoFavorite {
+                favorites.Add(new dtoCardPlace {
                     PlaceId = fav.PlaceId,
                     PlaceName = fav.place.PlaceName,
-                    BaseImageUrl = fav.place.Listimage.Count != 0 ? fav.place.Listimage.ElementAt(0).ImageUrl : null
+                    BaseImage = fav.place.Listimage.Count != 0 ? fav.place.Listimage.ElementAt(0).ImageUrl : null,
+
+
                 });
             }
 
@@ -72,12 +74,12 @@ namespace Reziox.Controllers
             var existuser = await _db.Users.FindAsync(userId);
             if (existuser == null)
             {
-                return NotFound($"{userId} is not exist");
+                return NotFound($" user {userId} is not exist");
             }
             var existplace = await _db.Places.FindAsync(placeId);
             if (existplace == null)
             {
-                return NotFound($"{placeId} is not exist");
+                return NotFound($"place {placeId} is not exist");
             }
             var fav = await _db.Favorites
                              .Where(u => u.UserId == userId)
@@ -93,7 +95,7 @@ namespace Reziox.Controllers
 
             existuser.Myfavorites.Add(favorite);
             await _db.SaveChangesAsync();
-            return Ok(existuser.Myfavorites.Count);
+            return Ok("added to favorites successfuly");
         }
         [HttpDelete("RemoveFavorites{userId}")]
         public async Task<IActionResult> RemoveFromFavorites(int userId, int placeId)
@@ -109,31 +111,14 @@ namespace Reziox.Controllers
 
             if (existfavorite == null)
             {
-                return NotFound("Favorite not found ");
+                return NotFound("favorite not found ");
             }
             _db.Favorites.Remove(existfavorite);
             await _db.SaveChangesAsync();
 
-            return Ok("Removed from favorites.");
+            return Ok("removed from favorites.");
         }
-        private  async Task<List<dtoCardPlace>> CardPlaces(List<Place> places)
-        {
-            var cardplaces = new List<dtoCardPlace>();
-            foreach (var place in places)
-            {
-                cardplaces.Add(new dtoCardPlace
-                {
-                    PlaceId = place.PlaceId,
-                    PlaceName = place.PlaceName,
-                    Price = place.Price,
-                    City = place.City.ToString(),
-                    Visitors = place.Visitors,
-                    Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.ElementAt(0).ImageUrl : null
-                });
-            }
-            return cardplaces;
-        }
+        
        
     }
 

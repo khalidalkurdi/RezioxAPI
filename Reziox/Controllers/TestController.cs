@@ -2,6 +2,8 @@
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Model.DTO;
 using Reziox.DataAccess;
 using System.Text.Json;
 
@@ -14,11 +16,49 @@ namespace Rezioxgithub.Controllers
         private readonly AppDbContext _db;
         private readonly Cloudinary _cloudinary;
         private readonly string _imgbbApiKey = "3b5f46e363fabef53ca5d88fcd71578a";
-        public TestController(AppDbContext db ,Cloudinary Cloud)
+        public TestController(AppDbContext db, Cloudinary Cloud)
         {
             _db = db;
             _cloudinary = Cloud;
         }
+
+
+
+        [HttpGet("GetProfile/{userId}")]
+        public async Task<IActionResult> GetUserProfile( int userId)
+        {
+            if (userId == 0)
+            {
+                return BadRequest("0 id is not correct");
+            }
+            var existUser = await _db.Users
+                                      .Where(u => u.UserId == userId)
+                                      .Include(u => u.Myplaces)
+                                      .Include(u => u.Mybookings)
+                                      .FirstOrDefaultAsync();
+            if (existUser == null)
+            {
+                return NotFound("is not found");
+            }
+            var profileuser = new dtoProfile
+            {
+                UserId = existUser.UserId,
+                UserImage = existUser.UserImage,
+                UserName = existUser.UserName,
+                Email = existUser.Email,
+                PhoneNumber = existUser.PhoneNumber,
+                City = existUser.City.ToString(),
+                UserPlaces = existUser.Places,
+                UserBookings = existUser.Bookings,
+                BookingsCanceling = existUser.BookingsCanceling
+            };
+            return Ok(profileuser);
+        }
+
+
+
+
+
         [HttpPost("ActionName")]
         public async Task<IActionResult> SaveImageCloudinaryAsync(IFormFile image)
         {
