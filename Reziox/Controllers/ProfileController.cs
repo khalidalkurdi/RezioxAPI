@@ -23,8 +23,8 @@ namespace Reziox.Controllers
             _db = db;
             _cloudinary = cloudinary;
         }
-        [HttpGet("GetProfile{userId}")]
-        public async Task<IActionResult> GetUserProfile(int userId)
+        [HttpGet("Get{userId}")]
+        public async Task<IActionResult> Get(int userId)
         {
             var existUser = await _db.Users
                                       .Where(u => u.UserId == userId)
@@ -49,8 +49,8 @@ namespace Reziox.Controllers
             };
             return Ok(profileuser);
         }
-        [HttpPut("EditProfile")] // try create class for update
-        public async Task<IActionResult> EditProfile([FromForm] dtoProfile updateUserRequest, IFormFile? edituserimage)
+        [HttpPut("Edit")] // try create class for update
+        public async Task<IActionResult> Edit([FromForm] dtoProfile updateUserRequest, IFormFile? edituserimage)
         {
             if (!ModelState.IsValid)
             {

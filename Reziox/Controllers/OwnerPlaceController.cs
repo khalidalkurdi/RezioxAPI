@@ -23,7 +23,7 @@ namespace RezioxAPIs.Controllers
             _cloudinary = cloudinary;
         }
         [HttpPost("Add")]
-        public async Task<IActionResult> AddPlace([FromForm] dtoAddPlace placePost /*, ICollection<IFormFile> images*/)
+        public async Task<IActionResult> Add([FromForm] dtoAddPlace placePost /*, ICollection<IFormFile> images*/)
         {
             if (!ModelState.IsValid)
             {
@@ -104,7 +104,7 @@ namespace RezioxAPIs.Controllers
             return Ok("place sent to admin");
         }
         [HttpPut("Edit")]//try create class for edit
-        public async Task<IActionResult> EditPlace([FromForm] dtoUpdatePlace updateplace /*, ICollection<IFormFile> images*/)
+        public async Task<IActionResult> Edit([FromForm] dtoUpdatePlace updateplace /*, ICollection<IFormFile> images*/)
         {
 
             if (!ModelState.IsValid)
@@ -191,8 +191,8 @@ namespace RezioxAPIs.Controllers
             await _db.SaveChangesAsync();
             return Ok("place sent to admin");
         }
-        [HttpDelete("Remove/{placeid}")]
-        public async Task<IActionResult> RemovePlace(int placeid)
+        [HttpDelete("Remove{placeid}")]
+        public async Task<IActionResult> Remove(int placeid)
         {
             if (placeid == 0)
             {
@@ -220,7 +220,7 @@ namespace RezioxAPIs.Controllers
             await _db.SaveChangesAsync();
             return Ok("place deleted successfuly ! ");
         }
-        [HttpGet("OwnerPlaces")]
+        [HttpGet("GetPlaces")]
         public async Task<IActionResult> OwnerPlaces(int ownerId)
         {
             if (ownerId == 0)

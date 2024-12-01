@@ -20,7 +20,7 @@ namespace Rezioxgithub.Controllers
             _db = db;
         }
 
-        [HttpPost("CheckBooking")]
+        [HttpPost("Check")]
         public async Task<IActionResult> FirstAddBooking(int placeId, int userId, DateOnly datebooking)
         {
             if (placeId == 0 || userId == 0)
@@ -86,7 +86,7 @@ namespace Rezioxgithub.Controllers
 
         }
 
-        [HttpPost("ConfirmBooking")]
+        [HttpPost("Confirm")]
         public async Task<IActionResult> SecondAddBooking(int placeId, int userId, DateOnly datebooking,string bookinshift)
         {
             if(placeId == 0 || userId == 0  )
@@ -145,7 +145,7 @@ namespace Rezioxgithub.Controllers
         }
 
         [HttpDelete("Cancel")]
-        public async Task<IActionResult> CancelBooking(int bookingId)
+        public async Task<IActionResult> Cancel(int bookingId)
         {
             if (bookingId == 0)
             {
@@ -173,8 +173,8 @@ namespace Rezioxgithub.Controllers
             await _db.SaveChangesAsync();
             return Ok("Booking canceled successfully..");
         }
-        [HttpGet("DetailsBooking{bookingId}")]
-        public async Task<IActionResult> GetDetailsBooking(int bookingId)
+        [HttpGet("Details{bookingId}")]
+        public async Task<IActionResult> Details(int bookingId)
         {
             if (bookingId == 0)
             {
@@ -224,8 +224,8 @@ namespace Rezioxgithub.Controllers
             };
             return Ok(detailsbooking);
         }
-        [HttpGet("BookingsUser{userId}")]
-        public async Task<IActionResult> GetBookingsForUser(int userId)
+        [HttpGet("GetBookings{userId}")]
+        public async Task<IActionResult> GetBookings(int userId)
         {
             if(userId == 0)
             {
@@ -256,8 +256,9 @@ namespace Rezioxgithub.Controllers
             var cardbookings = new List<dtoCardBookingSchedule>();
             foreach (var booking in bookings)
             {
-                TimeSpan dif=booking.BookingDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now;
-                
+                TimeSpan dif = booking.BookingDate.ToDateTime(TimeOnly.MinValue.AddHours(booking.place.MorrningShift)) - DateTime.UtcNow;
+
+
                 if (booking.Typeshifts == MyShifts.morning)
                 {
                     rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift-1}PM";
@@ -265,10 +266,11 @@ namespace Rezioxgithub.Controllers
                 if (booking.Typeshifts == MyShifts.night)
                 {
                     rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift-1}AM";
+                    dif = booking.BookingDate.ToDateTime(TimeOnly.MinValue.AddHours(booking.place.NightShift+booking.place.MorrningShift)) - DateTime.UtcNow;
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $"{booking.place.MorrningShift} - {booking.place.MorrningShift-1}:23 hours ";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift-1}AM";
                 }
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
@@ -277,7 +279,7 @@ namespace Rezioxgithub.Controllers
                     PlaceName = booking.place.PlaceName,
                     BookingDate = booking.BookingDate.ToString(),
                     Time = rangetime,
-                    CountDown=$"{dif.Days} day & {dif.Hours} hour"
+                    CountDown=$"{dif.Days} day & {dif.Hours} hour & {dif.Minutes}"
 
                 }) ;
             }

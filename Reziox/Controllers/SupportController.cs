@@ -22,8 +22,8 @@ namespace Reziox.Controllers
         {
             _db = db;
         }
-        [HttpPost("Support")]
-        public async Task<IActionResult> Support([FromBody] dtoInquiry inquiry)
+        [HttpPost("Requset")]
+        public async Task<IActionResult> Requset([FromBody] dtoInquiry inquiry)
         {
             if (!ModelState.IsValid)
             {

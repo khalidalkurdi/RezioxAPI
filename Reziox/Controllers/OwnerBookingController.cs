@@ -17,8 +17,8 @@ namespace RezioxAPIs.Controllers
         {
             _db = db;
         }
-        [HttpGet("BookingsOwner{ownerId}")]
-        public async Task<IActionResult> GetBookingsForOwner(int ownerId)
+        [HttpGet("GetBookings{ownerId}")]
+        public async Task<IActionResult> GetBookings(int ownerId)
         {
             if (ownerId == 0)
             {
@@ -39,8 +39,8 @@ namespace RezioxAPIs.Controllers
             var bookings = CreateCardBookings(existbookings).Result;
             return Ok(bookings);
         }
-        [HttpGet("GetPendingBookings{ownerId}")]
-        public async Task<IActionResult> GetPendingBookings(int ownerId)
+        [HttpGet("GetPendings{ownerId}")]
+        public async Task<IActionResult> GetPendings(int ownerId)
         {
             if (ownerId == 0)
             {
@@ -61,8 +61,8 @@ namespace RezioxAPIs.Controllers
             var requstbookings = CreateCardRequst(existbookings).Result;
             return Ok(requstbookings);
         }
-        [HttpGet("EnableBooking{bookingId}")]
-        public async Task<IActionResult> EnableBooking(int bookingId)
+        [HttpGet("Enabled{bookingId}")]
+        public async Task<IActionResult> Enabled(int bookingId)
         {
             if (bookingId == 0)
             {
@@ -106,8 +106,8 @@ namespace RezioxAPIs.Controllers
             await _db.SaveChangesAsync();
             return Ok("Approve booking successfuly");
         }
-        [HttpGet("DisabledBooking{bookingId}")]
-        public async Task<IActionResult> DisabledBooking(int bookingId)
+        [HttpGet("Disabled{bookingId}")]
+        public async Task<IActionResult> Disabled(int bookingId)
         {
             if (bookingId == 0)
             {
@@ -128,7 +128,7 @@ namespace RezioxAPIs.Controllers
         }
         private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
         {
-            string rangetime = "hh:mm";
+            string rangetime = "";
             var cardbookings = new List<dtoCardBookingSchedule>();
             foreach (var booking in bookings)
             {
@@ -176,7 +176,7 @@ namespace RezioxAPIs.Controllers
         }
         private async Task<List<dtoCardRequsetBooking>> CreateCardRequst(List<Booking> bookings)
         {
-            string rangetime = "hh:mm";
+            string rangetime = "";
             var cardbookings = new List<dtoCardRequsetBooking>();
             foreach (var booking in bookings)
             {

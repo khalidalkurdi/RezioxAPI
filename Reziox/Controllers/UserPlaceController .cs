@@ -28,8 +28,8 @@ namespace Reziox.Controllers
             _db = db;
            
         }
-        [HttpGet("GetPlace{placeid}")]
-        public async Task<IActionResult> GetPlaceById(int placeid)
+        [HttpGet("Get{placeid}")]
+        public async Task<IActionResult> GetById(int placeid)
         {
             if (placeid == 0)
             {
@@ -73,8 +73,8 @@ namespace Reziox.Controllers
             dtodetailsplace.Features = ConvertFeaturesToString(existplace).Result;
             return Ok(dtodetailsplace);
         }
-        [HttpGet("Places{city}")]
-        public async Task<IActionResult> GetSuggestPlace(string city)
+        [HttpGet("Suggests{city}")]
+        public async Task<IActionResult> GetSuggests(string city)
         {
             if (string.IsNullOrEmpty(city))
             {
@@ -92,8 +92,8 @@ namespace Reziox.Controllers
             var cardplaces= await CreateCardPlaces(suggestlist);
             return Ok(cardplaces);
         }
-        [HttpGet("MostPlaces")]
-        public async Task<IActionResult> GetMostPlace()
+        [HttpGet("Mosts")]
+        public async Task<IActionResult> GetMost()
         {
             
             var mostplaces = await _db.Places

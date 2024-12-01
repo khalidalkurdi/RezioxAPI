@@ -23,8 +23,8 @@ namespace Reziox.Controllers
 
         }
 
-        [HttpGet("GetNotifications{userId}")]
-        public async Task<IActionResult> GetNotifications(int userId)
+        [HttpGet("Get{userId}")]
+        public async Task<IActionResult> Get(int userId)
         {
             if (userId == 0)
             {
