@@ -41,35 +41,35 @@ namespace Model.DTO
 
         #region  features
         [Required]
-        public bool WiFi { get; set; }
+        public bool WiFi { get; set; } = false;
         [Required]
-        public bool PaymentByCard { get; set; }
+        public bool PaymentByCard { get; set; } = false;
         [Required]
-        public bool AirConditioning { get; set; }
+        public bool AirConditioning { get; set; } = false;
         [Required]
-        public bool Barbecue { get; set; }
+        public bool Barbecue { get; set; } = false;
         [Required]
-        public bool EventArea { get; set; }
+        public bool EventArea { get; set; } = false;
         [Required]
-        public bool ChildrensPlayground { get; set; }
+        public bool ChildrensPlayground { get; set; } = false;
         [Required]
-        public bool ChildrensPool { get; set; }
+        public bool ChildrensPool { get; set; } = false;
         [Required]
-        public bool Parking { get; set; }
+        public bool Parking { get; set; } = false;
         [Required]
-        public bool Jacuzzi { get; set; }
+        public bool Jacuzzi { get; set; } = false;
         [Required]
-        public bool HeatedSwimmingPool { get; set; }
+        public bool HeatedSwimmingPool { get; set; } = false;
         [Required]
-        public bool Football { get; set; }
+        public bool Football { get; set; } = false;
         [Required]
-        public bool BabyFoot { get; set; }
+        public bool BabyFoot { get; set; } = false;
         [Required]
-        public bool Ballpool { get; set; }
+        public bool Ballpool { get; set; } = false;
         [Required]
-        public bool Tennis { get; set; }
+        public bool Tennis { get; set; } = false;
         [Required]
-        public bool Volleyball { get; set; }
+        public bool Volleyball { get; set; } = false;
         #endregion
     }
 }

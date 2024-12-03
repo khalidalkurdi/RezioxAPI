@@ -23,8 +23,8 @@ namespace Reziox.Controllers
             _db = db;
             _cloudinary = cloudinary;
         }
-        [HttpGet("Get{userId}")]
-        public async Task<IActionResult> Get(int userId)
+        [HttpGet("Get/{userId}")]
+        public async Task<IActionResult> Get([FromRoute] int userId)
         {
             var existUser = await _db.Users
                                       .Where(u => u.UserId == userId)

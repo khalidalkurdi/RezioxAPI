@@ -24,7 +24,7 @@ namespace Reziox.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<IActionResult> Add([FromBody]dtoReview userreview)
+        public async Task<IActionResult> Add([FromBody] dtoReview userreview)
         {
             if(!ModelState.IsValid)
             {

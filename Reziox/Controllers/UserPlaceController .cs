@@ -28,8 +28,8 @@ namespace Reziox.Controllers
             _db = db;
            
         }
-        [HttpGet("Get{placeid}")]
-        public async Task<IActionResult> GetById(int placeid)
+        [HttpGet("Get/{placeid}")]
+        public async Task<IActionResult> GetById([FromRoute] int placeid)
         {
             if (placeid == 0)
             {
@@ -73,8 +73,8 @@ namespace Reziox.Controllers
             dtodetailsplace.Features = ConvertFeaturesToString(existplace).Result;
             return Ok(dtodetailsplace);
         }
-        [HttpGet("Suggests{city}")]
-        public async Task<IActionResult> GetSuggests(string city)
+        [HttpGet("Suggests/{city}")]
+        public async Task<IActionResult> GetSuggests([FromRoute] string city)
         {
             if (string.IsNullOrEmpty(city))
             {

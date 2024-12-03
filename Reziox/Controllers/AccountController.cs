@@ -23,7 +23,7 @@ namespace Reziox.Controllers
         }
 
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp([FromBody]dtoSignUp signUpRequest)
+        public async Task<IActionResult> SignUp([FromBody] dtoSignUp signUpRequest)
         {
             if (!ModelState.IsValid)
             {

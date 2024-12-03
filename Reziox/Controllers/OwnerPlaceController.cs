@@ -23,17 +23,17 @@ namespace RezioxAPIs.Controllers
             _cloudinary = cloudinary;
         }
         [HttpPost("Add")]
-        public async Task<IActionResult> Add([FromForm] dtoAddPlace placePost /*, ICollection<IFormFile> images*/)
+        public async Task<IActionResult> Add([FromForm] dtoAddPlace placePost , ICollection<IFormFile> images)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            /*
+            
             if (images == null || images.Count<2)
             {
                 return BadRequest("please , upload at least  5 images for your place ");
-            }*/
+            }
             if (!Enum.TryParse(placePost.City.ToLower(), out MyCitys cityEnum))
             {
                 return BadRequest($"invalid city :{placePost.City}");
@@ -83,7 +83,7 @@ namespace RezioxAPIs.Controllers
                 }
             }
             //uploaded images
-            /*
+            
             foreach (var image in images)
             {              
                 var imageUrl = await SaveImageAsync(image);
@@ -97,25 +97,25 @@ namespace RezioxAPIs.Controllers
                     ImageUrl = imageUrl
                 };
                 place.Listimage.Add(placeImage);
-            }*/
+            }
             await _db.Places.AddAsync(place);
             await SentNotificationAsync(place.OwnerId, $"your chalete is Pending ,admin will check  it soon.. !");
             await _db.SaveChangesAsync();
             return Ok("place sent to admin");
         }
         [HttpPut("Edit")]//try create class for edit
-        public async Task<IActionResult> Edit([FromForm] dtoUpdatePlace updateplace /*, ICollection<IFormFile> images*/)
+        public async Task<IActionResult> Edit([FromForm] dtoUpdatePlace updateplace , ICollection<IFormFile> images)
         {
 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            /*
+            
             if (images == null || images.Count<2)
             {
                 return BadRequest("please , upload at least  5 images for your place ");
-            }*/
+            }
             var existplace = await _db.Places
                                      .Include(p => p.Listimage.OrderBy(i => i.ImageId))
                                      .Where(p => p.PlaceStatus == MyStatus.enabled)
@@ -172,7 +172,7 @@ namespace RezioxAPIs.Controllers
                 }
             }
             //uploaded images
-            /*
+            
             foreach (var image in images)
             {              
                 var imageUrl = await SaveImageAsync(image);
@@ -182,17 +182,17 @@ namespace RezioxAPIs.Controllers
                 }
                 var placeImage = new PlaceImage
                 {
-                    PlaceId = place.PlaceId,
+                    PlaceId = existplace.PlaceId,
                     ImageUrl = imageUrl
                 };
-                place.Listimage.Add(placeImage);
-            }*/
+                existplace.Listimage.Add(placeImage);
+            }
             await SentNotificationAsync(existplace.OwnerId, $"your update is Pending ,admin will check it soon.. !");
             await _db.SaveChangesAsync();
             return Ok("place sent to admin");
         }
-        [HttpDelete("Remove{placeid}")]
-        public async Task<IActionResult> Remove(int placeid)
+        [HttpDelete("Remove/{placeid}")]
+        public async Task<IActionResult> Remove([FromRoute] int placeid)
         {
             if (placeid == 0)
             {
@@ -221,7 +221,7 @@ namespace RezioxAPIs.Controllers
             return Ok("place deleted successfuly ! ");
         }
         [HttpGet("GetPlaces")]
-        public async Task<IActionResult> OwnerPlaces(int ownerId)
+        public async Task<IActionResult> OwnerPlaces([FromRoute] int ownerId)
         {
             if (ownerId == 0)
             {

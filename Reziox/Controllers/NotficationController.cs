@@ -24,7 +24,7 @@ namespace Reziox.Controllers
         }
 
         [HttpGet("Get{userId}")]
-        public async Task<IActionResult> Get(int userId)
+        public async Task<IActionResult> Get([FromRoute]int userId)
         {
             if (userId == 0)
             {

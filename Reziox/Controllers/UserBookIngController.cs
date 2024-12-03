@@ -145,7 +145,7 @@ namespace Rezioxgithub.Controllers
         }
 
         [HttpDelete("Cancel")]
-        public async Task<IActionResult> Cancel(int bookingId)
+        public async Task<IActionResult> Cancel([FromRoute] int bookingId)
         {
             if (bookingId == 0)
             {
@@ -173,8 +173,8 @@ namespace Rezioxgithub.Controllers
             await _db.SaveChangesAsync();
             return Ok("Booking canceled successfully..");
         }
-        [HttpGet("Details{bookingId}")]
-        public async Task<IActionResult> Details(int bookingId)
+        [HttpGet("Details/{bookingId}")]
+        public async Task<IActionResult> Details( [FromRoute] int bookingId)
         {
             if (bookingId == 0)
             {
@@ -224,8 +224,8 @@ namespace Rezioxgithub.Controllers
             };
             return Ok(detailsbooking);
         }
-        [HttpGet("GetBookings{userId}")]
-        public async Task<IActionResult> GetBookings(int userId)
+        [HttpGet("GetBookings/{userId}")]
+        public async Task<IActionResult> GetBookings( [FromRoute] int userId)
         {
             if(userId == 0)
             {

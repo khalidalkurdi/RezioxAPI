@@ -25,7 +25,7 @@ namespace Rezioxgithub.Controllers
 
 
         [HttpGet("GetProfile/{userId}")]
-        public async Task<IActionResult> GetUserProfile( int userId)
+        public async Task<IActionResult> GetUserProfile([FromRoute] int userId)
         {
             if (userId == 0)
             {

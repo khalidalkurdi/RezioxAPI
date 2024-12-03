@@ -29,8 +29,8 @@ namespace Reziox.Controllers
            
         }
 
-        [HttpGet("Get{userId}")]
-        public async Task<IActionResult> Get(int userId)
+        [HttpGet("Get/{userId}")]
+        public async Task<IActionResult> Get([FromRoute] int userId)
         {
             if (userId == 0)
             {
@@ -64,7 +64,7 @@ namespace Reziox.Controllers
 
             return Ok(favorites);
         }
-        [HttpPost("Add{userId}")]
+        [HttpPost("Add/{userId}")]
         public async Task<IActionResult> Add(int userId, int placeId)
         {
             if (userId == 0 || placeId == 0)
@@ -97,7 +97,7 @@ namespace Reziox.Controllers
             await _db.SaveChangesAsync();
             return Ok("added to favorites successfuly");
         }
-        [HttpDelete("Remove{userId}")]
+        [HttpDelete("Remove/{userId}")]
         public async Task<IActionResult> Remove(int userId, int placeId)
         {
             if (userId == 0 || placeId == 0)

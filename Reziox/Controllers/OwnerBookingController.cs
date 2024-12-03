@@ -18,7 +18,7 @@ namespace RezioxAPIs.Controllers
             _db = db;
         }
         [HttpGet("GetBookings{ownerId}")]
-        public async Task<IActionResult> GetBookings(int ownerId)
+        public async Task<IActionResult> GetBookings([FromRoute]int ownerId)
         {
             if (ownerId == 0)
             {
@@ -39,8 +39,8 @@ namespace RezioxAPIs.Controllers
             var bookings = CreateCardBookings(existbookings).Result;
             return Ok(bookings);
         }
-        [HttpGet("GetPendings{ownerId}")]
-        public async Task<IActionResult> GetPendings(int ownerId)
+        [HttpGet("GetPendings/{ownerId}")]
+        public async Task<IActionResult> GetPendings([FromRoute] int ownerId)
         {
             if (ownerId == 0)
             {
@@ -61,8 +61,8 @@ namespace RezioxAPIs.Controllers
             var requstbookings = CreateCardRequst(existbookings).Result;
             return Ok(requstbookings);
         }
-        [HttpGet("Enabled{bookingId}")]
-        public async Task<IActionResult> Enabled(int bookingId)
+        [HttpGet("Enabled/{bookingId}")]
+        public async Task<IActionResult> Enabled([FromRoute] int bookingId)
         {
             if (bookingId == 0)
             {
@@ -91,13 +91,13 @@ namespace RezioxAPIs.Controllers
                                                   .ToListAsync();
             if (enabledbooking != null)
             {
-                await DisabledBooking(existbooking.BookingId);
+                await Disabled(existbooking.BookingId);
             }
             if(anotherpendingbookings != null)
             {
                 foreach(var booking in anotherpendingbookings)
                 {
-                    await DisabledBooking(booking.BookingId);
+                    await Disabled(booking.BookingId);
                 }
             }
             // end check if find another booking in this date
@@ -106,8 +106,8 @@ namespace RezioxAPIs.Controllers
             await _db.SaveChangesAsync();
             return Ok("Approve booking successfuly");
         }
-        [HttpGet("Disabled{bookingId}")]
-        public async Task<IActionResult> Disabled(int bookingId)
+        [HttpGet("Disabled/{bookingId}")]
+        public async Task<IActionResult> Disabled([FromRoute] int bookingId)
         {
             if (bookingId == 0)
             {
