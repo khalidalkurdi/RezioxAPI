@@ -20,111 +20,139 @@ namespace RezioxAPIs.Controllers
         [HttpGet("GetBookings{ownerId}")]
         public async Task<IActionResult> GetBookings([FromRoute]int ownerId)
         {
-            if (ownerId == 0)
+            try
             {
-                return BadRequest("0 id is not correct !");
+                if (ownerId == 0)
+                {
+                    return BadRequest("0 id is not correct !");
+                }
+                var existbookings = await _db.Bookings
+                                            .Where(p => p.place.OwnerId == ownerId)
+                                            .Where(p => p.StatusBooking == MyStatus.enabled)
+                                            .Where(p => p.BookingDate.DayOfYear > DateTime.UtcNow.DayOfYear)
+                                            .Include(b => b.place)
+                                            .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
+                                            .OrderBy(p => p.BookingDate)
+                                            .ToListAsync();
+                if (!existbookings.Any())
+                {
+                    return NotFound("is not found");
+                }
+                var bookings = CreateCardBookings(existbookings).Result;
+                return Ok(bookings);
             }
-            var existbookings = await _db.Bookings
-                                        .Where(p => p.place.OwnerId == ownerId)
-                                        .Where(p => p.StatusBooking == MyStatus.enabled)
-                                        .Where(p => p.BookingDate.DayOfYear > DateTime.Now.DayOfYear)
-                                        .Include(b => b.place)
-                                        .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
-                                        .OrderBy(p => p.BookingDate)
-                                        .ToListAsync();
-            if (!existbookings.Any())
+            catch (Exception ex)
             {
-                return NotFound("is not found");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-            var bookings = CreateCardBookings(existbookings).Result;
-            return Ok(bookings);
         }
         [HttpGet("GetPendings/{ownerId}")]
         public async Task<IActionResult> GetPendings([FromRoute] int ownerId)
         {
-            if (ownerId == 0)
+            try
             {
-                return BadRequest("0 id is not correct !");
+                if (ownerId == 0)
+                {
+                    return BadRequest("0 id is not correct !");
+                }
+                var existbookings = await _db.Bookings
+                                            .Where(p => p.place.OwnerId == ownerId)
+                                            .Where(p => p.StatusBooking == MyStatus.pending)
+                                            .Include(u => u.user)
+                                            .Include(b => b.place)
+                                            .ThenInclude(p=>p.Listimage.OrderBy(i => i.ImageId))
+                                            .OrderBy(p => p.BookingDate)
+                                            .ToListAsync();
+                if(!existbookings.Any())
+                {
+                    return NotFound("is not found");
+                }
+                var requstbookings = CreateCardRequst(existbookings).Result;
+                return Ok(requstbookings);
             }
-            var existbookings = await _db.Bookings
-                                        .Where(p => p.place.OwnerId == ownerId)
-                                        .Where(p => p.StatusBooking == MyStatus.pending)
-                                        .Include(u => u.user)
-                                        .Include(b => b.place)
-                                        .ThenInclude(p=>p.Listimage.OrderBy(i => i.ImageId))
-                                        .OrderBy(p => p.BookingDate)
-                                        .ToListAsync();
-            if(!existbookings.Any())
+            catch (Exception ex)
             {
-                return NotFound("is not found");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-            var requstbookings = CreateCardRequst(existbookings).Result;
-            return Ok(requstbookings);
         }
         [HttpGet("Enabled/{bookingId}")]
         public async Task<IActionResult> Enabled([FromRoute] int bookingId)
         {
-            if (bookingId == 0)
+            try
             {
-                return BadRequest("0 id is not correct !");
-            }
-            var existbooking = await _db.Bookings
-                                        .Where(p => p.BookingId == bookingId)
-                                        .Where(p => p.StatusBooking == MyStatus.pending)
-                                        .FirstOrDefaultAsync();
-            if (existbooking == null)
-            {
-                return NotFound("is not found");
-            }
-            //check if find another booking in this date
-            var enabledbooking = await _db.Bookings
-                                          .Where(b => b.PlaceId == existbooking.PlaceId)
-                                          .Where(b => b.BookingDate.DayOfYear ==existbooking.BookingDate.DayOfYear)
-                                          .Where(b => b.StatusBooking == MyStatus.enabled)
-                                          .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
-                                          .FirstOrDefaultAsync();
-            var anotherpendingbookings = await _db.Bookings
-                                                  .Where(b => b.PlaceId == existbooking.PlaceId)
-                                                  .Where(b => b.BookingDate.DayOfYear == existbooking.BookingDate.DayOfYear)
-                                                  .Where(b => b.StatusBooking == MyStatus.pending)
-                                                  .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
-                                                  .ToListAsync();
-            if (enabledbooking != null)
-            {
-                await Disabled(existbooking.BookingId);
-            }
-            if(anotherpendingbookings != null)
-            {
-                foreach(var booking in anotherpendingbookings)
+                if (bookingId == 0)
                 {
-                    await Disabled(booking.BookingId);
+                    return BadRequest("0 id is not correct !");
                 }
+                var existbooking = await _db.Bookings
+                                            .Where(p => p.BookingId == bookingId)
+                                            .Where(p => p.StatusBooking == MyStatus.pending)
+                                            .FirstOrDefaultAsync();
+                if (existbooking == null)
+                {
+                    return NotFound("is not found");
+                }
+                //check if find another booking in this date
+                var enabledbooking = await _db.Bookings
+                                              .Where(b => b.PlaceId == existbooking.PlaceId)
+                                              .Where(b => b.BookingDate.DayOfYear ==existbooking.BookingDate.DayOfYear)
+                                              .Where(b => b.StatusBooking == MyStatus.enabled)
+                                              .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
+                                              .FirstOrDefaultAsync();
+                var anotherpendingbookings = await _db.Bookings
+                                                      .Where(b => b.PlaceId == existbooking.PlaceId)
+                                                      .Where(b => b.BookingDate.DayOfYear == existbooking.BookingDate.DayOfYear)
+                                                      .Where(b => b.StatusBooking == MyStatus.pending)
+                                                      .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
+                                                      .ToListAsync();
+                if (enabledbooking != null)
+                {
+                    await Disabled(existbooking.BookingId);
+                }
+                if(anotherpendingbookings != null)
+                {
+                    foreach(var booking in anotherpendingbookings)
+                    {
+                        await Disabled(booking.BookingId);
+                    }
+                }
+                // end check if find another booking in this date
+                existbooking.StatusBooking = MyStatus.enabled;
+                await SentNotificationAsync(existbooking.UserId, "the owner accept your booking and it added to your bookings");
+                await _db.SaveChangesAsync();
+                return Ok("Approve booking successfuly");
             }
-            // end check if find another booking in this date
-            existbooking.StatusBooking = MyStatus.enabled;
-            await SentNotificationAsync(existbooking.UserId, "the owner accept your booking and it added to your bookings");
-            await _db.SaveChangesAsync();
-            return Ok("Approve booking successfuly");
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
         [HttpGet("Disabled/{bookingId}")]
         public async Task<IActionResult> Disabled([FromRoute] int bookingId)
         {
-            if (bookingId == 0)
+            try
             {
-                return BadRequest("0 id is not correct !");
+                if (bookingId == 0)
+                {
+                    return BadRequest("0 id is not correct !");
+                }
+                var existbooking = await _db.Bookings
+                                            .Where(p => p.BookingId == bookingId)
+                                            .Where(p => p.StatusBooking == MyStatus.pending)
+                                            .FirstOrDefaultAsync();
+                if (existbooking == null)
+                {
+                    return NotFound("is not found");
+                }
+                existbooking.StatusBooking = MyStatus.disabled;
+                await SentNotificationAsync(existbooking.UserId, "the owner reject your booking");
+                await _db.SaveChangesAsync();
+                return Ok("reject booking successfuly");
             }
-            var existbooking = await _db.Bookings
-                                        .Where(p => p.BookingId == bookingId)
-                                        .Where(p => p.StatusBooking == MyStatus.pending)
-                                        .FirstOrDefaultAsync();
-            if (existbooking == null)
+            catch (Exception ex)
             {
-                return NotFound("is not found");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-            existbooking.StatusBooking = MyStatus.disabled;
-            await SentNotificationAsync(existbooking.UserId, "the owner reject your booking");
-            await _db.SaveChangesAsync();
-            return Ok("reject booking successfuly");
         }
         private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
         {
@@ -135,7 +163,7 @@ namespace RezioxAPIs.Controllers
                 TimeSpan dif= booking.BookingDate.ToDateTime(
                        TimeOnly.MinValue.AddHours(booking.place.MorrningShift
                        )
-                       ) - DateTime.Now; ;
+                       ) - DateTime.UtcNow; ;
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
@@ -149,7 +177,7 @@ namespace RezioxAPIs.Controllers
                         (
                         booking.place.MorrningShift+ booking.place.NightShift
                         )
-                        ) - DateTime.Now;
+                        ) - DateTime.UtcNow;
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
@@ -159,7 +187,7 @@ namespace RezioxAPIs.Controllers
                         (
                         booking.place.MorrningShift
                         )
-                        ) - DateTime.Now;
+                        ) - DateTime.UtcNow;
                 }
                 cardbookings.Add(new dtoCardBookingSchedule
                 {

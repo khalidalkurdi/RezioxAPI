@@ -1,5 +1,4 @@
-﻿using DataAccess.Repository;
-using Rezioxgithub.DataAccess.Repository;
+﻿using DataAccess.Repository.IRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +11,6 @@ namespace DataAccess.UnitOfWork
     {
         IUserRepository Users { get; }
         IPlaceRepository Places  { get; }
-        void Save();
+        Task Save();
     }
 }

@@ -8,11 +8,12 @@ using Reziox.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+//Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("SomeeConnections")));
-/*
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+/*
 builder.Services.AddIdentity<AppUser,IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 */
 

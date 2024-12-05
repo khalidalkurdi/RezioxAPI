@@ -1,4 +1,6 @@
-﻿using DataAccess.Repository;
+﻿using CloudinaryDotNet;
+using DataAccess.Repository;
+using DataAccess.Repository.IRepository;
 using Reziox.DataAccess;
 using Rezioxgithub.DataAccess.Repository;
 using System;
@@ -12,19 +14,22 @@ namespace DataAccess.UnitOfWork
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _db; 
-        public UnitOfWork(AppDbContext db) 
+        private readonly Cloudinary _cloudinary; 
+
+        public UnitOfWork(AppDbContext db, Cloudinary cloudinary) 
         {
             _db = db;
-            Users = new UserRepository(_db);
+            _cloudinary = cloudinary;
+            Users = new UserRepository(_db,_cloudinary);
             Places = new PlaceRepository(_db);
         }
         public IUserRepository Users { get;private set; }
 
         public IPlaceRepository Places { get;private set; }
 
-        public void Save()
+        public async Task Save()
         {
-            _db.SaveChanges();
+           await _db.SaveChangesAsync();
         }
     }
 }

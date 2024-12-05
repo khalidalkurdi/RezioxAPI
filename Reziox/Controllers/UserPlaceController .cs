@@ -1,6 +1,4 @@
 ﻿
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -8,11 +6,6 @@ using Model.DTO;
 using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
-using Reziox.Model.TheUsers;
-using Rezioxgithub.Model.DTO;
-using System.Text.Json;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Reziox.Controllers
 {
@@ -31,169 +24,200 @@ namespace Reziox.Controllers
         [HttpGet("Get/{placeid}")]
         public async Task<IActionResult> GetById([FromRoute] int placeid)
         {
-            if (placeid == 0)
+            try
             {
-                return BadRequest(" 0 id is not correct !");
+                if (placeid == 0)
+                {
+                    return BadRequest(" 0 id is not correct !");
+                }
+                var existplace = await _db.Places.Where(p => p.PlaceId == placeid)
+                                                 .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                                 .Include(p => p.ListReviews)
+                                                 .Include(p => p.user)
+                                                 .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                                 .FirstOrDefaultAsync();
+                if (existplace == null)
+                {
+                    return NotFound($"place {placeid} not found."); ;
+                }
+
+                var dtodetailsplace = new dtoDetailsPlace
+                {
+                    PlaceId = existplace.PlaceId,
+                    PlaceName = existplace.PlaceName,
+                    Price = existplace.Price,
+                    City = existplace.City.ToString(),
+                    LocationUrl = existplace.LocationUrl,
+                    Visitors = existplace.Visitors,
+                    PlacePhone = existplace.user.PhoneNumber,
+                    Rating = existplace.Rating,
+                    CountReviews = existplace.CountReviews,
+                    Description = existplace.Description,
+                    MasterRoom = existplace.MasterRoom,
+                    BedRoom = existplace.BedRoom,
+                    AllBeds = existplace.Beds,
+                    BathRoom = existplace.BathRoom,
+                    Shower = existplace.Shower
+                };
+                if (existplace.Listimage.Count != 0)
+                {
+                    foreach (var image in existplace.Listimage)
+                    {
+                        dtodetailsplace.ListImage.Add(image.ImageUrl);
+                    }
+                }
+                dtodetailsplace.Features = ConvertFeaturesToString(existplace).Result;
+                return Ok(dtodetailsplace);
             }
-            var existplace = await _db.Places.Where(p => p.PlaceId == placeid)
-                                             .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
-                                             .Include(p=>p.ListReviews)
-                                             .Include(p=>p.user)
-                                             .Where(p=>p.PlaceStatus==MyStatus.enabled)
-                                             .FirstOrDefaultAsync();
-            if (existplace == null)
+            catch (Exception ex)
             {
-                return NotFound($"place {placeid} not found."); ;
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
             
-            var dtodetailsplace = new dtoDetailsPlace {
-                PlaceId = existplace.PlaceId,
-                PlaceName = existplace.PlaceName,
-                Price = existplace.Price,
-                City = existplace.City.ToString(),
-                LocationUrl=existplace.LocationUrl,
-                Visitors = existplace.Visitors,
-                PlacePhone = existplace.user.PhoneNumber,
-                Rating = existplace.Rating,
-                CountReviews = existplace.CountReviews,
-                Description = existplace.Description,
-                MasterRoom = existplace.MasterRoom,
-                BedRoom = existplace.BedRoom,
-                AllBeds = existplace.Beds,
-                BathRoom = existplace.BathRoom,
-                Shower = existplace.Shower               
-            };
-            if (existplace.Listimage.Count != 0 )
-            {
-                foreach (var image in existplace.Listimage)
-                {
-                    dtodetailsplace.ListImage.Add(image.ImageUrl);
-                }
-            }
-            dtodetailsplace.Features = ConvertFeaturesToString(existplace).Result;
-            return Ok(dtodetailsplace);
         }
         [HttpGet("Suggests/{city}")]
         public async Task<IActionResult> GetSuggests([FromRoute] string city)
         {
-            if (string.IsNullOrEmpty(city))
+            try
             {
-                return BadRequest("city is null or empty");
+                if (string.IsNullOrEmpty(city))
+                {
+                    return BadRequest("city is null or empty");
+                }
+                if (!Enum.TryParse(city.ToLower(), out MyCitys cityEnum))
+                {
+                    return BadRequest("city not valid");
+                }
+                var suggestlist = await _db.Places
+                                           .Where(p => p.City == cityEnum)
+                                           .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                           .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                           .ToListAsync();
+                var cardplaces = await CreateCardPlaces(suggestlist);
+                return Ok(cardplaces);
             }
-            if(!Enum.TryParse(city.ToLower(), out MyCitys cityEnum))
+            catch (Exception ex)
             {
-                return BadRequest("city not valid");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-            var suggestlist = await _db.Places
-                                       .Where(p => p.City == cityEnum)
-                                       .Where(p => p.PlaceStatus == MyStatus.enabled)
-                                       .Include(p=>p.Listimage.OrderBy(i=>i.ImageId))
-                                       .ToListAsync();
-            var cardplaces= await CreateCardPlaces(suggestlist);
-            return Ok(cardplaces);
         }
         [HttpGet("Mosts")]
         public async Task<IActionResult> GetMost()
         {
-            
-            var mostplaces = await _db.Places
+            try
+            {
+                var mostplaces = await _db.Places
                                        .Where(p => p.PlaceStatus == MyStatus.enabled)
-                                       .Include(p=>p.ListReviews)
+                                       .Include(p => p.ListReviews)
                                        .Include(p => p.Listimage.OrderBy(i => i.ImageId))
-                                       .OrderByDescending(p=>p.Rating)
+                                       .OrderByDescending(p => p.Rating)
                                        .ToListAsync();
-            if(mostplaces.Count == 0)
-            {
-                return NotFound("is not found now !");
-            }
-            foreach (var place in mostplaces) 
-            {
-                if (place.Rating<4 /*&& place.CountReviews>10*/)
+                if (mostplaces.Count == 0)
                 {
-                    mostplaces.Remove(place);
+                    return NotFound("is not found now !");
                 }
+                foreach (var place in mostplaces)
+                {
+                    if (place.Rating < 4 /*&& place.CountReviews>10*/)
+                    {
+                        mostplaces.Remove(place);
+                    }
+                }
+                if (mostplaces.Count == 0)
+                {
+                    return NotFound("is not found now !");
+                }
+                var cardplaces = await CreateCardPlaces(mostplaces);
+                return Ok(cardplaces);
             }
-            if (mostplaces.Count == 0)
+            catch (Exception ex)
             {
-                return NotFound("is not found now !");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-            var cardplaces = await CreateCardPlaces(mostplaces);
-            return Ok(cardplaces);
+            
         }
         [HttpGet("Search")]
         public async Task<IActionResult> SearchPlaces(DateOnly choicdate, int? minPrice, int? maxPrice, int? gusts, string typeshift, string? city,ICollection<string>? features)
         {
-            var query = _db.Places
-                           .Include(p => p.Listimage.OrderBy(i => i.ImageId))
-                           .Where(p => p.PlaceStatus == MyStatus.enabled)
-                           .AsQueryable(); 
-            if (minPrice.HasValue)
-                query = query.Where(p => p.Price >= minPrice);
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.Price <= maxPrice);
-            if (gusts.HasValue)
-                query = query.Where(p => p.Visitors <= gusts);           
-            if (!string.IsNullOrEmpty(city) && Enum.TryParse(city, out MyCitys cityEnum))
+            try
             {
-                query = query.Where(p => p.City == cityEnum);
-            }
-            if (!features.IsNullOrEmpty())
-            {
-                foreach (var feature in features)
+                var query = _db.Places
+               .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+               .Where(p => p.PlaceStatus == MyStatus.enabled)
+               .AsQueryable();
+                if (minPrice.HasValue)
+                    query = query.Where(p => p.Price >= minPrice);
+                if (maxPrice.HasValue)
+                    query = query.Where(p => p.Price <= maxPrice);
+                if (gusts.HasValue)
+                    query = query.Where(p => p.Visitors <= gusts);
+                if (!string.IsNullOrEmpty(city) && Enum.TryParse(city, out MyCitys cityEnum))
                 {
-                    switch (feature.ToLower())
+                    query = query.Where(p => p.City == cityEnum);
+                }
+                if (!features.IsNullOrEmpty())
+                {
+                    foreach (var feature in features)
                     {
-                        case "wifi" : query = query.Where(p => p.WiFi == true); break;
-                        case "paymentbycard": query = query.Where(p => p.PaymentByCard == true); break;
-                        case "airconditioning": query = query.Where(p => p.AirConditioning == true); break;
-                        case "barbecue": query = query.Where(p => p.Barbecue == true); break;
-                        case "eventarea": query = query.Where(p => p.EventArea == true); break;
-                        case "childrensplayground": query = query.Where(p => p.ChildrensPlayground == true); break;
-                        case "childrenspool": query = query.Where(p => p.ChildrensPool == true); break;
-                        case "parking": query = query.Where(p => p.Parking == true); break;
-                        case "jacuzzi": query = query.Where(p => p.Jacuzzi == true); break;
-                        case "heatedswimmingpool": query = query.Where(p => p.HeatedSwimmingPool == true); break;
-                        case "football": query = query.Where(p => p.Football == true); break;
-                        case "babyfoot": query = query.Where(p => p.BabyFoot == true); break;
-                        case "ballpool": query = query.Where(p => p.Ballpool == true); break;
-                        case "tennis": query = query.Where(p => p.Tennis == true); break;
-                        case "volleyball": query = query.Where(p => p.Volleyball == true); break;
+                        switch (feature.ToLower())
+                        {
+                            case "wifi": query = query.Where(p => p.WiFi == true); break;
+                            case "paymentbycard": query = query.Where(p => p.PaymentByCard == true); break;
+                            case "airconditioning": query = query.Where(p => p.AirConditioning == true); break;
+                            case "barbecue": query = query.Where(p => p.Barbecue == true); break;
+                            case "eventarea": query = query.Where(p => p.EventArea == true); break;
+                            case "childrensplayground": query = query.Where(p => p.ChildrensPlayground == true); break;
+                            case "childrenspool": query = query.Where(p => p.ChildrensPool == true); break;
+                            case "parking": query = query.Where(p => p.Parking == true); break;
+                            case "jacuzzi": query = query.Where(p => p.Jacuzzi == true); break;
+                            case "heatedswimmingpool": query = query.Where(p => p.HeatedSwimmingPool == true); break;
+                            case "football": query = query.Where(p => p.Football == true); break;
+                            case "babyfoot": query = query.Where(p => p.BabyFoot == true); break;
+                            case "ballpool": query = query.Where(p => p.Ballpool == true); break;
+                            case "tennis": query = query.Where(p => p.Tennis == true); break;
+                            case "volleyball": query = query.Where(p => p.Volleyball == true); break;
+                        }
                     }
                 }
-            }
-            var results = await query.ToListAsync();
+                var results = await query.ToListAsync();
 
-            // is workeing ?
-            var daybooking = choicdate.DayOfWeek.ToString();
-            if (!Enum.TryParse(daybooking.ToLower(), out MYDays daydate))
-            {
-                return BadRequest($"invalid day :{ daybooking}");
-            }
-            query = query.Where(p => (p.WorkDays & daydate) != daydate);
-            //end is working?
-            //booked?
-            if (!Enum.TryParse(typeshift.ToLower(), out MyShifts Typeshift))
-            {
-                return BadRequest($"invalid type shift :{typeshift}");
-            }
-            foreach (var place in results)
-            {
-                var notavilable = await _db.Bookings.Where(b => b.PlaceId == place.PlaceId)
-                                        .Where(b => b.BookingDate.DayOfYear == choicdate.DayOfYear)
-                                        .Where(b => (b.Typeshifts & Typeshift) == Typeshift)
-                                        .Where(b=>b.StatusBooking==MyStatus.enabled)
-                                        .FirstOrDefaultAsync();
-                if (notavilable!=null)
+                // is workeing ?
+                var daybooking = choicdate.DayOfWeek.ToString();
+                if (!Enum.TryParse(daybooking.ToLower(), out MYDays daydate))
                 {
-                    results.Remove(place);
+                    return BadRequest($"invalid day :{daybooking}");
                 }
-            }//end booked?
+                query = query.Where(p => (p.WorkDays & daydate) != daydate);
+                //end is working?
+                //booked?
+                if (!Enum.TryParse(typeshift.ToLower(), out MyShifts Typeshift))
+                {
+                    return BadRequest($"invalid type shift :{typeshift}");
+                }
+                foreach (var place in results)
+                {
+                    var notavilable = await _db.Bookings.Where(b => b.PlaceId == place.PlaceId)
+                                            .Where(b => b.BookingDate.DayOfYear == choicdate.DayOfYear)
+                                            .Where(b => (b.Typeshifts & Typeshift) == Typeshift)
+                                            .Where(b => b.StatusBooking == MyStatus.enabled)
+                                            .FirstOrDefaultAsync();
+                    if (notavilable != null)
+                    {
+                        results.Remove(place);
+                    }
+                }//end booked?
 
-            var cardplaces = CreateCardPlaces(results).Result;
-            return Ok(cardplaces);
+                var cardplaces = CreateCardPlaces(results).Result;
+                return Ok(cardplaces);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
         private  async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
         {
+
             var cardplaces = new List<dtoCardPlace>();
             foreach (var place in places)
             {

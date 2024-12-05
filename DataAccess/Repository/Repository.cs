@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DataAccess.Repository.IRepository;
+using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 using System.Linq.Expressions;
 
@@ -14,12 +15,14 @@ namespace Rezioxgithub.DataAccess.Repository
             dbset = _db.Set<T>();
 
         }
-        public void Add(T entity)
+       
+        public async Task Add(T entity)
         {
-            dbset.Add(entity);
+
+            await dbset.AddAsync(entity);
         }
 
-        public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null)
+        public async Task<T> Get(Expression<Func<T, bool>> filter, string? includeProperties)
         {
             IQueryable<T> query = dbset;
             query = query.Where(filter);
@@ -31,10 +34,10 @@ namespace Rezioxgithub.DataAccess.Repository
                     query = query.Include(property);
                 }
             }
-            return query.FirstOrDefault();
+            return await query.FirstOrDefaultAsync();
         }
 
-        public IEnumerable<T> GetAll(string? includeProperties = null)
+        public async Task<IEnumerable<T>> GetAll(string? includeProperties)
         {
             IQueryable<T> query = dbset;
             if (!string.IsNullOrEmpty(includeProperties))
@@ -45,7 +48,7 @@ namespace Rezioxgithub.DataAccess.Repository
                     query = query.Include(property);
                 }
             }
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
         public void Remove(T entity)
