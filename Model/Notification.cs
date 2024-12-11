@@ -13,6 +13,8 @@ namespace Reziox.Model
         [ForeignKey("user")]
         public int UserId { get; set; }
         [Required]
+        public string Title { get; set; }
+        [Required]
         public string Message { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; }= DateTime.UtcNow;

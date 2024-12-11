@@ -144,7 +144,7 @@ namespace Rezioxgithub.Controllers
                 //end check is booked or not
                 var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate = datebooking, Typeshifts = typeshift };
                 await _db.Bookings.AddAsync(mybooking);
-                await SentNotificationAsync(existplace.OwnerId, $"A place you own is reserved on date{datebooking}");
+                await SentNotificationAsync(existplace.OwnerId, "New booking", $"A place you own is reserved on date{datebooking}");
                 await _db.SaveChangesAsync();
                 return Ok("booking is pending and sent successfully to owner, please waite the of owner");
             }
@@ -154,7 +154,7 @@ namespace Rezioxgithub.Controllers
             }           
         }
 
-        [HttpDelete("Cancel")]
+        [HttpDelete("Cancel/{bookingId}")]
         public async Task<IActionResult> Cancel([FromRoute] int bookingId)
         {
             try
@@ -180,8 +180,8 @@ namespace Rezioxgithub.Controllers
                 }
                 existbooking.StatusBooking = MyStatus.cancel;
                 //add notifiacation for  owner and user
-                await SentNotificationAsync(existbooking.place.OwnerId, $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
-                await SentNotificationAsync(existbooking.UserId, $"You canceled the booking on date {existbooking.BookingDate}");
+                await SentNotificationAsync(existbooking.place.OwnerId, "Confirm canceltion", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
+                await SentNotificationAsync(existbooking.UserId, "Confirm canceltion", $"You canceled the booking on date {existbooking.BookingDate}");
                 await _db.SaveChangesAsync();
                 return Ok("Booking canceled successfully..");
             }
@@ -204,7 +204,7 @@ namespace Rezioxgithub.Controllers
                                              .Where(b => b.StatusBooking == MyStatus.enabled)
                                              .Include(u => u.user)
                                              .Include(b => b.place)
-                                             .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
+                                             .ThenInclude(p => p.Listimage)
                                              .Include(p => p.place.user)
                                              .FirstOrDefaultAsync();
                 if (existbooking == null)
@@ -232,7 +232,7 @@ namespace Rezioxgithub.Controllers
                     UserId = existbooking.UserId,
                     PlaceId = existbooking.PlaceId,
                     PlaceName = existbooking.place.PlaceName,
-                    OwnerPhone = existbooking.place.user.PhoneNumber,
+                    PlacePhone = existbooking.place.user.PhoneNumber,
                     BookingDate = $"{existbooking.BookingDate.DayOfWeek}-{existbooking.BookingDate}",
                     Time = rangetime,
                     Price = existbooking.place.Price,
@@ -262,7 +262,7 @@ namespace Rezioxgithub.Controllers
                                              .Where(b => b.StatusBooking == MyStatus.enabled)
                                              .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
                                              .Include(b => b.place)
-                                             .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
+                                             .ThenInclude(p => p.Listimage)
                                              .OrderBy(b => b.BookingDate)
                                              .ToListAsync();
                 if (existbookings == null)
@@ -277,46 +277,76 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        
-        private async Task SentNotificationAsync(int userid, string message)
+        [HttpGet("History/{userId}")]
+        public async Task<IActionResult> History([FromRoute] int userId)
         {
+            try
+            {
+                if (userId == 0)
+                {
+                    return BadRequest("0 id is not correct !");
+                }
+                var existbookings = await _db.Bookings
+                                             .Where(b => b.UserId == userId)
+                                             .Where(b => b.StatusBooking == MyStatus.enabled)
+                                             .Where(b => b.BookingDate.DayOfYear<DateTime.UtcNow.DayOfYear)
+                                             .Include(b => b.place)
+                                             .ThenInclude(p => p.Listimage)
+                                             .OrderBy(b => b.BookingDate)
+                                             .ToListAsync();
+                if (existbookings == null)
+                {
+                    return NotFound("is not found");
+                }
+                var bookings = await CreateCardBookings(existbookings);
+                return Ok(bookings);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
-            await _db.Notifications.AddAsync(new Notification { UserId = userid, Message = message });
+        private async Task SentNotificationAsync(int userid,string title, string message)
+        {
+            await _db.Notifications.AddAsync(new Notification { UserId = userid,Title=title, Message = message });
         }
         private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
         {   string rangetime="hh:mm";
             var cardbookings = new List<dtoCardBookingSchedule>();
             foreach (var booking in bookings)
             {
-                TimeSpan dif = booking.BookingDate.ToDateTime(TimeOnly.MinValue.AddHours(booking.place.MorrningShift)) - DateTime.UtcNow;
-
+                TimeSpan dif = booking.BookingDate.ToDateTime(
+                                                   TimeOnly.MinValue.AddHours(booking.place.MorrningShift)
+                                                   )- DateTime.UtcNow;
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift-1}PM";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
                 }
                 if (booking.Typeshifts == MyShifts.night)
                 {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift-1}AM";
-                    dif = booking.BookingDate.ToDateTime(TimeOnly.MinValue.AddHours(booking.place.NightShift+booking.place.MorrningShift)) - DateTime.UtcNow;
+                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
+                    dif = booking.BookingDate.ToDateTime(
+                                              TimeOnly.MinValue.AddHours(booking.place.MorrningShift + booking.place.NightShift)
+                                              )- DateTime.UtcNow;
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift-1}AM";
+                    rangetime = $" 23 hours from start.. ";
                 }
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
                     BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.ElementAt(0).ImageUrl : null,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
                     BookingDate = booking.BookingDate.ToString(),
                     Time = rangetime,
-                    CountDown=$"{dif.Days} day & {dif.Hours} hour & {dif.Minutes}"
+                    CountDown = $"{dif.Days} day & {dif.Hours}h : {dif.Minutes}m"
 
-                }) ;
+                });
             }
             return cardbookings;
         }
-        
     }
 }

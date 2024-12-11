@@ -13,35 +13,61 @@ using Reziox.Model;
 using Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using DataAccess.Repository.IRepository;
+using DataAccess.Repository.ExternalcCloud;
+using System.Linq.Expressions;
 
 namespace DataAccess.Repository
 {
-    public class UserRepository : Repository<User>, IUserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _db;
-        private readonly Cloudinary _cloudinary;
-        public UserRepository(AppDbContext db, Cloudinary cloudinary) : base(db)
+        private readonly ICloudImag _cloudImag;
+        public UserRepository(AppDbContext db, ICloudImag cloudImag)
         {
             _db = db;
-            _cloudinary = cloudinary;
+            _cloudImag = cloudImag;
         }
 
-        public async Task Update( dtoProfile updatedProfile, IFormFile userImage)
+        public async Task<dtoProfile> Get(Expression<Func<User, bool>> filter)
+        {
+
+            var existUser = await _db.Users.Where(filter).FirstOrDefaultAsync();
+
+            if (existUser == null)
+            {
+                throw new Exception("is not found");
+            }
+            var profileuser = new dtoProfile
+            {
+                UserId = existUser.UserId,
+                UserImage = existUser.UserImage,
+                UserName = existUser.UserName,
+                Email = existUser.Email,
+                PhoneNumber = existUser.PhoneNumber,
+                City = existUser.City.ToString(),
+                UserPlaces = existUser.Places,
+                UserBookings = existUser.Bookings,
+                BookingsCanceling = existUser.BookingsCanceling
+            };
+            return profileuser;
+        }
+
+        public async Task<dtoProfile> Update( dtoProfile updatedProfile, IFormFile userImage)
         {
             //find the user by id
-            var user = await _db.Users.Where(u => u.UserId == updatedProfile.UserId).FirstOrDefaultAsync();
-            if (user == null)
+            var existuser = await _db.Users.Where(u => u.UserId == updatedProfile.UserId).FirstOrDefaultAsync();
+            if (existuser == null)
             {
                 throw new Exception ($"user {updatedProfile.UserId} not found.");
             }
             if (userImage != null)
             {
-                var imageUrl = await SaveImageAsync(userImage);
+                var imageUrl = await _cloudImag.SaveImageAsync(userImage);
                 if (string.IsNullOrEmpty(imageUrl))
                 {
                     throw new Exception("internal error when try to upload image");
                 }
-                    user.UserImage = imageUrl;
+                    existuser.UserImage = imageUrl;
             }
 
             if (!Enum.TryParse(updatedProfile.City, true, out MyCitys cityEnum))
@@ -49,31 +75,12 @@ namespace DataAccess.Repository
                 throw new Exception($"invalid city : {updatedProfile.City}");
             }
 
-            user.UserName = updatedProfile.UserName;
-            user.Email = updatedProfile.Email;
-            user.PhoneNumber = updatedProfile.PhoneNumber;
-            user.City = cityEnum;            
+            existuser.UserName = updatedProfile.UserName;
+            existuser.Email = updatedProfile.Email;
+            existuser.PhoneNumber = updatedProfile.PhoneNumber;
+            existuser.City = cityEnum;
+            return await Get(u => u.UserId == updatedProfile.UserId);
         }
 
-        private async Task<string> SaveImageAsync(IFormFile image)
-        {
-            if (image == null || image.Length == 0)
-                return null;
-            //requst
-            using var stream = image.OpenReadStream();
-            var uploadParams = new ImageUploadParams
-            {
-                File = new FileDescription(image.FileName, stream)
-            };
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-            if (uploadResult.Error != null)
-            {
-                return null;
-            }
-                   
-            return uploadResult.SecureUrl.ToString();            
-        }
-
-        
     }
 }

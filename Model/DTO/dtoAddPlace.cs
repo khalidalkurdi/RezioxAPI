@@ -13,9 +13,13 @@ namespace Model.DTO
         [Required]
         public string PlaceName { get; set; }
         [Required]
+        [StringLength(10)]
+        public string PlacePhone { get; set; }
+        [Required]
         public string City { get; set; }
         [Required]
         public string LocationUrl { get; set; }
+        
         [Required]
         public string Description { get; set; }
         [Required]

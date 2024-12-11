@@ -1,40 +1,35 @@
 using CloudinaryDotNet;
+using DataAccess.Repository.ExternalcCloud;
 using DataAccess.UnitOfWork;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Model.TheUsers;
 using Reziox.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Add services to the container.
+// Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("SomeeConnections")));
-
+//inject interfaces
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-/*
-builder.Services.AddIdentity<AppUser,IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
-*/
+builder.Services.AddScoped<ICloudImag, CloudImage>();
 
 //config cloudinary
 builder.Services.AddSingleton(x =>
-    {
-        var config = builder.Configuration.GetSection("Cloudinary");
-        return new Cloudinary(new Account(
-            //as array
-            config["CloudName"],
-            config["ApiKey"],
-            config["ApiSecret"]
-        ));
-    }
+{
+    var config = builder.Configuration.GetSection("Cloudinary");
+    return new Cloudinary(new Account(
+        //as array
+        config["CloudName"],
+        config["ApiKey"],
+        config["ApiSecret"]
+    ));
+}
 );
-
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -49,7 +44,7 @@ else
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Global API v1");
-        c.RoutePrefix = string.Empty; // Sets Swagger UI to be the root URL
+        c.RoutePrefix = string.Empty; //Swagger UI to be the root URL
     });
 }
 

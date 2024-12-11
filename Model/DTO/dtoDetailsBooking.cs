@@ -21,6 +21,8 @@ namespace Model.DTO
         [Required]
         public string PlaceName { get; set; }
         [Required]
+        public string PlacePhone { get; set; }
+        [Required]
         public string BookingDate { get; set; }
         [Required]
         public string Time { get; set; }
@@ -30,8 +32,6 @@ namespace Model.DTO
         public string City { get; set; }
         [Required]
         public int MaxGust { get; set; }
-        [Required]
-        public string OwnerPhone { get; set; }
         [Required]
         public string UserName { get; set; }
         [Required]

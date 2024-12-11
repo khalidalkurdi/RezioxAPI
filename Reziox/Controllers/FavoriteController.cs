@@ -11,11 +11,11 @@ namespace Reziox.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    public class UserFavoriteController : ControllerBase
+    public class FavoriteController : ControllerBase
     {
         private readonly AppDbContext _db;
        
-        public UserFavoriteController(AppDbContext db)
+        public FavoriteController(AppDbContext db)
         {   
             _db = db;
            
@@ -40,7 +40,7 @@ namespace Reziox.Controllers
                 var existfavorites = await _db.Favorites
                                          .Where(f => f.UserId == userId)
                                          .Include(p => p.place)
-                                         .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
+                                         .ThenInclude(p => p.Listimage)
                                          .Where(p => p.place.PlaceStatus == MyStatus.enabled)
                                          .OrderBy(f => f.FavoriteId)
                                          .ToListAsync();
@@ -51,9 +51,7 @@ namespace Reziox.Controllers
                     {
                         PlaceId = fav.PlaceId,
                         PlaceName = fav.place.PlaceName,
-                        BaseImage = fav.place.Listimage.Count != 0 ? fav.place.Listimage.ElementAt(0).ImageUrl : null,
-
-
+                        BaseImage = fav.place.Listimage.Count != 0 ? fav.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null
                     });
                 }
 

@@ -41,6 +41,7 @@ namespace RezioxAPIs.Controllers
                 var place = new Place
                 {
                     PlaceName = placePost.PlaceName,
+                    PlacePhone=placePost.PlacePhone,
                     OwnerId = placePost.OwnerId,
                     City = cityEnum,
                     LocationUrl=placePost.LocationUrl,
@@ -99,7 +100,7 @@ namespace RezioxAPIs.Controllers
                     place.Listimage.Add(placeImage);
                 }
                 await _db.Places.AddAsync(place);
-                await SentNotificationAsync(place.OwnerId, $"your chalete is Pending ,admin will check  it soon.. !");
+                await SentNotificationAsync(place.OwnerId, "Confirm waiting", $"your chalete is Pending ,admin will check  it soon.. !");
                 await _db.SaveChangesAsync();
                 return Ok("place sent to admin");
             }
@@ -135,7 +136,8 @@ namespace RezioxAPIs.Controllers
                     return BadRequest($"invalid city :{updateplace.City}");
                 }
                 //update felds
-                existplace.PlaceName = updateplace.PlaceName;              
+                existplace.PlaceName = updateplace.PlaceName;
+                existplace.PlacePhone = updateplace.PlacePhone;
                 existplace.City = cityEnum;
                 existplace.LocationUrl= updateplace.LocationUrl;
                 existplace.Description = updateplace.Description;
@@ -193,7 +195,7 @@ namespace RezioxAPIs.Controllers
                     };
                     existplace.Listimage.Add(placeImage);
                 }
-                await SentNotificationAsync(existplace.OwnerId, $"your update is Pending ,admin will check it soon.. !");
+                await SentNotificationAsync(existplace.OwnerId, "Confirm waiting", $"your update is Pending ,admin will check it soon.. !");
                 await _db.SaveChangesAsync();
                 return Ok("place sent to admin");
             }
@@ -223,13 +225,13 @@ namespace RezioxAPIs.Controllers
                                         .AnyAsync();
                 if (existbookins)
                 {
-                    await SentNotificationAsync(existplace.OwnerId, $"can not delet your chalete because it has bookings!");
+                    await SentNotificationAsync(existplace.OwnerId, "Confirmation of impossibility", $"can not delet your chalete because it has bookings!");
                     return BadRequest("it has bookings!");
                 }
                 //end check if have not any booking
 
                 existplace.PlaceStatus = MyStatus.disabled;
-                await SentNotificationAsync(existplace.OwnerId, $"your chalete{existplace.PlaceName} is deleted !");
+                await SentNotificationAsync(existplace.OwnerId, "Confirm Delet", $"your chalete{existplace.PlaceName} is deleted !");
                 await _db.SaveChangesAsync();
                 return Ok("place deleted successfuly ! ");
             }
@@ -263,9 +265,9 @@ namespace RezioxAPIs.Controllers
             }
         }
 
-        private async Task SentNotificationAsync(int userid, string message)
+        private async Task SentNotificationAsync(int userid,string title, string message)
         {
-            await _db.Notifications.AddAsync(new Notification { UserId = userid, Message = message });
+            await _db.Notifications.AddAsync(new Notification { UserId = userid,Title=title, Message = message });
         }
         private async Task<string> SaveImageAsync(IFormFile image)
         {
@@ -295,31 +297,11 @@ namespace RezioxAPIs.Controllers
                     City = place.City.ToString(),
                     Visitors = place.Visitors,
                     Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.ElementAt(0).ImageUrl : null
+                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.FirstOrDefault().ImageUrl : null
                 });
             }
             return cardplaces;
         }
-        private async Task<List<string>> ConvertFeaturesToString(Place place)
-        {
-            var features = new List<string>();
-            if (place.WiFi)
-                if (place.PaymentByCard) features.Add(place.PaymentByCard.ToString());
-            if (place.AirConditioning) features.Add(place.AirConditioning.ToString());
-            if (place.Barbecue) features.Add(place.Barbecue.ToString());
-            if (place.EventArea) features.Add(place.EventArea.ToString());
-            if (place.ChildrensPlayground) features.Add(place.ChildrensPlayground.ToString());
-            if (place.ChildrensPool) features.Add(place.ChildrensPool.ToString());
-            if (place.Parking) features.Add(place.Parking.ToString());
-            if (place.Jacuzzi) features.Add(place.Jacuzzi.ToString());
-            if (place.HeatedSwimmingPool) features.Add(place.HeatedSwimmingPool.ToString());
-            if (place.Football) features.Add(place.Football.ToString());
-            if (place.BabyFoot) features.Add(place.BabyFoot.ToString());
-            if (place.Ballpool) features.Add(place.Ballpool.ToString());
-            if (place.Tennis) features.Add(place.Tennis.ToString());
-            if (place.Volleyball) features.Add(place.Volleyball.ToString());
-
-            return features;
-        }
+        
     }
 }

@@ -9,10 +9,10 @@ namespace Reziox.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NotificationController : ControllerBase
+    public class NotificationsController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public NotificationController(AppDbContext db)
+        public NotificationsController(AppDbContext db)
         {
             _db = db;
 

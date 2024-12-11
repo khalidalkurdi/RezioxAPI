@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Model.DTO;
 using Reziox.DataAccess;
 using Reziox.Model;
+using Reziox.Model.ThePlace;
 
-namespace Rezioxgithub.Controllers
+namespace RezioxAPIs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -30,47 +32,50 @@ namespace Rezioxgithub.Controllers
         [HttpGet("GetEnableplaces")]
         public async Task<IActionResult> GetEnablePlaces()
         {
-            var existbookings = await _db.Places
+            var existPlaces = await _db.Places
                                     .Where(p => p.PlaceStatus == MyStatus.enabled)
                                     .Include(u => u.user)
                                     .OrderBy(p=>p.PlaceId)
                                     .ToListAsync();
-            if (existbookings == null)
+            if (existPlaces == null)
             {
                 return NotFound("is not found");
             }
-            return Ok(existbookings);
+            var cardsPlaces =await CreateCardPlaces(existPlaces);
+            return Ok(cardsPlaces);
         }
         [HttpGet("GetDisabledplaces")]
         public async Task<IActionResult> GetDisabledplaces()
         {
-            var existbookings = await _db.Places
+            var existPlaces = await _db.Places
                                     .Where(p => p.PlaceStatus == MyStatus.disabled)
                                     .Include(u => u.user)
                                     .OrderBy(p => p.PlaceId)
                                     .ToListAsync();
-            if (existbookings == null)
+            if (existPlaces == null)
             {
                 return NotFound("is not found");
             }
-            return Ok(existbookings);
+            var cardsPlaces =await CreateCardPlaces(existPlaces);
+            return Ok(cardsPlaces);
         }
         [HttpGet("GetPendingplaces")]
         public async Task<IActionResult> GetPendingPlaces()
         {
-            var existbookings = await _db.Places                                   
-                                    .Where(p => p.PlaceStatus == MyStatus.pending)
-                                    .Include(p =>p.Listimage.OrderBy(i => i.ImageId))
-                                    .Include(p=>p.user)
-                                    .OrderBy(p=>p.PlaceId)
-                                    .ToListAsync();
-            if (existbookings == null)
+            var existPlaces = await _db.Places                                   
+                                        .Where(p => p.PlaceStatus == MyStatus.pending)
+                                        .Include(p =>p.Listimage)
+                                        .Include(p=>p.user)
+                                        .OrderBy(p=>p.PlaceId)
+                                        .ToListAsync();
+            if (existPlaces == null)
             {
                 return NotFound("is not found");
             }
-            return Ok(existbookings);
+            var cardsPlaces = await CreateCardPlaces(existPlaces);
+            return Ok(cardsPlaces);
         }
-        [HttpGet("EnablePlace{placeId}")]
+        [HttpGet("EnablePlace/{placeId}")]
         public async Task<IActionResult> EnablePlace(int placeId)
         {
             if (placeId == 0)
@@ -79,7 +84,7 @@ namespace Rezioxgithub.Controllers
             }
             var existplace = await _db.Places
                                     .Where(p => p.PlaceId == placeId)
-                                    .Where(p => p.PlaceStatus == MyStatus.pending)
+                                    .Where(p => p.PlaceStatus == MyStatus.pending|| p.PlaceStatus == MyStatus.disabled)
                                     .FirstOrDefaultAsync();
             if (existplace == null)
             {
@@ -88,10 +93,10 @@ namespace Rezioxgithub.Controllers
             existplace.PlaceStatus = MyStatus.enabled;
             await SentNotificationAsync(existplace.OwnerId, "the admin accept your chalet and it added to your chalets");
             await _db.SaveChangesAsync();
-            return Ok("place is enableing");
+            return Ok("place is enabled");
         }
-        [HttpGet("DisabledPlace{placeId}")]
-        public async Task<IActionResult> DisabledPlace(int placeId)
+        [HttpGet("DisabledPlace/{placeId}")]
+        public async Task<IActionResult> DisablePlace(int placeId)
         {
             if (placeId == 0)
             {
@@ -99,16 +104,16 @@ namespace Rezioxgithub.Controllers
             }
             var existplace = await _db.Places
                                     .Where(p => p.PlaceId == placeId)
-                                    .Where(p => p.PlaceStatus == MyStatus.pending)
+                                    .Where(p => p.PlaceStatus == MyStatus.pending || p.PlaceStatus == MyStatus.enabled)
                                     .FirstOrDefaultAsync();
             if (existplace == null)
             {
-                return NotFound("is not found");
+                return NotFound("is not found or already disabled");
             }
             existplace.PlaceStatus = MyStatus.disabled;
             await SentNotificationAsync(existplace.OwnerId, "the admin reject your chalet");
             await _db.SaveChangesAsync();
-            return Ok();
+            return Ok("place is disabled");
         }
         [HttpGet("GetEnableBookings")]
         public async Task<IActionResult> GetEnableBookings()
@@ -158,6 +163,25 @@ namespace Rezioxgithub.Controllers
         private async Task SentNotificationAsync(int userid, string message)
         {
             await _db.Notifications.AddAsync(new Notification {UserId = userid, Message = message });
+        }
+        private async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
+        {
+
+            var cardplaces = new List<dtoCardPlace>();
+            foreach (var place in places)
+            {
+                cardplaces.Add(new dtoCardPlace
+                {
+                    PlaceId = place.PlaceId,
+                    PlaceName = place.PlaceName,
+                    Price = place.Price,
+                    City = place.City.ToString(),
+                    Visitors = place.Visitors,
+                    Rating = place.Rating,
+                    BaseImage = place.Listimage.Count != 0 ? place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null
+                });
+            }
+            return cardplaces;
         }
 
     }

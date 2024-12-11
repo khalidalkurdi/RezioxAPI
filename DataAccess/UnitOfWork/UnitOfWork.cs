@@ -1,5 +1,6 @@
 ﻿using CloudinaryDotNet;
 using DataAccess.Repository;
+using DataAccess.Repository.ExternalcCloud;
 using DataAccess.Repository.IRepository;
 using Reziox.DataAccess;
 using Rezioxgithub.DataAccess.Repository;
@@ -10,18 +11,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DataAccess.UnitOfWork
-{
+{  
+    
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly AppDbContext _db; 
-        private readonly Cloudinary _cloudinary; 
-
-        public UnitOfWork(AppDbContext db, Cloudinary cloudinary) 
+        private readonly AppDbContext _db;
+        public UnitOfWork(AppDbContext db , ICloudImag cloudImag) 
         {
             _db = db;
-            _cloudinary = cloudinary;
-            Users = new UserRepository(_db,_cloudinary);
-            Places = new PlaceRepository(_db);
+            
+            Users = new UserRepository(_db,cloudImag);
+            Places = new PlaceRepository(_db,cloudImag);
         }
         public IUserRepository Users { get;private set; }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Model.DTO;
 using DataAccess.UnitOfWork;
+using DataAccess.Repository.IRepository;
 
 namespace Reziox.Controllers
 {
@@ -23,26 +24,8 @@ namespace Reziox.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-
-                var existUser = await _db.Users.Get((u => u.UserId == userId), "Myplaces , Mybookings");
-
-                if (existUser == null)
-                {
-                    return BadRequest("is not found");
-                }
-                var profileuser = new dtoProfile
-                {
-                    UserId = existUser.UserId,
-                    UserImage = existUser.UserImage,
-                    UserName = existUser.UserName,
-                    Email = existUser.Email,
-                    PhoneNumber = existUser.PhoneNumber,
-                    City = existUser.City.ToString(),
-                    UserPlaces = existUser.Places,
-                    UserBookings = existUser.Bookings,
-                    BookingsCanceling = existUser.BookingsCanceling
-                };
-                return Ok(profileuser);
+                var profileUser = _db.Users.Get(u => u.UserId == userId);
+                return Ok(profileUser);
             }catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
@@ -62,15 +45,10 @@ namespace Reziox.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                //find the user by id
-                var user = await _db.Users.Get((u => u.UserId == updatedProfile.UserId));
-                if (user == null)
-                {
-                    return NotFound($"user {updatedProfile.UserId} not found.");
-                }
-                await _db.Users.Update(updatedProfile, editUserImage);               
+                
+                var userProfile= await _db.Users.Update(updatedProfile, editUserImage);               
                 await _db.Save();
-                return Ok(user);
+                return Ok(userProfile);
             }
             catch (Exception ex)
             {

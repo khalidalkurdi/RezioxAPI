@@ -31,7 +31,7 @@ namespace RezioxAPIs.Controllers
                                             .Where(p => p.StatusBooking == MyStatus.enabled)
                                             .Where(p => p.BookingDate.DayOfYear > DateTime.UtcNow.DayOfYear)
                                             .Include(b => b.place)
-                                            .ThenInclude(p => p.Listimage.OrderBy(i => i.ImageId))
+                                            .ThenInclude(p => p.Listimage)
                                             .OrderBy(p => p.BookingDate)
                                             .ToListAsync();
                 if (!existbookings.Any())
@@ -60,7 +60,7 @@ namespace RezioxAPIs.Controllers
                                             .Where(p => p.StatusBooking == MyStatus.pending)
                                             .Include(u => u.user)
                                             .Include(b => b.place)
-                                            .ThenInclude(p=>p.Listimage.OrderBy(i => i.ImageId))
+                                            .ThenInclude(p=>p.Listimage)
                                             .OrderBy(p => p.BookingDate)
                                             .ToListAsync();
                 if(!existbookings.Any())
@@ -118,7 +118,7 @@ namespace RezioxAPIs.Controllers
                 }
                 // end check if find another booking in this date
                 existbooking.StatusBooking = MyStatus.enabled;
-                await SentNotificationAsync(existbooking.UserId, "the owner accept your booking and it added to your bookings");
+                await SentNotificationAsync(existbooking.UserId, "Confirm acceptance", "the owner accept your booking and it added to your bookings");
                 await _db.SaveChangesAsync();
                 return Ok("Approve booking successfuly");
             }
@@ -145,7 +145,7 @@ namespace RezioxAPIs.Controllers
                     return NotFound("is not found");
                 }
                 existbooking.StatusBooking = MyStatus.disabled;
-                await SentNotificationAsync(existbooking.UserId, "the owner reject your booking");
+                await SentNotificationAsync(existbooking.UserId, "Confirm rejection", "the owner reject your booking");
                 await _db.SaveChangesAsync();
                 return Ok("reject booking successfuly");
             }
@@ -163,7 +163,7 @@ namespace RezioxAPIs.Controllers
                 TimeSpan dif= booking.BookingDate.ToDateTime(
                        TimeOnly.MinValue.AddHours(booking.place.MorrningShift
                        )
-                       ) - DateTime.UtcNow; ;
+                       ) - DateTime.UtcNow; 
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
@@ -192,7 +192,7 @@ namespace RezioxAPIs.Controllers
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
                     BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.ElementAt(0).ImageUrl : null,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
                     BookingDate = booking.BookingDate.ToString(),
                     Time = rangetime,
@@ -226,7 +226,7 @@ namespace RezioxAPIs.Controllers
                     BookingId = booking.BookingId,
                     UserId=booking.UserId,
                     UserName=booking.user.UserName,
-                    BaseImage = booking.place.Listimage.Count!=0? booking.place.Listimage.ElementAt(0).ImageUrl:null,
+                    BaseImage = booking.place.Listimage.Count!=0? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl:null,
                     PlaceName = booking.place.PlaceName,
                     BookingDate = booking.BookingDate.ToString(),
                     Time = rangetime
@@ -234,9 +234,9 @@ namespace RezioxAPIs.Controllers
             }
             return cardbookings;
         }
-        private async Task SentNotificationAsync(int userid, string message)
+        private async Task SentNotificationAsync(int userid,string title, string message)
         {
-            await _db.Notifications.AddAsync(new Notification { UserId = userid, Message = message });
+            await _db.Notifications.AddAsync(new Notification { UserId = userid,Title=title ,Message = message  });
         }
 
     }

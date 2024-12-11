@@ -1,9 +1,8 @@
-﻿using DataAccess.Repository.IRepository;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 using System.Linq.Expressions;
 
-namespace Rezioxgithub.DataAccess.Repository
+namespace DataAccess.Repository.IRepository
 {
     public class Repository<T> : IRepository<T> where T : class
     {
@@ -15,7 +14,7 @@ namespace Rezioxgithub.DataAccess.Repository
             dbset = _db.Set<T>();
 
         }
-       
+
         public async Task Add(T entity)
         {
 
@@ -31,7 +30,7 @@ namespace Rezioxgithub.DataAccess.Repository
                 foreach (var property in includeProperties.Split
                     (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    query = query.Include(property);
+                    query = query.Include(property.Trim());
                 }
             }
             return await query.FirstOrDefaultAsync();
