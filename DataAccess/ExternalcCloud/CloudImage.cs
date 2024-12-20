@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess.Repository.ExternalcCloud
+namespace DataAccess.ExternalcCloud
 {
-    public class CloudImage :ICloudImag
+    public class CloudImage : ICloudImag
     {
         private readonly Cloudinary _cloudinary;
         public CloudImage(Cloudinary cloudinary)

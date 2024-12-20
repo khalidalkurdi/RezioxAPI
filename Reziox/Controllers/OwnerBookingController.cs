@@ -28,13 +28,13 @@ namespace RezioxAPIs.Controllers
                 }
                 var existbookings = await _db.Bookings
                                             .Where(p => p.place.OwnerId == ownerId)
-                                            .Where(p => p.StatusBooking == MyStatus.enabled)
+                                            .Where(p => p.StatusBooking == MyStatus.confirmation)
                                             .Where(p => p.BookingDate.DayOfYear > DateTime.UtcNow.DayOfYear)
                                             .Include(b => b.place)
                                             .ThenInclude(p => p.Listimage)
                                             .OrderBy(p => p.BookingDate)
                                             .ToListAsync();
-                if (!existbookings.Any())
+                if (existbookings.Count == 0)
                 {
                     return NotFound("is not found");
                 }
@@ -57,17 +57,17 @@ namespace RezioxAPIs.Controllers
                 }
                 var existbookings = await _db.Bookings
                                             .Where(p => p.place.OwnerId == ownerId)
-                                            .Where(p => p.StatusBooking == MyStatus.pending)
+                                            .Where(p => p.StatusBooking == MyStatus.pending || p.StatusBooking == MyStatus.approve)
                                             .Include(u => u.user)
                                             .Include(b => b.place)
                                             .ThenInclude(p=>p.Listimage)
                                             .OrderBy(p => p.BookingDate)
                                             .ToListAsync();
-                if(!existbookings.Any())
+                if(existbookings.Count == 0)
                 {
                     return NotFound("is not found");
                 }
-                var requstbookings = CreateCardRequst(existbookings).Result;
+                var requstbookings = await CreateCardRequst(existbookings);
                 return Ok(requstbookings);
             }
             catch (Exception ex)
@@ -75,8 +75,64 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Enabled/{bookingId}")]
-        public async Task<IActionResult> Enabled([FromRoute] int bookingId)
+        [HttpGet("PaymentConfirmation/{bookingId}")]
+        public async Task<IActionResult> PaymentConfirmation([FromRoute] int bookingId)
+        {
+            try
+            {
+                if (bookingId == 0)
+                {
+                    return BadRequest("0 id is not correct !");
+                }
+                var existbooking = await _db.Bookings
+                                            .Where(p => p.BookingId == bookingId)
+                                            .Where(p => p.StatusBooking == MyStatus.approve)
+                                            .FirstOrDefaultAsync();
+                if (existbooking == null)
+                {
+                    return NotFound("is not found");
+                }
+                
+                //check if find another booking in this date
+                var booked = await _db.Bookings
+                                              .Where(b => b.PlaceId == existbooking.PlaceId)
+                                              .Where(b => b.UserId == existbooking.UserId)
+                                              .Where(b => b.BookingDate.DayOfYear == existbooking.BookingDate.DayOfYear)
+                                              .Where(b => b.StatusBooking == MyStatus.confirmation)
+                                              .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
+                                              .FirstOrDefaultAsync();
+                if (booked != null)
+                {
+                    await Disable(existbooking.BookingId);
+                    return BadRequest(" already booked");
+                }
+                var anotherpendingbookings = await _db.Bookings
+                                                      .Where(b => b.PlaceId == existbooking.PlaceId)
+                                                      .Where(b => b.UserId != existbooking.UserId)
+                                                      .Where(b => b.BookingDate.DayOfYear == existbooking.BookingDate.DayOfYear)
+                                                      .Where(b => b.StatusBooking == MyStatus.approve || b.StatusBooking== MyStatus.pending)
+                                                      .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
+                                                      .ToListAsync();
+                if (anotherpendingbookings.Count != 0)
+                {
+                    foreach (var booking in anotherpendingbookings)
+                    {
+                        await Disable(booking.BookingId);       
+                    }                    
+                }
+                // end check if find another booking in this date
+                existbooking.StatusBooking = MyStatus.confirmation;
+                await SentNotificationAsync(existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
+                await _db.SaveChangesAsync();
+                return Ok("Approve booking successfuly");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [HttpGet("Enable/{bookingId}")]
+        public async Task<IActionResult> Enable([FromRoute] int bookingId)
         {
             try
             {
@@ -93,32 +149,20 @@ namespace RezioxAPIs.Controllers
                     return NotFound("is not found");
                 }
                 //check if find another booking in this date
-                var enabledbooking = await _db.Bookings
+                var approvebooking = await _db.Bookings
                                               .Where(b => b.PlaceId == existbooking.PlaceId)
                                               .Where(b => b.BookingDate.DayOfYear ==existbooking.BookingDate.DayOfYear)
-                                              .Where(b => b.StatusBooking == MyStatus.enabled)
+                                              .Where(b => b.StatusBooking == MyStatus.confirmation)
                                               .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
-                                              .FirstOrDefaultAsync();
-                var anotherpendingbookings = await _db.Bookings
-                                                      .Where(b => b.PlaceId == existbooking.PlaceId)
-                                                      .Where(b => b.BookingDate.DayOfYear == existbooking.BookingDate.DayOfYear)
-                                                      .Where(b => b.StatusBooking == MyStatus.pending)
-                                                      .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
-                                                      .ToListAsync();
-                if (enabledbooking != null)
+                                              .FirstOrDefaultAsync();                
+                if (approvebooking != null)
                 {
-                    await Disabled(existbooking.BookingId);
-                }
-                if(anotherpendingbookings != null)
-                {
-                    foreach(var booking in anotherpendingbookings)
-                    {
-                        await Disabled(booking.BookingId);
-                    }
-                }
+                    await Disable(existbooking.BookingId);
+                    return BadRequest("already booking");
+                }                
                 // end check if find another booking in this date
-                existbooking.StatusBooking = MyStatus.enabled;
-                await SentNotificationAsync(existbooking.UserId, "Confirm acceptance", "the owner accept your booking and it added to your bookings");
+                existbooking.StatusBooking = MyStatus.approve;
+                await SentNotificationAsync(existbooking.UserId, "Acceptance Confirmation", "The chalet owner has accepted the reservation and is waiting for the first payment to confirm the reservation payment.");
                 await _db.SaveChangesAsync();
                 return Ok("Approve booking successfuly");
             }
@@ -127,8 +171,8 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Disabled/{bookingId}")]
-        public async Task<IActionResult> Disabled([FromRoute] int bookingId)
+        [HttpGet("Disable/{bookingId}")]
+        public async Task<IActionResult> Disable([FromRoute] int bookingId)
         {
             try
             {
@@ -138,14 +182,14 @@ namespace RezioxAPIs.Controllers
                 }
                 var existbooking = await _db.Bookings
                                             .Where(p => p.BookingId == bookingId)
-                                            .Where(p => p.StatusBooking == MyStatus.pending)
+                                            .Where(p => p.StatusBooking == MyStatus.pending || p.StatusBooking == MyStatus.approve)
                                             .FirstOrDefaultAsync();
                 if (existbooking == null)
                 {
                     return NotFound("is not found");
                 }
-                existbooking.StatusBooking = MyStatus.disabled;
-                await SentNotificationAsync(existbooking.UserId, "Confirm rejection", "the owner reject your booking");
+                existbooking.StatusBooking = MyStatus.reject;
+                await SentNotificationAsync(existbooking.UserId, "Rejection Confirmation", "The chalet owner reject the booking");
                 await _db.SaveChangesAsync();
                 return Ok("reject booking successfuly");
             }

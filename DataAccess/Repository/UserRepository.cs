@@ -13,8 +13,10 @@ using Reziox.Model;
 using Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using DataAccess.Repository.IRepository;
-using DataAccess.Repository.ExternalcCloud;
 using System.Linq.Expressions;
+using DataAccess.ExternalcCloud;
+using BCrypt.Net;
+using Reziox.Model.ThePlace;
 
 namespace DataAccess.Repository
 {
@@ -28,14 +30,64 @@ namespace DataAccess.Repository
             _cloudImag = cloudImag;
         }
 
-        public async Task<dtoProfile> Get(Expression<Func<User, bool>> filter)
+        public async Task<dtoProfile> AddAsync(dtoSignUp signUpRequest)
+        {
+            //checked if the email already exists
+            var existemail = await _db.Users.Where(u => u.Email == signUpRequest.Email.ToLower()).FirstOrDefaultAsync();
+            if (existemail != null)
+            {
+                throw new Exception("email is already in use , change it.");
+            }
+            //convert password to hash for more scurity 
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(signUpRequest.Password);
+
+
+            //convert string to enum value
+            if (!Enum.TryParse(signUpRequest.City.ToLower(), out MyCitys cityEnum))
+            {
+                throw new Exception($"City :{signUpRequest.City}");
+            }
+            var user = new User
+            {
+                UserName = signUpRequest.UserName,
+                Email = signUpRequest.Email.ToLower(),
+                Password = hashedPassword,
+                PhoneNumber = signUpRequest.PhoneNumber,
+                City = cityEnum
+            };
+            //add user
+            await _db.Users.AddAsync(user);           
+            var profileuser = new dtoProfile
+            {
+                UserId = user.UserId,
+                UserImage = user.UserImage,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                City = user.City.ToString(),
+            };
+            return profileuser;
+        }
+
+        public async Task<User> GetAsync(Expression<Func<User, bool>> filter)
+        {
+            //checked if exists
+            var existUser = await _db.Users.Where(filter).FirstOrDefaultAsync();
+
+            if (existUser == null)
+            {
+                throw new Exception("user is not found");
+            }
+            return existUser;
+        }
+        public async Task<dtoProfile> GetProfileAsync(Expression<Func<User, bool>> filter)
         {
 
             var existUser = await _db.Users.Where(filter).FirstOrDefaultAsync();
 
             if (existUser == null)
             {
-                throw new Exception("is not found");
+                throw new Exception("user is not found");
             }
             var profileuser = new dtoProfile
             {
@@ -52,7 +104,21 @@ namespace DataAccess.Repository
             return profileuser;
         }
 
-        public async Task<dtoProfile> Update( dtoProfile updatedProfile, IFormFile userImage)
+        public async Task<List<User>> GetAllAsync()
+        {
+            var existUsers = await _db.Users
+                                      .OrderBy(u => u.UserId)
+                                      .Include(u => u.Myplaces)
+                                      .Include(u => u.Mybookings)
+                                      .ToListAsync();
+            if (existUsers == null)
+            {
+                throw new Exception("is not found");
+            }
+            return existUsers;
+        }
+
+        public async Task<dtoProfile> UpdateAsync( dtoUpdateProfile updatedProfile, IFormFile userImage)
         {
             //find the user by id
             var existuser = await _db.Users.Where(u => u.UserId == updatedProfile.UserId).FirstOrDefaultAsync();
@@ -79,8 +145,9 @@ namespace DataAccess.Repository
             existuser.Email = updatedProfile.Email;
             existuser.PhoneNumber = updatedProfile.PhoneNumber;
             existuser.City = cityEnum;
-            return await Get(u => u.UserId == updatedProfile.UserId);
+            return await GetProfileAsync(u => u.UserId == updatedProfile.UserId);
         }
 
+        
     }
 }

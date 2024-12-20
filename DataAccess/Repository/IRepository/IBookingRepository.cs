@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace DataAccess.Repository.IRepository
 {
-    public interface IPlaceRepository
+    public interface IBookingRepository
     {
         public Task<Place> GetAsync(Expression<Func<Place, bool>> filter);
         public Task<dtoDetailsPlace> GetDetailsAsync(Expression<Func<Place, bool>> filter);

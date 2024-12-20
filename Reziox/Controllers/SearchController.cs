@@ -22,28 +22,38 @@ namespace Reziox.Controllers
            
         }
                 
-        [HttpGet("SmartSearch")]
-        public async Task<IActionResult> SmartSearch(DateOnly choicdate, int? minPrice, int? maxPrice, int? gusts, string typeshift, string? city,ICollection<string>? features)
+        [HttpPost("SmartSearch")]
+        public async Task<IActionResult> SmartSearch(dtoSearch dtoSearch)
         {
             try
             {
                 var query = _db.Places
-               .Include(p => p.Listimage)
-               .Where(p => p.PlaceStatus == MyStatus.enabled)
-               .AsQueryable();
-                if (minPrice.HasValue)
-                    query = query.Where(p => p.Price >= minPrice);
-                if (maxPrice.HasValue)
-                    query = query.Where(p => p.Price <= maxPrice);
-                if (gusts.HasValue)
-                    query = query.Where(p => p.Visitors <= gusts);
-                if (!string.IsNullOrEmpty(city) && Enum.TryParse(city, out MyCitys cityEnum))
+                               .Include(p => p.Listimage)
+                               .Include(p => p.ListReviews)
+                               .Include(p => p.Listbookings)
+                               .Where(p => p.PlaceStatus == MyStatus.approve)
+                               .AsQueryable();
+
+                if (query.Count() == 0) 
+                {
+                    return NotFound("was not found result");
+                }            
+                if (dtoSearch.MinPrice!=0)
+                    query = query.Where(p => p.Price >= dtoSearch.MinPrice);
+
+                if (dtoSearch.MaxPrice != 0)
+                    query = query.Where(p => p.Price <= dtoSearch.MaxPrice);
+
+                if (dtoSearch.Gusts != 0)
+                    query = query.Where(p => p.Visitors <= dtoSearch.Gusts);
+
+                if (!string.IsNullOrEmpty(dtoSearch.City) && Enum.TryParse(dtoSearch.City, out MyCitys cityEnum))
                 {
                     query = query.Where(p => p.City == cityEnum);
                 }
-                if (!features.IsNullOrEmpty())
+                if (!dtoSearch.Features.IsNullOrEmpty())
                 {
-                    foreach (var feature in features)
+                    foreach (var feature in dtoSearch.Features)
                     {
                         switch (feature.ToLower())
                         {
@@ -66,34 +76,51 @@ namespace Reziox.Controllers
                     }
                 }
                 var results = await query.ToListAsync();
-
-                // is workeing ?
-                var daybooking = choicdate.DayOfWeek.ToString();
-                if (!Enum.TryParse(daybooking.ToLower(), out MYDays daydate))
+                if (results.Count == 0)
                 {
-                    return BadRequest($"invalid day :{daybooking}");
+                    return NotFound("is not found");
                 }
-                query = query.Where(p => (p.WorkDays & daydate) != daydate);
-                //end is working?
-                //booked?
-                if (!Enum.TryParse(typeshift.ToLower(), out MyShifts Typeshift))
+                //fillter rating
+                if (dtoSearch.Rating != 0)
                 {
-                    return BadRequest($"invalid type shift :{typeshift}");
-                }
-                foreach (var place in results)
-                {
-                    var notavilable = await _db.Bookings.Where(b => b.PlaceId == place.PlaceId)
-                                            .Where(b => b.BookingDate.DayOfYear == choicdate.DayOfYear)
-                                            .Where(b => (b.Typeshifts & Typeshift) == Typeshift)
-                                            .Where(b => b.StatusBooking == MyStatus.enabled)
-                                            .FirstOrDefaultAsync();
-                    if (notavilable != null)
+                    foreach (var place in results)
                     {
-                        results.Remove(place);
+                        if ( place.Rating < dtoSearch.Rating)
+                        {
+                            results.Remove(place);
+                        }
                     }
-                }//end booked?
+                }
+                //end fillter rating
+                // is workeing ?
+                if (!string.IsNullOrEmpty (dtoSearch.ChoicDate.ToString()) && !string.IsNullOrEmpty(dtoSearch.TypeShift))
+                {
+                    var daybooking = dtoSearch.ChoicDate.DayOfWeek.ToString();
+                    if (!Enum.TryParse(daybooking.ToLower(), out MYDays daydate))
+                    {
+                        return BadRequest($"invalid day :{daybooking}");
+                    }
+                    query = query.Where(p => (p.WorkDays & daydate) == daydate);
+                    //end is working?
+                    //booked?
+                    if (!Enum.TryParse(dtoSearch.TypeShift.ToLower(), out MyShifts TypeShift))
+                    {
+                        return BadRequest($"invalid type shift :{dtoSearch.TypeShift}");
+                    }
+                    foreach (var place in results)
+                    {
+                        var notavilable = place.Listbookings.Where(b => b.BookingDate.DayOfYear == dtoSearch.ChoicDate.DayOfYear)
+                                                            .Where(b => b.StatusBooking == MyStatus.confirmation)                                                        .Where(b => (b.Typeshifts & TypeShift) == TypeShift)
+                                                            .Where(b => (b.Typeshifts & TypeShift) == TypeShift)
+                                                            .FirstOrDefault();                        
+                        if (notavilable != null)
+                        {
+                            results.Remove(place);
+                        }
+                    }//end booked?
+                }
 
-                var cardplaces = CreateCardPlaces(results).Result;
+                var cardplaces = await CreateCardPlaces(results);
                 return Ok(cardplaces);
             }
             catch (Exception ex)
@@ -108,7 +135,7 @@ namespace Reziox.Controllers
             {
                 var existplace =await _db.Places
                                          .Include(p => p.Listimage)
-                                         .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                         .Where(p => p.PlaceStatus == MyStatus.approve)
                                          .Where(p => p.PlaceName == Name)
                                          .FirstOrDefaultAsync();
                 var cardplace = new dtoCardPlace
@@ -119,7 +146,9 @@ namespace Reziox.Controllers
                     City = existplace.City.ToString(),
                     Visitors = existplace.Visitors,
                     Rating = existplace.Rating,
-                    BaseImage = existplace.Listimage.Count != 0 ? existplace.Listimage.FirstOrDefault().ImageUrl : null
+                    BaseImage = existplace.Listimage.Count != 0 ? existplace.Listimage.Where(i => i.ImageStatus == MyStatus.approve)
+                                                                            .OrderBy(i => i.ImageId)
+                                                                            .FirstOrDefault().ImageUrl:null
                 };
                 return Ok(cardplace);
             }
@@ -134,8 +163,12 @@ namespace Reziox.Controllers
             try
             {
                 var existplaces = await _db.Places                                         
-                                          .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                          .Where(p => p.PlaceStatus == MyStatus.approve)
                                           .ToListAsync();
+                if (existplaces.Count == 0)
+                {
+                    return NotFound("not found");
+                }
                 var suggests = new List<string>();
                 foreach (var place in existplaces)
                 {
@@ -153,7 +186,7 @@ namespace Reziox.Controllers
         {
 
             var cardplaces = new List<dtoCardPlace>();
-            foreach (var place in places)
+            foreach (var place in places.OrderBy(p=>Guid.NewGuid()))
             {
                 cardplaces.Add(new dtoCardPlace
                 {

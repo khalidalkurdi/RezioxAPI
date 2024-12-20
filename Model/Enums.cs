@@ -20,10 +20,12 @@
     }
     public enum MyStatus
     {
-        enabled = 1,
+        confirmation=2,
+        approve = 1,
         pending = 0,
-        disabled = -1,
+        reject = -1,
         cancel= -2,
+        deleted=-3,
     }
     public enum MyCitys
     {

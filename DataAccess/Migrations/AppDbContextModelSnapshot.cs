@@ -22,7 +22,7 @@ namespace DataAccess.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Model.Inquiry", b =>
+            modelBuilder.Entity("Model.Support", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -44,7 +44,129 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Inquirys");
+                    b.ToTable("Supports");
+                });
+
+            modelBuilder.Entity("Model.ThePlace.EditingPlace", b =>
+                {
+                    b.Property<int>("EditingPlaceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EditingPlaceId"));
+
+                    b.Property<bool>("AirConditioning")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("BabyFoot")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Ballpool")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Barbecue")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("BathRoom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BedRoom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Beds")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ChildrensPlayground")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ChildrensPool")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("City")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EventArea")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Firstpayment")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Football")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HeatedSwimmingPool")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Jacuzzi")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LocationUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MasterRoom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MorrningShift")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NightShift")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Parking")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PaymentByCard")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("PlaceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlaceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlacePhone")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("PlaceStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Shower")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Tennis")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Visitors")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Volleyball")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("WiFi")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("WorkDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("EditingPlaceId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("EditingPlaces");
                 });
 
             modelBuilder.Entity("Reziox.Model.Favorite", b =>
@@ -72,23 +194,30 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("Reziox.Model.Notification", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("NotificationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("NotificationId");
 
                     b.HasIndex("UserId");
 
@@ -125,6 +254,28 @@ namespace DataAccess.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("Reziox.Model.ThePlace.EditingPlaceImage", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<int>("EditingPlaceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ImageId");
+
+                    b.HasIndex("EditingPlaceId");
+
+                    b.ToTable("EditingPlaceImages");
                 });
 
             modelBuilder.Entity("Reziox.Model.ThePlace.Place", b =>
@@ -172,6 +323,9 @@ namespace DataAccess.Migrations
                     b.Property<bool>("EventArea")
                         .HasColumnType("bit");
 
+                    b.Property<int>("Firstpayment")
+                        .HasColumnType("int");
+
                     b.Property<bool>("Football")
                         .HasColumnType("bit");
 
@@ -206,6 +360,11 @@ namespace DataAccess.Migrations
                     b.Property<string>("PlaceName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlacePhone")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<int>("PlaceStatus")
                         .HasColumnType("int");
@@ -246,11 +405,15 @@ namespace DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
 
+                    b.Property<int>("ImageStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PlaceId")
+                    b.Property<int?>("PlaceId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("ImageId");
@@ -363,11 +526,22 @@ namespace DataAccess.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Model.Inquiry", b =>
+            modelBuilder.Entity("Model.Support", b =>
                 {
                     b.HasOne("Reziox.Model.TheUsers.User", "user")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Model.ThePlace.EditingPlace", b =>
+                {
+                    b.HasOne("Reziox.Model.TheUsers.User", "user")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -423,6 +597,17 @@ namespace DataAccess.Migrations
                     b.Navigation("user");
                 });
 
+            modelBuilder.Entity("Reziox.Model.ThePlace.EditingPlaceImage", b =>
+                {
+                    b.HasOne("Model.ThePlace.EditingPlace", "editingplace")
+                        .WithMany("Listimage")
+                        .HasForeignKey("EditingPlaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("editingplace");
+                });
+
             modelBuilder.Entity("Reziox.Model.ThePlace.Place", b =>
                 {
                     b.HasOne("Reziox.Model.TheUsers.User", "user")
@@ -462,6 +647,11 @@ namespace DataAccess.Migrations
                     b.Navigation("place");
 
                     b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Model.ThePlace.EditingPlace", b =>
+                {
+                    b.Navigation("Listimage");
                 });
 
             modelBuilder.Entity("Reziox.Model.ThePlace.Place", b =>

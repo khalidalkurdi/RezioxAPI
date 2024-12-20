@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Model;
+using Model.ThePlace;
 using Model.TheUsers;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
@@ -18,12 +19,14 @@ namespace Reziox.DataAccess
         public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Place> Places { get; set; }
+        public DbSet<EditingPlace> EditingPlaces { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<PlaceImage> PlaceImages { get; set; }
+        public DbSet<EditingPlaceImage> EditingPlaceImages { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
         public DbSet<Notification> Notifications{ get; set; }
-        public DbSet<Inquiry> Inquirys { get; set; }
+        public DbSet<Support> Supports { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasData(

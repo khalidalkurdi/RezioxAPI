@@ -62,7 +62,7 @@ namespace Reziox.Controllers
                     City = user.City.ToString(),
                 };
                 return Ok(profileuser);
-                return Ok($"Your Account Created Successfuly !");
+                
             }
             catch (Exception ex)
             {
@@ -108,6 +108,6 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
+        
     }
 }

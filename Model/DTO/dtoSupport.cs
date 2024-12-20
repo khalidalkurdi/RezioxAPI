@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Model.DTO
 {
-    public class dtoInquiry
+    public class dtoSupport
     {
         [Required]       
         public int UserId { get; set; }

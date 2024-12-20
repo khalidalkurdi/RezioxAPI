@@ -16,7 +16,7 @@ namespace Reziox.Controllers
            
         }
         [HttpGet("Get/{userId}")]
-        public async Task<IActionResult> Get([FromRoute] int userId)
+        public async Task<IActionResult> Get( int userId)
         {
             try
             {
@@ -24,7 +24,7 @@ namespace Reziox.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var profileUser = _db.Users.Get(u => u.UserId == userId);
+                var profileUser =await _db.Users.GetProfileAsync(u => u.UserId == userId);
                 return Ok(profileUser);
             }catch (Exception ex)
             {
@@ -33,7 +33,7 @@ namespace Reziox.Controllers
                   
         }
         [HttpPut("Edit")]
-        public async Task<IActionResult> Edit([FromForm] dtoProfile updatedProfile, IFormFile? editUserImage)
+        public async Task<IActionResult> Edit([FromForm] dtoUpdateProfile updatedProfile, IFormFile? editUserImage)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace Reziox.Controllers
                     return BadRequest("0 id is not correct !");
                 }
                 
-                var userProfile= await _db.Users.Update(updatedProfile, editUserImage);               
+                var userProfile= await _db.Users.UpdateAsync(updatedProfile, editUserImage);               
                 await _db.Save();
                 return Ok(userProfile);
             }

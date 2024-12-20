@@ -138,6 +138,23 @@
           }
         }
       },
+      "Microsoft.AspNetCore.Http.Features/5.0.17": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "5.0.1",
+          "System.IO.Pipelines": "5.0.2"
+        },
+        "compile": {
+          "lib/net5.0/Microsoft.AspNetCore.Http.Features.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/Microsoft.AspNetCore.Http.Features.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore/8.0.10": {
         "type": "package",
         "dependencies": {
@@ -1685,7 +1702,7 @@
       "System.IO.Pipelines/6.0.3": {
         "type": "package",
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/System.IO.Pipelines.dll": {
             "related": ".xml"
           }
         },
@@ -2449,6 +2466,9 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
+          "BCrypt.Net-Next": "4.0.3",
+          "CloudinaryDotNet": "1.26.2",
+          "Microsoft.AspNetCore.Http.Features": "5.0.17",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.10",
           "Microsoft.EntityFrameworkCore": "8.0.10",
           "Microsoft.EntityFrameworkCore.SqlServer": "8.0.10",
@@ -2608,6 +2628,23 @@
         },
         "runtime": {
           "lib/net8.0/Microsoft.AspNetCore.Cryptography.KeyDerivation.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Http.Features/5.0.17": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "5.0.1",
+          "System.IO.Pipelines": "5.0.2"
+        },
+        "compile": {
+          "lib/net5.0/Microsoft.AspNetCore.Http.Features.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/Microsoft.AspNetCore.Http.Features.dll": {
             "related": ".xml"
           }
         }
@@ -4289,7 +4326,7 @@
       "System.IO.Pipelines/6.0.3": {
         "type": "package",
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/System.IO.Pipelines.dll": {
             "related": ".xml"
           }
         },
@@ -5008,6 +5045,9 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
+          "BCrypt.Net-Next": "4.0.3",
+          "CloudinaryDotNet": "1.26.2",
+          "Microsoft.AspNetCore.Http.Features": "5.0.17",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.10",
           "Microsoft.EntityFrameworkCore": "8.0.10",
           "Microsoft.EntityFrameworkCore.SqlServer": "8.0.10",
@@ -5197,6 +5237,25 @@
         "lib/netstandard2.0/Microsoft.AspNetCore.Cryptography.KeyDerivation.xml",
         "microsoft.aspnetcore.cryptography.keyderivation.8.0.10.nupkg.sha512",
         "microsoft.aspnetcore.cryptography.keyderivation.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Http.Features/5.0.17": {
+      "sha512": "3jG2xS+dx8DDCGV/F+STdPTg89lX3ao3dF/VEPvJaz3wzBIjuadipTtYNEXDIVuOPZwb6jdmhrX9jkzOIBm5cw==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.http.features/5.0.17",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net461/Microsoft.AspNetCore.Http.Features.dll",
+        "lib/net461/Microsoft.AspNetCore.Http.Features.xml",
+        "lib/net5.0/Microsoft.AspNetCore.Http.Features.dll",
+        "lib/net5.0/Microsoft.AspNetCore.Http.Features.xml",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Http.Features.dll",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Http.Features.xml",
+        "microsoft.aspnetcore.http.features.5.0.17.nupkg.sha512",
+        "microsoft.aspnetcore.http.features.nuspec"
       ]
     },
     "Microsoft.AspNetCore.Identity.EntityFrameworkCore/8.0.10": {
@@ -10596,11 +10655,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\RezioxAPIs.csproj",
+      "projectUniqueName": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPIs\\Reziox\\RezioxAPIs.csproj",
       "projectName": "RezioxAPIs",
-      "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\RezioxAPIs.csproj",
+      "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPIs\\Reziox\\RezioxAPIs.csproj",
       "packagesPath": "C:\\Users\\khalid Al-kurdi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Reziox\\obj\\publish\\win-x64\\",
+      "outputPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPIs\\Reziox\\obj\\publish\\win-x64\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\khalid Al-kurdi\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -10617,11 +10676,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\DataAccess\\DataAccess.csproj": {
-              "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\DataAccess\\DataAccess.csproj"
+            "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPIs\\DataAccess\\DataAccess.csproj": {
+              "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPIs\\DataAccess\\DataAccess.csproj"
             },
-            "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Model\\Model.csproj": {
-              "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPI\\Model\\Model.csproj"
+            "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPIs\\Model\\Model.csproj": {
+              "projectPath": "C:\\Users\\khalid Al-kurdi\\Desktop\\My-github\\RezioxAPIs\\Model\\Model.csproj"
             }
           }
         }
@@ -10630,6 +10689,11 @@
         "warnAsError": [
           "NU1605"
         ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -10692,7 +10756,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Model.DTO;
+using Reziox.Model.ThePlace;
 using Reziox.Model.TheUsers;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,10 @@ namespace DataAccess.Repository.IRepository
 {
     public interface IUserRepository
     {
-        Task<dtoProfile> Get(Expression<Func<User, bool>> function);
-        Task<dtoProfile> Update( dtoProfile updatedProfile, IFormFile userImage);
+        Task<User> GetAsync(Expression<Func<User, bool>> filter);
+        Task<dtoProfile> GetProfileAsync(Expression<Func<User, bool>> filter);
+        Task<List<User>> GetAllAsync();
+        Task<dtoProfile> UpdateAsync( dtoUpdateProfile updatedProfile, IFormFile userImage);
+        Task<dtoProfile> AddAsync( dtoSignUp dtoSignUp);
     }
 }

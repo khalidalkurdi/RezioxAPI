@@ -8,7 +8,7 @@ namespace Reziox.Model
     public class Notification
     {
         [Key]
-        public int Id { get; set; }
+        public int NotificationId { get; set; }
         [Required]
         [ForeignKey("user")]
         public int UserId { get; set; }
@@ -18,6 +18,8 @@ namespace Reziox.Model
         public string Message { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; }= DateTime.UtcNow;
+        [Required]
+        public bool IsRead { get; set; }
         [Required]
         
         public User user { get; set; }

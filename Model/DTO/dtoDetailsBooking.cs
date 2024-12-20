@@ -29,6 +29,8 @@ namespace Model.DTO
         [Required]
         public int Price { get; set; }
         [Required]
+        public int Firstpayment { get; set; }
+        [Required]
         public string City { get; set; }
         [Required]
         public int MaxGust { get; set; }

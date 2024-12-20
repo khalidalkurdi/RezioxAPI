@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 
 namespace Model.DTO
 {
-    public class dtoEditProfile
+    public class dtoUpdateProfile
     {
         [Required]
         public int UserId { get; set; }
-        public string? UserImage { get; set; }
         [Required]
         public string UserName { get; set; }
         [Required]

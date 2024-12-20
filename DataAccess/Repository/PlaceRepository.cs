@@ -1,4 +1,4 @@
-﻿using DataAccess.Repository.ExternalcCloud;
+﻿using DataAccess.ExternalcCloud;
 using DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -15,19 +15,31 @@ namespace Rezioxgithub.DataAccess.Repository
     {
         private readonly AppDbContext _db;
         private readonly ICloudImag _cloudImag;
-
         public PlaceRepository(AppDbContext db , ICloudImag cloudImag)
         {
             _db = db;
             _cloudImag = cloudImag;
         }
 
-        public  async Task<dtoDetailsPlace> Get(Expression<Func<Place, bool>> filter)
+        public async Task<Place> GetAsync(Expression<Func<Place, bool>> filter)
         {
             var existplace = await _db.Places.Where(filter)
                                              .Include(p => p.Listimage)
                                              .Include(p => p.ListReviews)
-                                             .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                             .Where(p => p.PlaceStatus == MyStatus.approve)
+                                             .FirstOrDefaultAsync();
+            if (existplace == null)
+            {
+                throw new Exception($"place was not found."); ;
+            }
+            return existplace;
+        }
+        public  async Task<dtoDetailsPlace> GetDetailsAsync(Expression<Func<Place, bool>> filter)
+        {
+            var existplace = await _db.Places.Where(filter)
+                                             .Include(p => p.Listimage)
+                                             .Include(p => p.ListReviews)
+                                             .Where(p => p.PlaceStatus == MyStatus.approve)
                                              .FirstOrDefaultAsync();
             if (existplace == null)
             {
@@ -69,16 +81,40 @@ namespace Rezioxgithub.DataAccess.Repository
                 dtoDetailsPlace.ListImage = new List<string>();
                 foreach (var image in existplace.Listimage.OrderBy(i => i.ImageId))
                 {
-                    dtoDetailsPlace.ListImage.Add(image.ImageUrl);
+                    dtoDetailsPlace.ListImage.Add(image.ImageUrl );
                 }
             }
             return dtoDetailsPlace;
         }
-        public Task<IEnumerable<dtoCardPlace>> GetRange(Expression<Func<Place, bool>> filter)
+        public async Task<List<Place>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            var query =   _db.Places
+                             .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                             .Include(p => p.ListReviews)
+                             .Where(p => p.PlaceStatus == MyStatus.approve)
+                             .AsQueryable();
+
+            if (query.Count() == 0)
+            {
+                throw new Exception("was not found result");
+            }
+            return query.ToList();
         }
-        public async Task Add(dtoAddPlace placePost, ICollection<IFormFile> placImages)
+        public async Task<List<dtoCardPlace>> GetRangeAsync(Expression<Func<Place, bool>> filter)
+        {
+            var ownerplaces = await _db.Places.Where(filter)                //.Where(p => p.PlaceStatus == MyStatus.approve)
+                                              .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                              .Include(p => p.ListReviews)
+                                              .OrderBy(p => p.PlaceId)
+                                              .ToListAsync();
+            if (ownerplaces.Count == 0) 
+            {
+                throw new Exception("was not found any chalete");
+            }
+            var cardplaces = await CreateCardPlacesAsync(ownerplaces);
+            return cardplaces;
+        }
+        public async Task AddAsync(dtoAddPlace placePost, ICollection<IFormFile> placImages)
         {
             if (!Enum.TryParse(placePost.City.ToLower(), out MyCitys cityEnum))
             {
@@ -146,35 +182,35 @@ namespace Rezioxgithub.DataAccess.Repository
                 place.Listimage.Add(placeImage);
             }
         }
-        public async Task Disable(Expression<Func<Place, bool>> filter)
+        public async Task DisableAsync(Expression<Func<Place, bool>> filter)
         {
             var existplace = await _db.Places
                                     .Where(filter)
-                                    .Where(p => p.PlaceStatus == MyStatus.pending || p.PlaceStatus == MyStatus.enabled)
+                                    .Where(p => p.PlaceStatus == MyStatus.pending || p.PlaceStatus == MyStatus.approve)
                                     .FirstOrDefaultAsync();                        
             if (existplace == null)
             {
                 throw new Exception("is not found or already disabled");
             }
-            existplace.PlaceStatus = MyStatus.disabled;
+            existplace.PlaceStatus = MyStatus.reject;
         }
-        public async Task Enable(Expression<Func<Place, bool>> filter)
+        public async Task EnableAsync(Expression<Func<Place, bool>> filter)
         {
             var existplace = await _db.Places
                                     .Where(filter)
-                                    .Where(p => p.PlaceStatus == MyStatus.pending || p.PlaceStatus == MyStatus.disabled)
+                                    .Where(p => p.PlaceStatus == MyStatus.pending || p.PlaceStatus == MyStatus.reject)
                                     .FirstOrDefaultAsync();
             if (existplace == null)
             {
-                throw new Exception("is not found or already enabled");
+                throw new Exception("is not found or already approve");
             }
-            existplace.PlaceStatus = MyStatus.enabled;
+            existplace.PlaceStatus = MyStatus.approve;
         }
-        public async Task Update(dtoUpdatePlace updateplace , ICollection<IFormFile> images)
+        public async Task UpdateAsync(dtoUpdatePlace updateplace , ICollection<IFormFile> images)
         {
             var existplace = await _db.Places
                                        .Include(p => p.Listimage.OrderBy(i => i.ImageId))
-                                       .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                       .Where(p => p.PlaceStatus == MyStatus.approve)
                                        .FirstOrDefaultAsync(p => p.PlaceId == updateplace.PlaceId);
             if (existplace == null || updateplace.PlaceId == 0)
             {
@@ -245,7 +281,7 @@ namespace Rezioxgithub.DataAccess.Repository
                 existplace.Listimage.Add(placeImage);
             }
         }
-        public async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
+        private async Task<List<dtoCardPlace>> CreateCardPlacesAsync(List<Place> places)
         {
             var cardplaces = new List<dtoCardPlace>();
             foreach (var place in places)
@@ -258,7 +294,9 @@ namespace Rezioxgithub.DataAccess.Repository
                     City = place.City.ToString(),
                     Visitors = place.Visitors,
                     Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ? place.Listimage.FirstOrDefault().ImageUrl : null
+                    BaseImage = place.Listimage.Count != 0 ? place.Listimage.Where(i => i.ImageStatus == MyStatus.approve)
+                                                                            .OrderBy(i => i.ImageId)
+                                                                            .FirstOrDefault().ImageUrl : null
                 });
             }
             return cardplaces;           

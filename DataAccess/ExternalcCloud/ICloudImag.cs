@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess.Repository.ExternalcCloud
+namespace DataAccess.ExternalcCloud
 {
     public interface ICloudImag
     {

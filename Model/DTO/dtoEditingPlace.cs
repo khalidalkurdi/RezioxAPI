@@ -1,13 +1,11 @@
-﻿using Reziox.Model.TheUsers;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿
 using System.ComponentModel.DataAnnotations;
-using Reziox.Model.ThePlace;
-using Reziox.Model;
 
 namespace Model.DTO
 {
-    public class dtoAddPlace
-    {
+    public class dtoEditingPlace
+    {       
+        public int? PlaceId { get; set; }
         [Required]
         public int OwnerId { get; set; }
         [Required]
@@ -18,14 +16,13 @@ namespace Model.DTO
         [Required]
         public string City { get; set; }
         [Required]
-        public string LocationUrl { get; set; }
-        
+        public string? LocationUrl { get; set; }
         [Required]
         public string Description { get; set; }
         [Required]
         public int Price { get; set; }
         [Required]
-        public int FirstPayment { get; set; }
+        public int Firstpayment { get; set; }
         [Required]
         public List<string> WorkDays { get; set; }
         [Required]

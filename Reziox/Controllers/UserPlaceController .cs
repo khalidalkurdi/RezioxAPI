@@ -31,9 +31,9 @@ namespace Reziox.Controllers
                     return BadRequest(" 0 id is not correct !");
                 }
                 var existplace = await _db.Places.Where(p => p.PlaceId == placeid)
-                                                 .Include(p => p.Listimage)
+                                                 .Include(p => p.Listimage)                                                
                                                  .Include(p => p.ListReviews)
-                                                 .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                                 .Where(p => p.PlaceStatus == MyStatus.approve)
                                                  .FirstOrDefaultAsync();
                 if (existplace == null)
                 {
@@ -49,6 +49,7 @@ namespace Reziox.Controllers
                     LocationUrl = existplace.LocationUrl,
                     Description = existplace.Description,
                     Price = existplace.Price,
+                    Firstpayment = existplace.Firstpayment,
                     PaymentByCard = existplace.PaymentByCard,
                     MasterRoom = existplace.MasterRoom,
                     BedRoom = existplace.BedRoom,
@@ -75,7 +76,10 @@ namespace Reziox.Controllers
                     dtoDetailsPlace.ListImage = new List<string>();
                     foreach (var image in existplace.Listimage.OrderBy(i => i.ImageId))
                     {
-                        dtoDetailsPlace.ListImage.Add(image.ImageUrl);
+                        if (image.ImageStatus == MyStatus.approve)
+                        {
+                             dtoDetailsPlace.ListImage.Add(image.ImageUrl);
+                        }
                     }
                 }
                 
@@ -105,7 +109,7 @@ namespace Reziox.Controllers
                 }
                 var suggestlist = await _db.Places
                                            .Where(p => p.City==existuser.City)
-                                           .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                           .Where(p => p.PlaceStatus == MyStatus.approve)
                                            .Include(p => p.Listimage)
                                            .ToListAsync();
                 var cardplaces = await CreateCardPlaces(suggestlist);
@@ -122,7 +126,7 @@ namespace Reziox.Controllers
             try
             {
                 var mostplaces = await _db.Places
-                                       .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                       .Where(p => p.PlaceStatus == MyStatus.approve)
                                        .Include(p => p.ListReviews)
                                        .Include(p => p.Listimage)
                                        .ToListAsync();
@@ -157,7 +161,7 @@ namespace Reziox.Controllers
             try
             {
                 var existplaces = await _db.Places
-                                       .Where(p => p.PlaceStatus == MyStatus.enabled)
+                                       .Where(p => p.PlaceStatus == MyStatus.approve)
                                        .Include(p => p.Listimage)
                                        .ToListAsync();
                 if (existplaces.Count == 0)
@@ -190,7 +194,9 @@ namespace Reziox.Controllers
                     City = place.City.ToString(),
                     Visitors = place.Visitors,
                     Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.OrderBy(i=>i.ImageId).FirstOrDefault().ImageUrl : null
+                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.Where(i=>i.ImageStatus==MyStatus.approve)
+                                                                            .OrderBy(i=>i.ImageId)
+                                                                            .FirstOrDefault().ImageUrl : null
                 });
             }
             return cardplaces;

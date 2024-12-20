@@ -8,12 +8,13 @@ namespace Model.DTO
 {
     public class dtoSearch
     {
-       public DateOnly choicdate { get; set; }
-       public int? minPrice { get; set; }
-       public int? maxPrice { get; set; }
-       public int? gusts { get; set; }
-       public string typeshift { get; set; }
-       public string? city { get; set; }
-       public ICollection<string>? features { get; set; }
+       public DateOnly ChoicDate { get; set; }
+       public int? MinPrice { get; set; }
+       public int? MaxPrice { get; set; }
+       public int? Rating { get; set; }
+       public int? Gusts { get; set; }
+       public string? TypeShift { get; set; }
+       public string? City { get; set; }
+       public ICollection<string>? Features { get; set; }
     }
 }

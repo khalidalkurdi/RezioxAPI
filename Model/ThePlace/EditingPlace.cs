@@ -1,14 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
+﻿using Reziox.Model.ThePlace;
 using Reziox.Model.TheUsers;
+using Reziox.Model;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace Reziox.Model.ThePlace
+namespace Model.ThePlace
 {
-    public class Place
+    public class EditingPlace
     {
         [Key]
-        public int PlaceId { get; set; }
+        public int EditingPlaceId { get; set; }
+        public int? PlaceId { get; set; }
         [Required]
         [ForeignKey("user")]
         public int OwnerId { get; set; }
@@ -22,7 +24,7 @@ namespace Reziox.Model.ThePlace
         [Required]
         public string? LocationUrl { get; set; }
         [Required]
-        public MyStatus PlaceStatus { get; set; } = MyStatus.approve;
+        public MyStatus PlaceStatus { get; set; } = MyStatus.pending;
         [Required]
         public string Description { get; set; }
         [Required]
@@ -48,7 +50,7 @@ namespace Reziox.Model.ThePlace
         [Required]
         public int Shower { get; set; }
 
-        #region 15 features
+        #region  features
         [Required]
         public bool WiFi { get; set; } = false;
         [Required]
@@ -62,36 +64,25 @@ namespace Reziox.Model.ThePlace
         [Required]
         public bool ChildrensPlayground { get; set; } = false;
         [Required]
-        public bool ChildrensPool { get; set;} = false;
+        public bool ChildrensPool { get; set; } = false;
         [Required]
-        public bool Parking { get; set;} = false;
+        public bool Parking { get; set; } = false;
         [Required]
-        public bool Jacuzzi { get; set;} = false;
+        public bool Jacuzzi { get; set; } = false;
         [Required]
-        public bool HeatedSwimmingPool { get; set;} = false;
+        public bool HeatedSwimmingPool { get; set; } = false;
         [Required]
-        public bool Football { get; set;} = false;
+        public bool Football { get; set; } = false;
         [Required]
-        public bool BabyFoot { get; set;} = false;
+        public bool BabyFoot { get; set; } = false;
         [Required]
-        public bool Ballpool { get; set;} = false;
+        public bool Ballpool { get; set; } = false;
         [Required]
-        public bool Tennis { get; set;} = false;
+        public bool Tennis { get; set; } = false;
         [Required]
-        public bool Volleyball { get; set;} = false;
+        public bool Volleyball { get; set; } = false;
         #endregion
-        //count of bookings for each place
-
-        //AVG of rating
-        [NotMapped]
-        [Range(0.0, 5.0)]
-        public double Rating =>ListReviews.Count==0 ? 0.0 : ListReviews.Average(r => r.Rating);
-        //count reviews
-        [NotMapped]
-        public int CountReviews => ListReviews.Count;       
-        public ICollection<PlaceImage> Listimage { get; set; }= new List<PlaceImage>();
-        public ICollection<Booking> Listbookings { get; set; }=new List<Booking>();
-        public ICollection<Review> ListReviews { get; set; } = new List<Review>();
+        public ICollection<EditingPlaceImage> Listimage { get; set; } = new List<EditingPlaceImage>();
         [Required]
         public  User user { get; set; }
         

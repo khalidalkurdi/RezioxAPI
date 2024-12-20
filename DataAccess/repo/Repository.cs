@@ -2,7 +2,7 @@
 using Reziox.DataAccess;
 using System.Linq.Expressions;
 
-namespace DataAccess.Repository.IRepository
+namespace DataAccess.repo
 {
     public class Repository<T> : IRepository<T> where T : class
     {

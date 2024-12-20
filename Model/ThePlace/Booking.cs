@@ -20,8 +20,7 @@ namespace Reziox.Model.ThePlace
         public DateOnly BookingDate { get; set; }
         public MyShifts Typeshifts { get; set; }
         public MyStatus StatusBooking { get; set; } = MyStatus.pending;
-        [Required]
-        
+        [Required]        
         public User user { get; set; }
         [Required]
         

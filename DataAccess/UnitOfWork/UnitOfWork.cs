@@ -1,6 +1,6 @@
 ﻿using CloudinaryDotNet;
+using DataAccess.ExternalcCloud;
 using DataAccess.Repository;
-using DataAccess.Repository.ExternalcCloud;
 using DataAccess.Repository.IRepository;
 using Reziox.DataAccess;
 using Rezioxgithub.DataAccess.Repository;
@@ -11,8 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DataAccess.UnitOfWork
-{  
-    
+{
+
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _db;

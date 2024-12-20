@@ -42,6 +42,19 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest("can not booking your chalet !");
                 }
+                //check already user booked this place
+                var existalreadybooking = await _db.Bookings
+                                            .Where(b => b.PlaceId == placeId)
+                                            .Where(b => b.UserId == existuser.UserId)
+                                            .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation || b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
+                                            .FirstOrDefaultAsync();
+                if (existalreadybooking != null && existalreadybooking.Typeshifts == MyShifts.full)
+                {
+                    return BadRequest("you already booked this place");
+                }
+                //end check already user booked this place
+
                 //check place is working
                 var daybooking = datebooking.DayOfWeek.ToString();
                 if (!Enum.TryParse(daybooking.ToLower(), out MYDays day))
@@ -53,32 +66,32 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("the chalete is not working !");
                 }
                 //end check is booked or not
+
                 //check is booked or not
                 var existbooking = await _db.Bookings
-                    .Where(b => b.PlaceId == placeId)
-                    .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
-                    .Where(b => b.StatusBooking == MyStatus.enabled)
-                    .FirstOrDefaultAsync();
+                                            .Where(b => b.PlaceId == placeId)
+                                            .Where(b => b.UserId != existuser.UserId)
+                                            .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation)
+                                            .FirstOrDefaultAsync();
                 if (existbooking != null && existbooking.Typeshifts == MyShifts.full)
                 {
                     return Content("this palce is booking now!");
                 }
                 //end check is booked or not
-
-                bool fullshift = existbooking == null;
-                bool aviablenightshift = true;
-                bool aviablemornningshift = true;
+                bool aviableNightShift = true;
+                bool aviableMornningShift = true;
                 if (existbooking != null)
                 {
-                    aviablemornningshift = existbooking.Typeshifts != MyShifts.morning;
-                    aviablenightshift = existbooking.Typeshifts != MyShifts.night;
+                    aviableMornningShift = existbooking.Typeshifts != MyShifts.morning;
+                    aviableNightShift = existbooking.Typeshifts != MyShifts.night;
                 }
                 var mornningtime = $"{existplace.MorrningShift} AM - {existplace.NightShift - 1} PM";
                 var nighttime = $"{existplace.NightShift} PM - {existplace.MorrningShift - 1} AM";
                 return Ok(new
                 {
-                    Mornning = aviablemornningshift,
-                    Night = aviablenightshift,
+                    Mornning = aviableMornningShift,
+                    Night = aviableNightShift,
                     TimeMornning = mornningtime,
                     TimeNight = nighttime
                 });
@@ -88,7 +101,6 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
         [HttpPost("Confirm")]
         public async Task<IActionResult> SecondAddBooking(int placeId, int userId, DateOnly datebooking,string bookinshift)
         {
@@ -113,6 +125,18 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest("can not booking your chalet !");
                 }
+                //check already user booked this place
+                var existalreadybooking = await _db.Bookings
+                                            .Where(b => b.PlaceId == placeId)
+                                            .Where(b => b.UserId == existuser.UserId)
+                                            .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation || b.StatusBooking == MyStatus.pending||b.StatusBooking == MyStatus.approve)
+                                            .FirstOrDefaultAsync();
+                if (existalreadybooking != null && existalreadybooking.Typeshifts == MyShifts.full)
+                {
+                    return BadRequest("you already booked this place");
+                }
+                //end check already user booked this place
                 //check place is working
                 var daybooking = datebooking.DayOfWeek.ToString();
                 if (!Enum.TryParse(daybooking.ToLower(), out MYDays day))
@@ -126,17 +150,17 @@ namespace Rezioxgithub.Controllers
                 //end check place is working
 
                 if (!Enum.TryParse(bookinshift.ToLower(), out MyShifts typeshift))
-                {
-                    if (!string.IsNullOrEmpty(bookinshift))
-                        return BadRequest($"can not convert this enum{bookinshift}");
+                {                    
+                    return BadRequest($"can not convert this enum{bookinshift}");
                 }
                 //start check is booked or not
                 var existbooking = await _db.Bookings
-                    .Where(b => b.PlaceId == placeId)
-                    .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
-                    .Where(b => b.StatusBooking == MyStatus.enabled)
-                    .Where(b => (b.Typeshifts & typeshift) == typeshift)
-                    .FirstOrDefaultAsync();
+                                            .Where(b => b.PlaceId == placeId)
+                                            .Where(b => b.UserId != existuser.UserId)
+                                            .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation)
+                                            .Where(b => (b.Typeshifts & typeshift) == typeshift)
+                                            .FirstOrDefaultAsync();
                 if (existbooking != null)
                 {
                     return BadRequest("this palce is booking now!");
@@ -144,7 +168,8 @@ namespace Rezioxgithub.Controllers
                 //end check is booked or not
                 var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate = datebooking, Typeshifts = typeshift };
                 await _db.Bookings.AddAsync(mybooking);
-                await SentNotificationAsync(existplace.OwnerId, "New booking", $"A place you own is reserved on date{datebooking}");
+                await SentNotificationAsync(existplace.OwnerId, "New Requset booking", $"A place {existplace.PlaceName } you own is reserved on date {datebooking}");
+                await SentNotificationAsync(existuser.UserId, "Requset booking Confirmation", $"Bookingis on date {datebooking} is pending and sent successfully to owner, please waite the of owner");
                 await _db.SaveChangesAsync();
                 return Ok("booking is pending and sent successfully to owner, please waite the of owner");
             }
@@ -153,7 +178,6 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }           
         }
-
         [HttpDelete("Cancel/{bookingId}")]
         public async Task<IActionResult> Cancel([FromRoute] int bookingId)
         {
@@ -165,7 +189,7 @@ namespace Rezioxgithub.Controllers
                 }
                 var existbooking = await _db.Bookings
                                             .Where(b => b.BookingId == bookingId)
-                                            .Where(b => b.StatusBooking == MyStatus.enabled)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation)
                                             .Include(b => b.place)
                                             .FirstOrDefaultAsync();
 
@@ -174,14 +198,14 @@ namespace Rezioxgithub.Controllers
                     return NotFound("booking not found.");
                 }
                 //condtion for cancle
-                if (existbooking.BookingDate.DayOfYear <= DateTime.Today.DayOfYear + 2)
+                if ((existbooking.BookingDate.DayOfYear - DateTime.Today.DayOfYear)<3)
                 {
                     return BadRequest("can not cancle condition must canceling date  at maximum 3 days before booking date ");
                 }
                 existbooking.StatusBooking = MyStatus.cancel;
                 //add notifiacation for  owner and user
-                await SentNotificationAsync(existbooking.place.OwnerId, "Confirm canceltion", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
-                await SentNotificationAsync(existbooking.UserId, "Confirm canceltion", $"You canceled the booking on date {existbooking.BookingDate}");
+                await SentNotificationAsync(existbooking.place.OwnerId, "Cancel Confirmation", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
+                await SentNotificationAsync(existbooking.UserId, "Cancel Confirmation", $"You canceled the booking on date {existbooking.BookingDate}");
                 await _db.SaveChangesAsync();
                 return Ok("Booking canceled successfully..");
             }
@@ -191,7 +215,7 @@ namespace Rezioxgithub.Controllers
             }          
         }
         [HttpGet("Details/{bookingId}")]
-        public async Task<IActionResult> Details( [FromRoute] int bookingId)
+        public async Task<IActionResult> Details([FromRoute] int bookingId)
         {
             try
             {
@@ -201,11 +225,9 @@ namespace Rezioxgithub.Controllers
                 }
                 var existbooking = await _db.Bookings
                                              .Where(p => p.BookingId == bookingId)
-                                             .Where(b => b.StatusBooking == MyStatus.enabled)
+                                             .Where(b => b.StatusBooking == MyStatus.confirmation)
                                              .Include(u => u.user)
-                                             .Include(b => b.place)
-                                             .ThenInclude(p => p.Listimage)
-                                             .Include(p => p.place.user)
+                                             .Include(b => b.place)                                                                                          
                                              .FirstOrDefaultAsync();
                 if (existbooking == null)
                 {
@@ -232,10 +254,11 @@ namespace Rezioxgithub.Controllers
                     UserId = existbooking.UserId,
                     PlaceId = existbooking.PlaceId,
                     PlaceName = existbooking.place.PlaceName,
-                    PlacePhone = existbooking.place.user.PhoneNumber,
+                    PlacePhone = existbooking.place.PlacePhone,
                     BookingDate = $"{existbooking.BookingDate.DayOfWeek}-{existbooking.BookingDate}",
                     Time = rangetime,
                     Price = existbooking.place.Price,
+                    Firstpayment=existbooking.place.Firstpayment,
                     City = existbooking.place.City.ToString(),
                     MaxGust = existbooking.place.Visitors,
                     UserName = existbooking.user.UserName,
@@ -249,7 +272,7 @@ namespace Rezioxgithub.Controllers
             }
         }
         [HttpGet("GetBookings/{userId}")]
-        public async Task<IActionResult> GetBookings( [FromRoute] int userId)
+        public async Task<IActionResult> GetBookings([FromRoute] int userId)
         {
             try
             {
@@ -259,7 +282,7 @@ namespace Rezioxgithub.Controllers
                 }
                 var existbookings = await _db.Bookings
                                              .Where(b => b.UserId == userId)
-                                             .Where(b => b.StatusBooking == MyStatus.enabled)
+                                             .Where(b => b.StatusBooking == MyStatus.confirmation)
                                              .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
                                              .Include(b => b.place)
                                              .ThenInclude(p => p.Listimage)
@@ -269,7 +292,36 @@ namespace Rezioxgithub.Controllers
                 {
                     return NotFound("is not found");
                 }
-                var bookings = CreateCardBookings(existbookings).Result;
+                var bookings = await CreateCardBookings(existbookings);
+                return Ok(bookings);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetBookingRequsets/{userId}")]
+        public async Task<IActionResult> GetBookingRequsets([FromRoute] int userId)
+        {
+            try
+            {
+                if (userId == 0)
+                {
+                    return BadRequest("0 id is not correct !");
+                }
+                var existbookings = await _db.Bookings
+                                             .Where(b => b.UserId == userId)
+                                             .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
+                                             .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
+                                             .Include(b => b.place)
+                                             .ThenInclude(p => p.Listimage)
+                                             .OrderBy(b => b.BookingDate)
+                                             .ToListAsync();
+                if (existbookings == null)
+                {
+                    return NotFound("is not found");
+                }
+                var bookings = await CreateCardBookings(existbookings);
                 return Ok(bookings);
             }
             catch (Exception ex)
@@ -288,13 +340,13 @@ namespace Rezioxgithub.Controllers
                 }
                 var existbookings = await _db.Bookings
                                              .Where(b => b.UserId == userId)
-                                             .Where(b => b.StatusBooking == MyStatus.enabled)
+                                             .Where(b => b.StatusBooking == MyStatus.confirmation)
                                              .Where(b => b.BookingDate.DayOfYear<DateTime.UtcNow.DayOfYear)
                                              .Include(b => b.place)
                                              .ThenInclude(p => p.Listimage)
                                              .OrderBy(b => b.BookingDate)
                                              .ToListAsync();
-                if (existbookings == null)
+                if (existbookings.Count != 0)
                 {
                     return NotFound("is not found");
                 }
@@ -306,7 +358,6 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
         private async Task SentNotificationAsync(int userid,string title, string message)
         {
             await _db.Notifications.AddAsync(new Notification { UserId = userid,Title=title, Message = message });

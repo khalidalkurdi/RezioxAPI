@@ -1,5 +1,5 @@
 using CloudinaryDotNet;
-using DataAccess.Repository.ExternalcCloud;
+using DataAccess.ExternalcCloud;
 using DataAccess.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
