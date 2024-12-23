@@ -432,7 +432,7 @@ namespace Rezioxgithub.Controllers
                     PlaceName = booking.place.PlaceName,
                     BookingDate = booking.BookingDate.ToString(),
                     Time = rangetime,
-                    CountDown = $"{dif.Days} day & {dif.Hours}h : {dif.Minutes}m"                    
+                    CountDown = $"{dif.Days} day"                    
                 });
             }
             return cardbookings;

@@ -29,7 +29,7 @@ namespace Reziox.Model.TheUsers
         [NotMapped]
         public int Places => Myplaces.Count == 0 ? 0 :Myplaces.Count;
         [NotMapped]
-        public int Bookings => Mybookings.Count == 0 ? 0 : Mybookings.Where(p => p.StatusBooking == MyStatus.approve).Count();
+        public int Bookings => Mybookings.Count == 0 ? 0 : Mybookings.Where(p => p.StatusBooking == MyStatus.confirmation).Count();
         [NotMapped]
         public int BookingsCanceling => Mybookings.Count()==0 ? 0 : Mybookings.Where(p => p.StatusBooking == MyStatus.cancel).Count();
 
