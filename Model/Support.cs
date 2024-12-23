@@ -7,14 +7,16 @@ namespace Model
     {
 
         [Key]
-        public int Id { get; set; }
+        public int SupportId { get; set; }
         [Required]
         [ForeignKey("user")]
         public int UserId { get; set; }
         [Required]
-        public string Message { get; set; }
+        public string Complaint { get; set; }
         [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string ComplaintType { get; set; }
+        [Required]
+        public string Response { get; set; }
         [Required]       
         public User user { get; set; }
     }

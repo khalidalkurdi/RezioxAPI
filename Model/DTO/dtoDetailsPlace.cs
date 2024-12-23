@@ -27,6 +27,10 @@ namespace Model.DTO
         public string City { get; set; }
         [Required]
         public string LocationUrl { get; set; }
+        [Required]
+        public int MorrningShift { get; set; }
+        [Required]
+        public int NightShift { get; set; }
         [Required]       
         public int Visitors { get; set; }
         [Required]

@@ -35,7 +35,7 @@ namespace Reziox.Controllers
                 var existuser = await _db.Users.FirstOrDefaultAsync(u=>u.UserId==userId);
                 if (existuser == null)
                 {
-                    return NotFound("no favorites found for this user");
+                    return NotFound("no found this user");
                 }
 
                 var existfavorites = await _db.Favorites.Where(f => f.UserId == userId)
@@ -46,7 +46,7 @@ namespace Reziox.Controllers
                                                          .ToListAsync();
                 if (existfavorites.Count == 0)
                 {
-                    return NotFound("is not found");
+                    return Ok(existfavorites);
                 }
                 var placs = new List<Place>();
                 foreach (var fav in existfavorites)

@@ -6,6 +6,8 @@ using Reziox.DataAccess;
 using Reziox.Model.ThePlace;
 using Reziox.Model;
 using Microsoft.EntityFrameworkCore;
+using DataAccess.ExternalcCloud;
+using DataAccess.PublicClasses;
 
 
 namespace RezioxAPIs.Controllers
@@ -15,11 +17,13 @@ namespace RezioxAPIs.Controllers
     public class OwnerPlaceController : ControllerBase
     {
         private readonly AppDbContext _db;
-        private readonly Cloudinary _cloudinary;
-        public OwnerPlaceController(AppDbContext db, Cloudinary cloudinary)
+        private readonly ICloudImag _cloudImag;
+        private readonly INotificationService _notification;
+        public OwnerPlaceController(AppDbContext db, ICloudImag cloudImag,INotificationService notification)
         {
             _db = db;
-            _cloudinary = cloudinary;
+            _cloudImag = cloudImag;
+            _notification = notification;
         }
         [HttpPost("UpSert")]
         public async Task<IActionResult> Upsert([FromForm] dtoEditingPlace dtoPlace, ICollection<IFormFile> images)
@@ -91,7 +95,7 @@ namespace RezioxAPIs.Controllers
 
                 foreach (var image in images)
                 {
-                    var imageUrl = await SaveImageAsync(image);
+                    var imageUrl = await _cloudImag.SaveImageAsync(image);
                     if (imageUrl == null)
                     {
                         return BadRequest($"invalid upload image {image}");
@@ -104,7 +108,7 @@ namespace RezioxAPIs.Controllers
                     thisplace.Listimage.Add(placeImage);
                 }
                 await _db.EditingPlaces.AddAsync(thisplace);
-                await SentNotificationAsync(dtoPlace.OwnerId, "Waiting Confirmation", $"Your chalete is Pending ,admin will check  it soon.. !");
+                await _notification.SentAsync(dtoPlace.OwnerId, "Waiting Confirmation", $"Your chalete is Pending ,admin will check  it soon.. !");
                 await _db.SaveChangesAsync();
                 return Ok("place sent to admin");
             }
@@ -130,17 +134,17 @@ namespace RezioxAPIs.Controllers
                 //check if have not any booking        &&      if have it can not deleted
                 var existbookins = await _db.Bookings
                                         .Where(p => p.PlaceId == existplace.PlaceId)
-                                        .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
+                                        .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
                                         .AnyAsync();
                 if (existbookins)
                 {
-                    await SentNotificationAsync(existplace.OwnerId, "Confirmation of impossibility", $"Can not delet your chalete because it has bookings!");
+                    await _notification.SentAsync(existplace.OwnerId, "Confirmation of impossibility", $"Can not delet your chalete because it has bookings!");
                     return BadRequest("it has bookings!");
                 }
                 //end check if have not any booking
 
                 existplace.PlaceStatus = MyStatus.reject;
-                await SentNotificationAsync(existplace.OwnerId, "Confirm Delet", $"your chalete{existplace.PlaceName} is deleted !");
+                await _notification.SentAsync(existplace.OwnerId, "Confirm Delet", $"your chalete{existplace.PlaceName} is deleted !");
                 await _db.SaveChangesAsync();
                 return Ok("place deleted successfuly ! ");
             }
@@ -167,7 +171,7 @@ namespace RezioxAPIs.Controllers
                                            .ToListAsync();
                 if (ownerplaces.Count == 0)
                 {
-                    return NotFound("not found");
+                    return Ok(ownerplaces);
                 }
                 var cardplaces = await CreateCardPlaces(ownerplaces);
                 return Ok(cardplaces);
@@ -178,25 +182,6 @@ namespace RezioxAPIs.Controllers
             }
         }
 
-        private async Task SentNotificationAsync(int userid,string title, string message)
-        {
-            await _db.Notifications.AddAsync(new Notification { UserId = userid,Title=title, Message = message });
-        }
-        private async Task<string> SaveImageAsync(IFormFile image)
-        {
-            if (image == null || image.Length == 0)
-                return null;
-            //requst
-            using var stream = image.OpenReadStream();
-            var uploadParams = new ImageUploadParams
-            {
-                File = new FileDescription(image.FileName, stream)
-            };
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-            if (uploadResult.Error != null)
-                return null;
-            return uploadResult.SecureUrl.ToString();
-        }
         private async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
         {
             var cardplaces = new List<dtoCardPlace>();

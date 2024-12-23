@@ -36,12 +36,12 @@ namespace Reziox.Controllers
 
                 if (existnotifications.Count == 0)
                 {
-                    return NotFound("no notifications found for this user.");
+                    return Ok(existnotifications);
                 }
                 var dtoNotifications = new List<dtoNotification>();
                 foreach (var notification in existnotifications)
                 {
-                    var difDate = notification.CreatedAt - DateTime.UtcNow;
+                    var difDate = notification.CreatedAt - DateTime.UtcNow.AddHours(3);
                     var countdown = difDate.Days < 0 ? $"{difDate.Days} day " : $"{difDate.Hours} hour";
                     dtoNotifications.Add(new dtoNotification {NotificationId=notification.NotificationId, Title = notification.Title, Message = notification.Message, CreatedAt = $"{countdown}",IsRead=notification.IsRead });
                 }

@@ -15,6 +15,8 @@ namespace Model.DTO
         [Required]       
         public int UserId { get; set; }
         [Required]
-        public string Message { get; set; }
+        public string Complaint { get; set; }
+        [Required]
+        public string ComplaintType { get; set; }
     }
 }

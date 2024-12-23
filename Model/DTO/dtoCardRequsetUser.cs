@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 
 namespace Model.DTO
 {
-    public class dtoFavorite
+    public class dtoCardRequsetUser
     {
         [Required]
-        public int PlaceId { get; set; }
+        public string City { get; set; }
         [Required]
         public string PlaceName { get; set; }
         [Required]
-        public string BaseImageUrl { get; set; }
+        public string? BaseImage { get; set; }
+        [Required]
+        public string Status { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DataAccess.PublicClasses;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Model.DTO;
@@ -13,9 +14,11 @@ namespace RezioxAPIs.Controllers
     public class OwnerBookingController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public OwnerBookingController(AppDbContext db)
+        private readonly INotificationService _notification;
+        public OwnerBookingController(AppDbContext db,INotificationService notification)
         {
             _db = db;
+            _notification = notification;
         }
         [HttpGet("GetBookings/{ownerId}")]
         public async Task<IActionResult> GetBookings([FromRoute]int ownerId)
@@ -29,14 +32,14 @@ namespace RezioxAPIs.Controllers
                 var existbookings = await _db.Bookings
                                             .Where(p => p.place.OwnerId == ownerId)
                                             .Where(p => p.StatusBooking == MyStatus.confirmation)
-                                            .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
+                                            .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
                                             .Include(b => b.place)
                                             .ThenInclude(p => p.Listimage)
                                             .OrderBy(p => p.BookingDate)
                                             .ToListAsync();
                 if (existbookings.Count == 0)
                 {
-                    return NotFound("is not found");
+                    return Ok(existbookings);
                 }
                 var bookings = CreateCardBookings(existbookings).Result;
                 return Ok(bookings);
@@ -58,7 +61,7 @@ namespace RezioxAPIs.Controllers
                 var existbookings = await _db.Bookings
                                             .Where(b => b.place.OwnerId == ownerId)
                                             .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
-                                            .Where(b=>b.BookingDate.DayOfYear>=DateTime.UtcNow.DayOfYear)
+                                            .Where(b=>b.BookingDate.DayOfYear>=DateTime.UtcNow.AddHours(3).DayOfYear)
                                             .Include(u => u.user)
                                             .Include(b => b.place)
                                             .ThenInclude(p=>p.Listimage)
@@ -66,7 +69,7 @@ namespace RezioxAPIs.Controllers
                                             .ToListAsync();
                 if(existbookings.Count == 0)
                 {
-                    return NotFound("is not found");
+                    return Ok(existbookings);
                 }
                 var requstbookings = await CreateCardRequst(existbookings);
                 return Ok(requstbookings);
@@ -123,7 +126,7 @@ namespace RezioxAPIs.Controllers
                 }
                 // end check if find another booking in this date
                 existbooking.StatusBooking = MyStatus.confirmation;
-                await SentNotificationAsync(existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
+                await _notification.SentAsync(existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
                 await _db.SaveChangesAsync();
                 return Ok("Confirm booking successfuly");
             }
@@ -163,7 +166,7 @@ namespace RezioxAPIs.Controllers
                 }                
                 // end check if find another booking in this date
                 existbooking.StatusBooking = MyStatus.approve;
-                await SentNotificationAsync(existbooking.UserId, "Acceptance Confirmation", "The chalet owner has accepted the reservation and is waiting for the first payment to confirm the reservation payment.");
+                await _notification.SentAsync(existbooking.UserId, "Acceptance Confirmation", "The chalet owner has accepted the reservation and is waiting for the first payment to confirm the reservation payment.");
                 await _db.SaveChangesAsync();
                 return Ok("Approve booking successfuly");
             }
@@ -190,7 +193,7 @@ namespace RezioxAPIs.Controllers
                     return NotFound("is not found");
                 }
                 existbooking.StatusBooking = MyStatus.reject;
-                await SentNotificationAsync(existbooking.UserId, "Rejection Confirmation", "The chalet owner reject the booking");
+                await _notification.SentAsync(existbooking.UserId, "Rejection Confirmation", "The chalet owner reject the booking");
                 await _db.SaveChangesAsync();
                 return Ok("reject booking successfuly");
             }
@@ -205,10 +208,7 @@ namespace RezioxAPIs.Controllers
             var cardbookings = new List<dtoCardBookingSchedule>();
             foreach (var booking in bookings)
             {
-                TimeSpan dif= booking.BookingDate.ToDateTime(
-                       TimeOnly.MinValue.AddHours(booking.place.MorrningShift
-                       )
-                       ) - DateTime.UtcNow; 
+                TimeSpan dif= booking.BookingDate - DateTime.UtcNow.AddHours(3); 
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
@@ -217,22 +217,12 @@ namespace RezioxAPIs.Controllers
                 if (booking.Typeshifts == MyShifts.night)
                 {
                     rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
-                    dif = booking.BookingDate.ToDateTime(
-                        TimeOnly.MinValue.AddHours
-                        (
-                        booking.place.MorrningShift+ booking.place.NightShift
-                        )
-                        ) - DateTime.UtcNow;
+                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
                     rangetime = $" 23 hours from start.. ";
-                    dif = booking.BookingDate.ToDateTime(
-                        TimeOnly.MinValue.AddHours
-                        (
-                        booking.place.MorrningShift
-                        )
-                        ) - DateTime.UtcNow;
+                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
                 }
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
@@ -247,10 +237,10 @@ namespace RezioxAPIs.Controllers
             }
             return cardbookings;
         }
-        private async Task<List<dtoCardRequsetBooking>> CreateCardRequst(List<Booking> bookings)
+        private async Task<List<dtoCardRequsetOwner>> CreateCardRequst(List<Booking> bookings)
         {
             string rangetime = "";
-            var cardbookings = new List<dtoCardRequsetBooking>();
+            var cardbookings = new List<dtoCardRequsetOwner>();
             foreach (var booking in bookings)
             {
                 
@@ -266,7 +256,7 @@ namespace RezioxAPIs.Controllers
                 {
                     rangetime = $"{booking.place.MorrningShift} - {booking.place.MorrningShift - 1}  (23 hours) ";
                 }
-                cardbookings.Add(new dtoCardRequsetBooking
+                cardbookings.Add(new dtoCardRequsetOwner
                 {
                     BookingId = booking.BookingId,
                     UserId=booking.UserId,
@@ -279,10 +269,5 @@ namespace RezioxAPIs.Controllers
             }
             return cardbookings;
         }
-        private async Task SentNotificationAsync(int userid,string title, string message)
-        {
-            await _db.Notifications.AddAsync(new Notification { UserId = userid,Title=title ,Message = message  });
-        }
-
     }
 }

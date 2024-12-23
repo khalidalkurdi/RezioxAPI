@@ -48,6 +48,8 @@ namespace Reziox.Controllers
                     City = existplace.City.ToString(),
                     LocationUrl = existplace.LocationUrl,
                     Description = existplace.Description,
+                    MorrningShift = existplace.MorrningShift,
+                    NightShift= existplace.NightShift,
                     Visitors=existplace.Visitors,
                     Price = existplace.Price,
                     Firstpayment = existplace.Firstpayment,
@@ -122,7 +124,7 @@ namespace Reziox.Controllers
             
         }
         [HttpGet("Suggests/{userId}")]
-        public async Task<IActionResult> GetSuggests([FromRoute] int userId)
+        public async Task<IActionResult> GetSameZone([FromRoute] int userId)
         {
             try
             {
@@ -142,6 +144,10 @@ namespace Reziox.Controllers
                                            .Where(p => p.PlaceStatus == MyStatus.approve)
                                            .Include(p => p.Listimage)
                                            .ToListAsync();
+                if (suggestlist.Count == 0)
+                {
+                    return Ok(suggestlist);
+                }
                 var cardplaces = await CreateCardPlaces(suggestlist);
                 return Ok(cardplaces);
             }
@@ -162,7 +168,7 @@ namespace Reziox.Controllers
                                        .ToListAsync();
                 if (mostplaces.Count == 0)
                 {
-                    return NotFound("is not found now !");
+                    return Ok(mostplaces);
                 }
                 /*      edit after add reviwes
                 foreach (var place in mostplaces)
@@ -199,7 +205,7 @@ namespace Reziox.Controllers
                     return NotFound("is not found !");
                 }
                 var randomplaces = existplaces.OrderBy(p=>Guid.NewGuid())
-                                              .Take(25)
+                                              .Take(30)
                                               .ToList();
                 var cardplaces = await CreateCardPlaces(randomplaces);
                 return Ok(cardplaces);

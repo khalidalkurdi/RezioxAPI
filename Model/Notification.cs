@@ -17,7 +17,7 @@ namespace Reziox.Model
         [Required]
         public string Message { get; set; }
         [Required]
-        public DateTime CreatedAt { get; set; }= DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }= DateTime.UtcNow.AddHours(3);
         [Required]
         public bool IsRead { get; set; }
         [Required]

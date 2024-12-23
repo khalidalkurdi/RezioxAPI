@@ -8,6 +8,7 @@ using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
 using static System.Net.Mime.MediaTypeNames;
+using DataAccess.PublicClasses;
 
 
 namespace RezioxAPIs.Controllers
@@ -17,12 +18,13 @@ namespace RezioxAPIs.Controllers
     public class AdminController : ControllerBase
     {
         private readonly AppDbContext _db;
+        private readonly INotificationService _notification;
 
 
-        public AdminController(AppDbContext db, Cloudinary cloudinary)
+        public AdminController(AppDbContext db,INotificationService notification)
         {
             _db = db;
-            
+            _notification = notification;
         }
         [HttpGet("GetUsers")]
         public async Task<IActionResult> GetUsers()
@@ -52,9 +54,9 @@ namespace RezioxAPIs.Controllers
                 var dtoNotifications = new List<dtoNotification>();
                 foreach (var notification in existnotifications)
                 {
-                    var difDate = DateTime.UtcNow - notification.CreatedAt ;
+                    var difDate = DateTime.UtcNow.AddHours(3) - notification.CreatedAt ;
                     var countdown = difDate.Days > 0 ? $"{difDate.Days} day " : $"{difDate.Hours} hour";
-                    dtoNotifications.Add(new dtoNotification { Title = notification.Title, Message = notification.Message, CreatedAt = $"From {countdown} in {notification.CreatedAt.ToString("yyyy:M:dd & h:mm tt")}" });
+                    dtoNotifications.Add(new dtoNotification {NotificationId=notification.NotificationId, Title = notification.Title, Message = notification.Message, CreatedAt = $"From {countdown} in {notification.CreatedAt.ToString("yyyy:M:dd & h:mm tt")}" });
                 }
 
                 return Ok(dtoNotifications);
@@ -129,7 +131,7 @@ namespace RezioxAPIs.Controllers
                 return NotFound("is not found");
             }
             _db.Places.Remove(existplace);
-            await SentNotificationAsync(existplace.OwnerId, "Delete Confirmation", "The admin delete your chalet..");
+            await _notification.SentAsync(existplace.OwnerId, "Delete Confirmation", "The admin delete your chalet..");
             await _db.SaveChangesAsync();
             return Ok("place deleted succfuly!");
         }
@@ -257,7 +259,7 @@ namespace RezioxAPIs.Controllers
                await _db.Places.AddAsync(newPlace);
             }
             existEditingPlace.PlaceStatus = MyStatus.approve;
-            await SentNotificationAsync(existEditingPlace.OwnerId, "Acceptance Confirmation", "The admin accept your chalet and it added to your chalets");
+            await _notification.SentAsync(existEditingPlace.OwnerId, "Acceptance Confirmation", "The admin accept your chalet and it added to your chalets");
             await _db.SaveChangesAsync();
             return Ok("place approve succfuly!");
         }
@@ -277,7 +279,7 @@ namespace RezioxAPIs.Controllers
                 return NotFound("is not found or already disabled");
             }
             existplace.PlaceStatus = MyStatus.reject;
-            await SentNotificationAsync(existplace.OwnerId, "Rejection Confirmation", "The admin reject your chalet");
+            await _notification.SentAsync(existplace.OwnerId, "Rejection Confirmation", "The admin reject your chalet");
             await _db.SaveChangesAsync();
             return Ok("place disabled succfuly!");
         }
@@ -326,10 +328,6 @@ namespace RezioxAPIs.Controllers
             }
             return Ok(existbookings);
         }
-        private async Task SentNotificationAsync(int userid,string title, string message)
-        {
-            await _db.Notifications.AddAsync(new Notification {UserId = userid,Title=title, Message = message });
-        }
         private async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
         {
 
@@ -348,7 +346,6 @@ namespace RezioxAPIs.Controllers
             }
             return cardplaces;
         }
-
         private async Task<List<dtoCardPlace>> CreateCardEditingPlaces(List<EditingPlace> places)
         {
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Model.DTO
 {
-    public class dtoCardRequsetBooking
+    public class dtoCardRequsetOwner
     {
         [Required]
         public int BookingId { get; set; }
@@ -19,7 +19,7 @@ namespace Model.DTO
         public int PlaceId { get; set; }
         [Required]
         public string PlaceName { get; set; }        
-        public string? BaseImage { get; set; }
+        public string BaseImage { get; set; }
         [Required]
         public string BookingDate { get; set; }
         [Required]

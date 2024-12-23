@@ -5,6 +5,7 @@ using Reziox.Model;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 using Model.DTO;
+using DataAccess.PublicClasses;
 
 namespace Rezioxgithub.Controllers
 {
@@ -13,9 +14,11 @@ namespace Rezioxgithub.Controllers
     public class UserBookIngController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public UserBookIngController(AppDbContext db)
+        private readonly INotificationService _notification;
+        public UserBookIngController(AppDbContext db,INotificationService notification)
         {
             _db = db;
+            _notification = notification;            
         }
 
         [HttpPost("Check")]
@@ -166,10 +169,11 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("this palce is booking now!");
                 }
                 //end check is booked or not
-                var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate = datebooking, Typeshifts = typeshift };
+                var toMakeTime = typeshift == MyShifts.night ? existplace.NightShift : existplace.MorrningShift;  
+                var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate = datebooking.ToDateTime(TimeOnly.MinValue.AddHours(toMakeTime)), Typeshifts = typeshift };
                 await _db.Bookings.AddAsync(mybooking);
-                await SentNotificationAsync(existplace.OwnerId, "New Requset booking", $"A place {existplace.PlaceName } you own is reserved on date {datebooking}");
-                await SentNotificationAsync(existuser.UserId, "Requset booking Confirmation", $"Bookingis on date {datebooking} is pending and sent successfully to owner, please waite the of owner");
+                await _notification.SentAsync(existplace.OwnerId, "New Requset booking", $"A place {existplace.PlaceName } you own is reserved on date {datebooking}");
+                await _notification.SentAsync(existuser.UserId, "Requset booking Confirmation", $"Bookingis on date {datebooking} is pending and sent successfully to owner, please waite the of owner");
                 await _db.SaveChangesAsync();
                 return Ok("booking is pending and sent successfully to owner, please waite the of owner");
             }
@@ -204,8 +208,8 @@ namespace Rezioxgithub.Controllers
                 }
                 existbooking.StatusBooking = MyStatus.cancel;
                 //add notifiacation for  owner and user
-                await SentNotificationAsync(existbooking.place.OwnerId, "Cancel Confirmation", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
-                await SentNotificationAsync(existbooking.UserId, "Cancel Confirmation", $"You canceled the booking on date {existbooking.BookingDate}");
+                await _notification.SentAsync(existbooking.place.OwnerId, "Cancel Confirmation", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
+                await _notification.SentAsync(existbooking.UserId, "Cancel Confirmation", $"You canceled the booking on date {existbooking.BookingDate}");
                 await _db.SaveChangesAsync();
                 return Ok("Booking canceled successfully..");
             }
@@ -283,14 +287,14 @@ namespace Rezioxgithub.Controllers
                 var existbookings = await _db.Bookings
                                              .Where(b => b.UserId == userId)
                                              .Where(b => b.StatusBooking == MyStatus.confirmation)
-                                             .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
+                                             .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
                                              .Include(b => b.place)
                                              .ThenInclude(p => p.Listimage)
                                              .OrderBy(b => b.BookingDate)
                                              .ToListAsync();
-                if (existbookings == null)
+                if (existbookings.Count == 0)
                 {
-                    return NotFound("is not found");
+                    return Ok(existbookings);
                 }
                 var bookings = await CreateCardBookings(existbookings);
                 return Ok(bookings);
@@ -311,18 +315,27 @@ namespace Rezioxgithub.Controllers
                 }
                 var existbookings = await _db.Bookings
                                              .Where(b => b.UserId == userId)
-                                             .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
-                                             .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
+                                             .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve || b.StatusBooking == MyStatus.approve)
+                                             .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
                                              .Include(b => b.place)
                                              .ThenInclude(p => p.Listimage)
                                              .OrderBy(b => b.BookingDate)
                                              .ToListAsync();
-                if (existbookings == null)
+                if (existbookings.Count == 0)
                 {
-                    return NotFound("is not found");
+                    return Ok(existbookings);
                 }
-                var bookings = await CreateCardBookings(existbookings);
-                return Ok(bookings);
+                var cardBookings = new List<dtoCardRequsetUser>();
+                foreach (var booking in existbookings) 
+                {
+                    cardBookings.Add(new dtoCardRequsetUser
+                    {
+                        BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                        PlaceName = booking.place.PlaceName,
+                        Status = booking.StatusBooking.ToString()
+                    });
+                }
+                return Ok(cardBookings);
             }
             catch (Exception ex)
             {
@@ -341,16 +354,16 @@ namespace Rezioxgithub.Controllers
                 var existbookings = await _db.Bookings
                                              .Where(b => b.UserId == userId)
                                              .Where(b => b.StatusBooking == MyStatus.confirmation)
-                                             .Where(b => b.BookingDate.DayOfYear<DateTime.UtcNow.DayOfYear)
+                                             .Where(b => b.BookingDate.DayOfYear<DateTime.UtcNow.AddHours(3).DayOfYear)
                                              .Include(b => b.place)
                                              .ThenInclude(p => p.Listimage)
                                              .OrderBy(b => b.BookingDate)
                                              .ToListAsync();
                 if (existbookings.Count == 0)
                 {
-                    return NotFound("is not found");
+                    return Ok(existbookings);
                 }
-                var bookings = await CreateCardBookings(existbookings);
+                var bookings = await CreateCardHistory(existbookings);
                 return Ok(bookings);
             }
             catch (Exception ex)
@@ -358,18 +371,13 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        private async Task SentNotificationAsync(int userid,string title, string message)
-        {
-            await _db.Notifications.AddAsync(new Notification { UserId = userid,Title=title, Message = message });
-        }
         private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
-        {   string rangetime="hh:mm";
+        {
+            string rangetime = "hh:mm";
             var cardbookings = new List<dtoCardBookingSchedule>();
             foreach (var booking in bookings)
             {
-                TimeSpan dif = booking.BookingDate.ToDateTime(
-                                                   TimeOnly.MinValue.AddHours(booking.place.MorrningShift)
-                                                   )- DateTime.UtcNow;
+                TimeSpan dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
@@ -378,9 +386,7 @@ namespace Rezioxgithub.Controllers
                 if (booking.Typeshifts == MyShifts.night)
                 {
                     rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
-                    dif = booking.BookingDate.ToDateTime(
-                                              TimeOnly.MinValue.AddHours(booking.place.MorrningShift + booking.place.NightShift)
-                                              )- DateTime.UtcNow;
+                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
@@ -394,7 +400,39 @@ namespace Rezioxgithub.Controllers
                     BookingDate = booking.BookingDate.ToString(),
                     Time = rangetime,
                     CountDown = $"{dif.Days} day & {dif.Hours}h : {dif.Minutes}m"
+                });
+            }
+            return cardbookings;
+        }
+        private async Task<List<dtoHistory>> CreateCardHistory(List<Booking> bookings)
+        {   string rangetime="hh:mm";
+            var cardbookings = new List<dtoHistory>();
+            foreach (var booking in bookings)
+            {
+                TimeSpan dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
 
+                if (booking.Typeshifts == MyShifts.morning)
+                {
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
+                }
+                if (booking.Typeshifts == MyShifts.night)
+                {
+                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
+                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
+                }
+                if (booking.Typeshifts == MyShifts.full)
+                {
+                    rangetime = $" 23 hours from start.. ";
+                }
+                cardbookings.Add(new dtoHistory
+                {
+                    PlaceId=booking.PlaceId,
+                    BookingId = booking.BookingId,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    PlaceName = booking.place.PlaceName,
+                    BookingDate = booking.BookingDate.ToString(),
+                    Time = rangetime,
+                    CountDown = $"{dif.Days} day & {dif.Hours}h : {dif.Minutes}m"                    
                 });
             }
             return cardbookings;

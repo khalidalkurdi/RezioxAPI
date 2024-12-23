@@ -20,7 +20,7 @@ namespace Reziox.Model.ThePlace
         [Required]
         public MyCitys City { get; set; }
         [Required]
-        public string? LocationUrl { get; set; }
+        public string LocationUrl { get; set; }
         [Required]
         public MyStatus PlaceStatus { get; set; } = MyStatus.approve;
         [Required]

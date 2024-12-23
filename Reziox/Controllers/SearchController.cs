@@ -78,7 +78,7 @@ namespace Reziox.Controllers
                 var results = await query.ToListAsync();
                 if (results.Count == 0)
                 {
-                    return NotFound("is not found");
+                    return Ok(results);
                 }
                 //fillter rating
                 if (dtoSearch.Rating != 0)
@@ -138,6 +138,10 @@ namespace Reziox.Controllers
                                          .Where(p => p.PlaceStatus == MyStatus.approve)
                                          .Where(p => p.PlaceName == Name)
                                          .FirstOrDefaultAsync();
+                if (existplace == null)
+                {
+                    return NotFound("is not found");
+                }
                 var cardplace = new dtoCardPlace
                 {
                     PlaceId = existplace.PlaceId,
@@ -167,7 +171,7 @@ namespace Reziox.Controllers
                                           .ToListAsync();
                 if (existplaces.Count == 0)
                 {
-                    return NotFound("not found");
+                    return Ok(existplaces);
                 }
                 var suggests = new List<string>();
                 foreach (var place in existplaces)

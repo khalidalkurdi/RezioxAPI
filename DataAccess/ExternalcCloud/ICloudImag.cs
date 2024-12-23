@@ -11,6 +11,6 @@ namespace DataAccess.ExternalcCloud
 {
     public interface ICloudImag
     {
-        Task<string> SaveImageAsync(IFormFile image);
+          Task<string> SaveImageAsync(IFormFile image);
     }
 }

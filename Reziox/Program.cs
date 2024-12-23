@@ -1,6 +1,6 @@
 using CloudinaryDotNet;
 using DataAccess.ExternalcCloud;
-using DataAccess.UnitOfWork;
+using DataAccess.PublicClasses;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 
@@ -9,9 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("SomeeConnections")));
-//inject interfaces
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+//inject nececcry interfaces services
 builder.Services.AddScoped<ICloudImag, CloudImage>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 //config cloudinary
 builder.Services.AddSingleton(x =>
