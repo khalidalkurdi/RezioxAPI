@@ -15,8 +15,8 @@ namespace Model
         public string Complaint { get; set; }
         [Required]
         public string ComplaintType { get; set; }
-        [Required]
-        public string Response { get; set; }
+        
+        public string? Response { get; set; }
         [Required]       
         public User user { get; set; }
     }
