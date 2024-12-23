@@ -40,8 +40,8 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Get")]
-        public async Task<IActionResult> Get([FromBody] int UserId)
+        [HttpGet("Get/{UserId}")]
+        public async Task<IActionResult> Get([FromRoute] int UserId)
         {
             try
             {

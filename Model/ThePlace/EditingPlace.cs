@@ -4,7 +4,7 @@ using Reziox.Model;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Model.ThePlace
+namespace Reziox.Model.ThePlace
 {
     public class EditingPlace
     {

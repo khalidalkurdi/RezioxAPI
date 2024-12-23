@@ -346,7 +346,7 @@ namespace Rezioxgithub.Controllers
                                              .ThenInclude(p => p.Listimage)
                                              .OrderBy(b => b.BookingDate)
                                              .ToListAsync();
-                if (existbookings.Count != 0)
+                if (existbookings.Count == 0)
                 {
                     return NotFound("is not found");
                 }

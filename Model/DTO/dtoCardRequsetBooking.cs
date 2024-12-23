@@ -18,9 +18,8 @@ namespace Model.DTO
         [Required]
         public int PlaceId { get; set; }
         [Required]
-        public string PlaceName { get; set; }
-        [Required]
-        public string BaseImage { get; set; }
+        public string PlaceName { get; set; }        
+        public string? BaseImage { get; set; }
         [Required]
         public string BookingDate { get; set; }
         [Required]

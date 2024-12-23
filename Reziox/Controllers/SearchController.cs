@@ -23,7 +23,7 @@ namespace Reziox.Controllers
         }
                 
         [HttpPost("SmartSearch")]
-        public async Task<IActionResult> SmartSearch(dtoSearch dtoSearch)
+        public async Task<IActionResult> SmartSearch([FromBody]dtoSearch dtoSearch)
         {
             try
             {
@@ -128,8 +128,8 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Search")]
-        public async Task<IActionResult> Search(string? Name)
+        [HttpGet("Search/{Name}")]
+        public async Task<IActionResult> Search([FromRoute]string? Name)
         {
             try
             {

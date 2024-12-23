@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Model;
-using Model.ThePlace;
+
 using Model.TheUsers;
 using Reziox.Model;
 using Reziox.Model.ThePlace;

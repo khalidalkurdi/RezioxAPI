@@ -18,7 +18,7 @@ namespace Reziox.Controllers
 
         }
 
-        [HttpGet("Gets{userId}")]
+        [HttpGet("Gets/{userId}")]
         public async Task<IActionResult> Gets([FromRoute]int userId)
         {
             try
@@ -54,7 +54,7 @@ namespace Reziox.Controllers
             }
         }
 
-        [HttpGet("Readed{notificationId}")]
+        [HttpGet("Readed/{notificationId}")]
         public async Task<IActionResult> Readed([FromRoute] int notificationId)
         {
             try

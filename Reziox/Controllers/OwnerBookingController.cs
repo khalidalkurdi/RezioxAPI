@@ -17,7 +17,7 @@ namespace RezioxAPIs.Controllers
         {
             _db = db;
         }
-        [HttpGet("GetBookings{ownerId}")]
+        [HttpGet("GetBookings/{ownerId}")]
         public async Task<IActionResult> GetBookings([FromRoute]int ownerId)
         {
             try
@@ -29,7 +29,7 @@ namespace RezioxAPIs.Controllers
                 var existbookings = await _db.Bookings
                                             .Where(p => p.place.OwnerId == ownerId)
                                             .Where(p => p.StatusBooking == MyStatus.confirmation)
-                                            .Where(p => p.BookingDate.DayOfYear > DateTime.UtcNow.DayOfYear)
+                                            .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.DayOfYear)
                                             .Include(b => b.place)
                                             .ThenInclude(p => p.Listimage)
                                             .OrderBy(p => p.BookingDate)
@@ -56,8 +56,9 @@ namespace RezioxAPIs.Controllers
                     return BadRequest("0 id is not correct !");
                 }
                 var existbookings = await _db.Bookings
-                                            .Where(p => p.place.OwnerId == ownerId)
-                                            .Where(p => p.StatusBooking == MyStatus.pending || p.StatusBooking == MyStatus.approve)
+                                            .Where(b => b.place.OwnerId == ownerId)
+                                            .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
+                                            .Where(b=>b.BookingDate.DayOfYear>=DateTime.UtcNow.DayOfYear)
                                             .Include(u => u.user)
                                             .Include(b => b.place)
                                             .ThenInclude(p=>p.Listimage)
@@ -103,7 +104,7 @@ namespace RezioxAPIs.Controllers
                                               .FirstOrDefaultAsync();
                 if (booked != null)
                 {
-                    await Disable(existbooking.BookingId);
+                    await Reject(existbooking.BookingId);
                     return BadRequest(" already booked");
                 }
                 var anotherpendingbookings = await _db.Bookings
@@ -117,22 +118,22 @@ namespace RezioxAPIs.Controllers
                 {
                     foreach (var booking in anotherpendingbookings)
                     {
-                        await Disable(booking.BookingId);       
+                        await Reject(booking.BookingId);       
                     }                    
                 }
                 // end check if find another booking in this date
                 existbooking.StatusBooking = MyStatus.confirmation;
                 await SentNotificationAsync(existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
                 await _db.SaveChangesAsync();
-                return Ok("Approve booking successfuly");
+                return Ok("Confirm booking successfuly");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Enable/{bookingId}")]
-        public async Task<IActionResult> Enable([FromRoute] int bookingId)
+        [HttpGet("Approve/{bookingId}")]
+        public async Task<IActionResult> Approve([FromRoute] int bookingId)
         {
             try
             {
@@ -157,7 +158,7 @@ namespace RezioxAPIs.Controllers
                                               .FirstOrDefaultAsync();                
                 if (approvebooking != null)
                 {
-                    await Disable(existbooking.BookingId);
+                    await Reject(existbooking.BookingId);
                     return BadRequest("already booking");
                 }                
                 // end check if find another booking in this date
@@ -171,8 +172,8 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Disable/{bookingId}")]
-        public async Task<IActionResult> Disable([FromRoute] int bookingId)
+        [HttpGet("Reject/{bookingId}")]
+        public async Task<IActionResult> Reject([FromRoute] int bookingId)
         {
             try
             {
@@ -270,7 +271,7 @@ namespace RezioxAPIs.Controllers
                     BookingId = booking.BookingId,
                     UserId=booking.UserId,
                     UserName=booking.user.UserName,
-                    BaseImage = booking.place.Listimage.Count!=0? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl:null,
+                    BaseImage = booking.user.UserImage,
                     PlaceName = booking.place.PlaceName,
                     BookingDate = booking.BookingDate.ToString(),
                     Time = rangetime

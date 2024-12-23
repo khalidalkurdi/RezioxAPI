@@ -21,23 +21,23 @@ namespace Reziox.Controllers
             _db = db;
            
         }
-        [HttpGet("Details/{placeid}")]
-        public async Task<IActionResult> Details([FromRoute] int placeid)
+        [HttpGet("Details/{placeId}/{userId}")]
+        public async Task<IActionResult> Details([FromRoute] int placeId, int userId)
         {
             try
             {
-                if (placeid == 0)
+                if (placeId == 0 || userId==0)
                 {
                     return BadRequest(" 0 id is not correct !");
                 }
-                var existplace = await _db.Places.Where(p => p.PlaceId == placeid)
+                var existplace = await _db.Places.Where(p => p.PlaceId == placeId)
                                                  .Include(p => p.Listimage)                                                
                                                  .Include(p => p.ListReviews)
                                                  .Where(p => p.PlaceStatus == MyStatus.approve)
                                                  .FirstOrDefaultAsync();
                 if (existplace == null)
                 {
-                    return NotFound($"place {placeid} not found."); ;
+                    return NotFound($"place {placeId} not found.");
                 }
 
                 var dtoDetailsPlace = new dtoDetailsPlace
@@ -48,6 +48,7 @@ namespace Reziox.Controllers
                     City = existplace.City.ToString(),
                     LocationUrl = existplace.LocationUrl,
                     Description = existplace.Description,
+                    Visitors=existplace.Visitors,
                     Price = existplace.Price,
                     Firstpayment = existplace.Firstpayment,
                     PaymentByCard = existplace.PaymentByCard,
@@ -71,9 +72,39 @@ namespace Reziox.Controllers
                     Tennis = existplace.Tennis,
                     Volleyball = existplace.Volleyball                   
                 };
-                if (existplace.Listimage.Count != 0)
+                // check is favorited
+                var existfavorite = await _db.Favorites.Where(f => f.PlaceId == placeId)                                                 
+                                                       .Where(f => f.UserId==userId)
+                                                       .FirstOrDefaultAsync();
+                if (existfavorite != null)
                 {
-                    dtoDetailsPlace.ListImage = new List<string>();
+                    dtoDetailsPlace.Favorited = true;
+                }
+                //end check is favorited
+                //convert days from flag to string
+                if ((existplace.WorkDays & MYDays.sunday) == MYDays.sunday)
+                    dtoDetailsPlace.WorkDays.Add(MYDays.sunday.ToString());
+
+                if ((existplace.WorkDays & MYDays.monday) == MYDays.monday)
+                    dtoDetailsPlace.WorkDays.Add(MYDays.monday.ToString());
+
+                if ((existplace.WorkDays & MYDays.tuesday) == MYDays.tuesday)
+                    dtoDetailsPlace.WorkDays.Add(MYDays.tuesday.ToString());
+
+                if ((existplace.WorkDays & MYDays.wednesday) == MYDays.wednesday)
+                    dtoDetailsPlace.WorkDays.Add(MYDays.wednesday.ToString());
+
+                if ((existplace.WorkDays & MYDays.thursday) == MYDays.thursday)
+                    dtoDetailsPlace.WorkDays.Add(MYDays.thursday.ToString());
+
+                if ((existplace.WorkDays & MYDays.friday) == MYDays.friday)
+                    dtoDetailsPlace.WorkDays.Add(MYDays.friday.ToString());
+
+                if ((existplace.WorkDays & MYDays.saturday) == MYDays.saturday)
+                    dtoDetailsPlace.WorkDays.Add(MYDays.saturday.ToString());
+                //end convert
+                if (existplace.Listimage.Count != 0)
+                {                    
                     foreach (var image in existplace.Listimage.OrderBy(i => i.ImageId))
                     {
                         if (image.ImageStatus == MyStatus.approve)
@@ -81,8 +112,7 @@ namespace Reziox.Controllers
                              dtoDetailsPlace.ListImage.Add(image.ImageUrl);
                         }
                     }
-                }
-                
+                }                
                 return Ok(dtoDetailsPlace);
             }
             catch (Exception ex)

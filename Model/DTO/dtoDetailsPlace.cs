@@ -12,7 +12,9 @@ namespace Model.DTO
         [Required]
         public int PlaceId { get; set; }
         [Required]
-        public List<string> ListImage { get; set; }
+        public List<string> ListImage { get; set; }= new List<string>();
+        [Required]
+        public List<string> WorkDays { get; set; }=new List<string>();
         [Required]
         public string PlaceName { get; set; }
         [Required]
@@ -62,6 +64,7 @@ namespace Model.DTO
         public bool Ballpool { get; set; }         
         public bool Tennis { get; set; }        
         public bool Volleyball { get; set; } 
+        public bool Favorited { get; set; } 
 
 
     }

@@ -8,7 +8,7 @@ using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
 using static System.Net.Mime.MediaTypeNames;
-using Model.ThePlace;
+
 
 namespace RezioxAPIs.Controllers
 {
@@ -285,7 +285,7 @@ namespace RezioxAPIs.Controllers
         public async Task<IActionResult> GetEnableBookings()
         {
             var existbookings = await _db.Bookings
-                                        .Where(b => b.StatusBooking == MyStatus.approve)
+                                        .Where(b => b.StatusBooking == MyStatus.confirmation)
                                         .Include(u => u.user)
                                         .Include(b=>b.place)
                                         .OrderBy(b => b.BookingId)
@@ -315,11 +315,11 @@ namespace RezioxAPIs.Controllers
         public async Task<IActionResult> GetPendingBookings()
         {
             var existbookings = await _db.Bookings
-                                    .Where(b => b.StatusBooking == MyStatus.pending)
-                                    .Include(u => u.user)
-                                    .Include(b => b.place)
-                                    .OrderBy(b => b.BookingId)
-                                    .ToListAsync();
+                                        .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
+                                        .Include(u => u.user)
+                                        .Include(b => b.place)
+                                        .OrderBy(b => b.BookingId)
+                                        .ToListAsync();
             if (existbookings.Count == 0)
             {
                 return NotFound("is not found");

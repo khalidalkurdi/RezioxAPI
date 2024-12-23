@@ -62,8 +62,8 @@ namespace Reziox.Controllers
             }
             
         }
-        [HttpPost("Add/{userId}")]
-        public async Task<IActionResult> Add(int userId, int placeId)
+        [HttpPost("Add/{userId}/{placeId}")]
+        public async Task<IActionResult> Add([FromRoute]int userId,int placeId)
         {
             try
             {
@@ -104,8 +104,8 @@ namespace Reziox.Controllers
             }
             
         }
-        [HttpDelete("Remove/{userId}")]
-        public async Task<IActionResult> Remove(int userId, int placeId)
+        [HttpDelete("Remove/{userId}/{placeId}")]
+        public async Task<IActionResult> Remove([FromRoute]int userId,int placeId)
         {
             try
             {
