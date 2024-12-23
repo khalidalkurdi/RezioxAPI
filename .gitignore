@@ -366,3 +366,4 @@ FodyWeavers.xsd
 /Reziox/obj/project.nuget.cache
 /Test
 /Reziox/Properties/PublishProfiles/FTPProfile.pubxml.user
+/Reziox/Properties/PublishProfiles/FTPProfile.pubxml
