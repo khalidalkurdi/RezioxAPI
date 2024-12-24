@@ -259,6 +259,7 @@ namespace RezioxAPIs.Controllers
                 cardbookings.Add(new dtoCardRequsetOwner
                 {
                     BookingId = booking.BookingId,
+                    PlaceId=booking.PlaceId,
                     UserId=booking.UserId,
                     UserName=booking.user.UserName,
                     BaseImage = booking.user.UserImage,

@@ -61,13 +61,17 @@ namespace Reziox.Controllers
                 var cardSupports = new List<dtoCardSuport>();
                 foreach (var suport in existsupports)
                 {
-                    cardSupports.Add(
-                        new dtoCardSuport
-                        {
-                            Complaint= suport.Complaint,
-                            Response= suport.Response
-                        }
+                    if (suport.Response != null)
+                    {
+
+                        cardSupports.Add(
+                            new dtoCardSuport
+                            {
+                                Complaint= suport.Complaint,
+                                Response= suport.Response
+                            }
                         );
+                    }
                 }
                 return Ok(cardSupports);
             }
