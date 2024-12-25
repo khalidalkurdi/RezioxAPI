@@ -14,7 +14,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("SomeeConnections
 
 //inject nececcry interfaces services
 builder.Services.AddScoped<ICloudImag, CloudImage>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton<INotificationService, NotificationService>();
 
 //config cloudinary
 builder.Services.AddSingleton(x =>
@@ -29,9 +29,10 @@ builder.Services.AddSingleton(x =>
 }
 );
 builder.Services.AddControllers();
+
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile(@"C:\Users\khalid Al-kurdi\Desktop\My-github\RezioxAPIs\Reziox\Properties\reziox-e09bfee364b1.json")//
+    Credential = GoogleCredential.FromFile("reziox-e09bfee364b1.json")
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -92,6 +92,7 @@ namespace Reziox.Controllers
                     return Unauthorized("invalid password.");
                 }
                 existUser.DiviceToken = dtologinRequest.DiviceToken;
+                await _db.SaveChangesAsync();
                 //return user information
 
                 var profileuser = new dtoProfile

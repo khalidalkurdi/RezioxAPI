@@ -1,5 +1,6 @@
 ﻿using DataAccess.ExternalcCloud;
 using FirebaseAdmin.Messaging;
+using Microsoft.IdentityModel.Tokens;
 using Reziox.DataAccess;
 using Reziox.Model;
 
@@ -16,17 +17,20 @@ namespace DataAccess.PublicClasses
         {
             try
             {
-
-                var message = new Message()
+                if (!diviceToken.IsNullOrEmpty())
                 {
-                    Token = diviceToken,
-                    Notification = new FirebaseAdmin.Messaging.Notification
+                    var message = new Message()
                     {
-                        Title = title,
-                        Body =alert
-                    }
-                };
-                await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                        Token = diviceToken,
+                        Notification = new FirebaseAdmin.Messaging.Notification
+                        {
+                            Title = title,
+                            Body =alert
+                        }
+                    };
+                    await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                }
+
                 await _db.Notifications.AddAsync(new Reziox.Model.Notification { UserId = userid, Title = title, Message = alert });
             }
             catch (Exception ex)
