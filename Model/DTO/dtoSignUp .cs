@@ -22,5 +22,8 @@ namespace Model.DTO
         public string? UserImage { get; set; }
         [Required]
         public string City { get; set; }
+
+        [Required]
+        public string DiviceToken { get; set; }
     }
 }

@@ -131,7 +131,9 @@ namespace RezioxAPIs.Controllers
                 return NotFound("is not found");
             }
             _db.Places.Remove(existplace);
-            await _notification.SentAsync(existplace.OwnerId, "Delete Confirmation", "The admin delete your chalet..");
+            var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existplace.OwnerId).FirstOrDefaultAsync();
+
+            await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "Delete Confirmation", "The admin delete your chalet..");
             await _db.SaveChangesAsync();
             return Ok("place deleted succfuly!");
         }
@@ -258,7 +260,9 @@ namespace RezioxAPIs.Controllers
                await _db.Places.AddAsync(newPlace);
             }
             existEditingPlace.PlaceStatus = MyStatus.approve;
-            await _notification.SentAsync(existEditingPlace.OwnerId, "Acceptance Confirmation", "The admin accept your chalet and it added to your chalets");
+            var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existEditingPlace.OwnerId).FirstOrDefaultAsync();
+
+            await _notification.SentAsync(existOwner.DiviceToken, existOwner.UserId, "Acceptance Confirmation", "The admin accept your chalet and it added to your chalets");
             await _db.SaveChangesAsync();
             return Ok("place approve succfuly!");
         }
@@ -278,7 +282,9 @@ namespace RezioxAPIs.Controllers
                 return NotFound("is not found or already disabled");
             }
             existplace.PlaceStatus = MyStatus.reject;
-            await _notification.SentAsync(existplace.OwnerId, "Rejection Confirmation", "The admin reject your chalet");
+            var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existplace.OwnerId).FirstOrDefaultAsync();
+
+            await _notification.SentAsync(existOwner.DiviceToken, existOwner.UserId, "Rejection Confirmation", "The admin reject your chalet");
             await _db.SaveChangesAsync();
             return Ok("place disabled succfuly!");
         }

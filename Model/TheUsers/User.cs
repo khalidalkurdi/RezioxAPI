@@ -10,7 +10,9 @@ namespace Reziox.Model.TheUsers
     public class User
     {
         [Key]
-        public int UserId { get; set; }
+        public int UserId { get; set; }       
+        [Required]
+        public string DiviceToken { get; set; }
         [Required]
         public string UserName { get; set; }
         [Required]

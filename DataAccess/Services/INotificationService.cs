@@ -9,7 +9,7 @@ namespace DataAccess.PublicClasses
 {
     public interface INotificationService
     {
-       Task SentAsync(int userid, string title, string message);
+       Task SentAsync(string DiviceToken,int userid, string title, string message);
         
     }
 }

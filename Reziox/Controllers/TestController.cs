@@ -1,5 +1,6 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using DataAccess.PublicClasses;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,15 +16,30 @@ namespace Rezioxgithub.Controllers
     {
         private readonly AppDbContext _db;
         private readonly Cloudinary _cloudinary;
+        private readonly INotificationService _notification;
         private readonly string _imgbbApiKey = "3b5f46e363fabef53ca5d88fcd71578a";
-        public TestController(AppDbContext db, Cloudinary Cloud)
+
+        public TestController(AppDbContext db, Cloudinary Cloud,INotificationService notification)
         {
             _db = db;
             _cloudinary = Cloud;
+            _notification = notification;
         }
 
 
-
+        [HttpPost("send")]
+        public async Task<IActionResult> send([FromBody] string token,string alert)
+        {
+            try
+            {
+                await _notification.SentAsync(token, 1007, "test", alert);
+                return Ok();
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest($"erorr:{ex.Message}");
+            }
+        }
         [HttpGet("GetProfile/{userId}")]
         public async Task<IActionResult> GetUserProfile([FromRoute] int userId)
         {

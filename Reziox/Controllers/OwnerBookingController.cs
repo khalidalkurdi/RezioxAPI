@@ -125,7 +125,7 @@ namespace RezioxAPIs.Controllers
                 }
                 // end check if find another booking in this date
                 existbooking.StatusBooking = MyStatus.confirmation;
-                await _notification.SentAsync(existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
+                await _notification.SentAsync(existbooking.user.DiviceToken, existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
                 await _db.SaveChangesAsync();
                 return Ok("Confirm booking successfuly");
             }
@@ -165,7 +165,7 @@ namespace RezioxAPIs.Controllers
                 }                
                 // end check if find another booking in this date
                 existbooking.StatusBooking = MyStatus.approve;
-                await _notification.SentAsync(existbooking.UserId, "Acceptance Confirmation", "The chalet owner has accepted the reservation and is waiting for the first payment to confirm the reservation payment.");
+                await _notification.SentAsync(existbooking.user.DiviceToken,existbooking.UserId, "Acceptance Confirmation", "The chalet owner has accepted the reservation and is waiting for the first payment to confirm the reservation payment.");
                 await _db.SaveChangesAsync();
                 return Ok("Approve booking successfuly");
             }
@@ -192,7 +192,7 @@ namespace RezioxAPIs.Controllers
                     return NotFound("is not found");
                 }
                 existbooking.StatusBooking = MyStatus.reject;
-                await _notification.SentAsync(existbooking.UserId, "Rejection Confirmation", "The chalet owner reject the booking");
+                await _notification.SentAsync(existbooking.user.DiviceToken,existbooking.UserId, "Rejection Confirmation", "The chalet owner reject the booking");
                 await _db.SaveChangesAsync();
                 return Ok("reject booking successfuly");
             }

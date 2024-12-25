@@ -13,5 +13,7 @@ namespace Model.DTO
         [MaxLength(30)]
         [MinLength(8)]
         public string Password { get; set; }
+        [Required]
+        public string DiviceToken { get; set; }
     }
 }

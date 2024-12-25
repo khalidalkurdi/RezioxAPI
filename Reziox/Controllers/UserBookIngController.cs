@@ -122,20 +122,23 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("this date in the past");
                 }
                 //find exist place and user
-                var existplace = await _db.Places.AsNoTracking()
+                var existPlace = await _db.Places.AsNoTracking()
                                                 .Where(p => p.PlaceId == placeId)
                                                 .FirstOrDefaultAsync();
-                var existuser = await _db.Users.AsNoTracking()
+                var existUser = await _db.Users.AsNoTracking()
                                                 .Where(u => u.UserId == userId)
                                                 .FirstOrDefaultAsync();
-                if (existplace == null || existuser == null)
+                if (existPlace == null || existUser == null)
                 {
                     return NotFound("User or Place not found.");
                 }
-                if (existuser.UserId == existplace.OwnerId)
+                if (existUser.UserId == existPlace.OwnerId)
                 {
                     return BadRequest("can not booking your chalet !");
                 }
+                var existOwner = await _db.Users.AsNoTracking()
+                                                .Where(u => u.UserId == existPlace.OwnerId)
+                                                .FirstOrDefaultAsync();
                 //check already user booked this place
                 if (!Enum.TryParse(bookinshift.ToLower(), out MyShifts typeshift))
                 {                    
@@ -143,7 +146,7 @@ namespace Rezioxgithub.Controllers
                 }
                 var existalreadybooking = await _db.Bookings.AsNoTracking()
                                             .Where(b => b.PlaceId == placeId)
-                                            .Where(b => b.UserId == existuser.UserId)
+                                            .Where(b => b.UserId == existUser.UserId)
                                             .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
                                             .Where(b => b.Typeshifts == typeshift)
                                             .Where(b => b.StatusBooking == MyStatus.confirmation || b.StatusBooking == MyStatus.pending||b.StatusBooking == MyStatus.approve)
@@ -159,7 +162,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest($"invalid day :{daybooking}");
                 }
-                if ((existplace.WorkDays & day) != day)
+                if ((existPlace.WorkDays & day) != day)
                 {
                     return BadRequest("the chalete is not working !");
                 }
@@ -168,7 +171,7 @@ namespace Rezioxgithub.Controllers
                 //start check is booked or not
                 var existbooking = await _db.Bookings.AsNoTracking()
                                             .Where(b => b.PlaceId == placeId)
-                                            .Where(b => b.UserId != existuser.UserId)
+                                            .Where(b => b.UserId != existUser.UserId)
                                             .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
                                             .Where(b => b.StatusBooking == MyStatus.confirmation)
                                             .Where(b => (b.Typeshifts & typeshift) == typeshift)
@@ -179,12 +182,12 @@ namespace Rezioxgithub.Controllers
                 }
                 //end check is booked or not
                 //real time of start booking 
-                var toMakeTime = typeshift == MyShifts.night ? existplace.MorrningShift + Math.Abs(existplace.MorrningShift-existplace.NightShift)+12 : existplace.MorrningShift; 
+                var toMakeTime = typeshift == MyShifts.night ? existPlace.MorrningShift + Math.Abs(existPlace.MorrningShift-existPlace.NightShift)+12 : existPlace.MorrningShift; 
                 
-                var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate = datebooking.ToDateTime(TimeOnly.MinValue.AddHours(toMakeTime)), Typeshifts = typeshift };
+                var mybooking = new Booking { PlaceId = existPlace.PlaceId, UserId = existUser.UserId, BookingDate = datebooking.ToDateTime(TimeOnly.MinValue.AddHours(toMakeTime)), Typeshifts = typeshift };
                 await _db.Bookings.AddAsync(mybooking);
-                await _notification.SentAsync(existplace.OwnerId, "New Requset booking", $"A place {existplace.PlaceName } you own is reserved on date {datebooking}");
-                await _notification.SentAsync(existuser.UserId, "Requset booking Confirmation", $"Bookingis on date {datebooking} is pending and sent successfully to owner, please waite the of owner");
+                await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "New Requset booking", $"A place {existPlace.PlaceName } you own is reserved on date {datebooking}");
+                await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Requset booking Confirmation", $"Bookingis on date {datebooking} is pending and sent successfully to owner, please waite the of owner");
                 await _db.SaveChangesAsync();
                 return Ok("booking is pending and sent successfully to owner, please waite the of owner");
             }
@@ -219,8 +222,11 @@ namespace Rezioxgithub.Controllers
                 }
                 existbooking.StatusBooking = MyStatus.cancel;
                 //add notifiacation for  owner and user
-                await _notification.SentAsync(existbooking.place.OwnerId, "Cancel Confirmation", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
-                await _notification.SentAsync(existbooking.UserId, "Cancel Confirmation", $"You canceled the booking on date {existbooking.BookingDate}");
+                var existUser = await _db.Users.AsNoTracking().Where(u => u.UserId == existbooking.UserId).FirstOrDefaultAsync();
+                var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existbooking.place.OwnerId).FirstOrDefaultAsync();
+
+                await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "Cancel Confirmation", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
+                await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Cancel Confirmation", $"You canceled the booking on date {existbooking.BookingDate}");
                 await _db.SaveChangesAsync();
                 return Ok("Booking canceled successfully..");
             }

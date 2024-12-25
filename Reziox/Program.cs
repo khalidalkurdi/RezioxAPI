@@ -1,6 +1,8 @@
 using CloudinaryDotNet;
 using DataAccess.ExternalcCloud;
 using DataAccess.PublicClasses;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 
@@ -27,6 +29,10 @@ builder.Services.AddSingleton(x =>
 }
 );
 builder.Services.AddControllers();
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(@"C:\Users\khalid Al-kurdi\Desktop\My-github\RezioxAPIs\Reziox\Properties\reziox-e09bfee364b1.json")//
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
