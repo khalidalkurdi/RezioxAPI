@@ -30,7 +30,8 @@ namespace Reziox.Controllers
                 {
                     return BadRequest(" 0 id is not correct !");
                 }
-                var existplace = await _db.Places.Where(p => p.PlaceId == placeId)
+                var existplace = await _db.Places.AsNoTracking()
+                                                 .Where(p => p.PlaceId == placeId)
                                                  .Include(p => p.Listimage)                                                
                                                  .Include(p => p.ListReviews)
                                                  .Where(p => p.PlaceStatus == MyStatus.approve)
@@ -107,12 +108,9 @@ namespace Reziox.Controllers
                 //end convert
                 if (existplace.Listimage.Count != 0)
                 {                    
-                    foreach (var image in existplace.Listimage.OrderBy(i => i.ImageId))
-                    {
-                        if (image.ImageStatus == MyStatus.approve)
-                        {
-                             dtoDetailsPlace.ListImage.Add(image.ImageUrl);
-                        }
+                    foreach (var image in existplace.Listimage.OrderBy(i => i.ImageId).Where(i => i.ImageStatus == MyStatus.approve))
+                    {                        
+                        dtoDetailsPlace.ListImage.Add(image.ImageUrl);                        
                     }
                 }                
                 return Ok(dtoDetailsPlace);
@@ -139,7 +137,7 @@ namespace Reziox.Controllers
                 {
                     return NotFound(" user not found");
                 }
-                var suggestlist = await _db.Places
+                var suggestlist = await _db.Places.AsNoTracking()
                                            .Where(p => p.City==existuser.City)
                                            .Where(p => p.PlaceStatus == MyStatus.approve)
                                            .Include(p => p.Listimage)
@@ -161,7 +159,7 @@ namespace Reziox.Controllers
         {
             try
             {
-                var mostplaces = await _db.Places
+                var mostplaces = await _db.Places.AsNoTracking()
                                        .Where(p => p.PlaceStatus == MyStatus.approve)
                                        .Include(p => p.ListReviews)
                                        .Include(p => p.Listimage)
@@ -196,7 +194,7 @@ namespace Reziox.Controllers
         {
             try
             {
-                var existplaces = await _db.Places
+                var existplaces = await _db.Places.AsNoTracking()
                                        .Where(p => p.PlaceStatus == MyStatus.approve)
                                        .Include(p => p.Listimage)
                                        .ToListAsync();
@@ -204,11 +202,10 @@ namespace Reziox.Controllers
                 {
                     return NotFound("is not found !");
                 }
-                var randomplaces = existplaces.OrderBy(p=>Guid.NewGuid())
-                                              .Take(30)
+                var randomplaces = existplaces.Take(30)
                                               .ToList();
-                var cardplaces = await CreateCardPlaces(randomplaces);
-                return Ok(cardplaces);
+                var cardPlaces = await CreateCardPlaces(randomplaces);
+                return Ok(cardPlaces);
             }
             catch (Exception ex)
             {

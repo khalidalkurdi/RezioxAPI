@@ -27,7 +27,7 @@ namespace Reziox.Model.TheUsers
         [Required]
         public MyCitys City { get; set; }
         [NotMapped]
-        public int Places => Myplaces.Count == 0 ? 0 :Myplaces.Count;
+        public int Places => Myplaces.Count == 0 ? 0 :Myplaces.Where(p=>p.PlaceStatus==MyStatus.approve).Count();
         [NotMapped]
         public int Bookings => Mybookings.Count == 0 ? 0 : Mybookings.Where(p => p.StatusBooking == MyStatus.confirmation).Count();
         [NotMapped]

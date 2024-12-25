@@ -24,5 +24,7 @@ namespace Model.DTO
         public string BookingDate { get; set; }
         [Required]
         public string Time { get; set; }
+        [Required]
+        public bool IsApproved { get; set; }
     }
 }

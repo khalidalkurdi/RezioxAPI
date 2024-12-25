@@ -30,28 +30,30 @@ namespace Reziox.Controllers
                 }
                 // Check if User and Place exist
             
-                var existuser = await _db.Users.Where(u => u.UserId == userreview.UserId)
+                var existuser = await _db.Users.AsNoTracking()
+                                                .Where(u => u.UserId == userreview.UserId)
                                                 .FirstOrDefaultAsync();
-                var existplace = await _db.Places.Where(p => p.PlaceId == userreview.PlaceId)
+                var existplace = await _db.Places.AsNoTracking()
+                                                 .Where(p => p.PlaceId == userreview.PlaceId)
                                                  .Where(p=>p.PlaceStatus==MyStatus.approve)
                                                  .FirstOrDefaultAsync();
                 if (existuser == null || existplace == null)
                 {
                     return NotFound("user or place not found");
                 }
-                var existreview= await _db.Reviews
-                                           .Where(b => b.UserId == userreview.UserId)
-                                           .Where(b => b.PlaceId == userreview.PlaceId)
-                                           .FirstOrDefaultAsync();
+                var existreview= await _db.Reviews.AsNoTracking()
+                                                   .Where(b => b.UserId == userreview.UserId)
+                                                   .Where(b => b.PlaceId == userreview.PlaceId)
+                                                   .FirstOrDefaultAsync();
                 if(existreview != null)
                 {
                     return Content("can not review this place, already you review this chalet  !");
                 }
-                var existbokking = await _db.Bookings
-                                            .Where(b => b.UserId == userreview.UserId )
-                                            .Where(b => b.PlaceId ==userreview.PlaceId )
-                                            .Where(b=>b.StatusBooking==MyStatus.confirmation)
-                                            .FirstOrDefaultAsync();
+                var existbokking = await _db.Bookings.AsNoTracking()
+                                                    .Where(b => b.UserId == userreview.UserId )
+                                                    .Where(b => b.PlaceId ==userreview.PlaceId )
+                                                    .Where(b=>b.StatusBooking==MyStatus.confirmation)
+                                                    .FirstOrDefaultAsync();
 
                 if(existbokking == null || existbokking.BookingDate.DayOfYear < DateTime.Today.DayOfYear)
                 {

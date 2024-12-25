@@ -50,7 +50,7 @@ namespace Reziox.Controllers
                     return BadRequest("not valid");
                 }
 
-                var existsupports = await _db.Supports
+                var existsupports = await _db.Supports.AsNoTracking()
                                               .Where(s=>s.UserId==UserId)
                                               .OrderBy(s=>s.SupportId)
                                               .ToListAsync();

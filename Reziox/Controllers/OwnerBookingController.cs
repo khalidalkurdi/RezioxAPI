@@ -29,19 +29,19 @@ namespace RezioxAPIs.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existbookings = await _db.Bookings
-                                            .Where(p => p.place.OwnerId == ownerId)
-                                            .Where(p => p.StatusBooking == MyStatus.confirmation)
-                                            .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
-                                            .Include(b => b.place)
-                                            .ThenInclude(p => p.Listimage)
-                                            .OrderBy(p => p.BookingDate)
-                                            .ToListAsync();
+                var existbookings = await _db.Bookings.AsNoTracking()
+                                                        .Where(p => p.place.OwnerId == ownerId)
+                                                        .Where(p => p.StatusBooking == MyStatus.confirmation)
+                                                        .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
+                                                        .Include(b => b.place)
+                                                        .ThenInclude(p => p.Listimage)
+                                                        .OrderBy(p => p.BookingDate)
+                                                        .ToListAsync();
                 if (existbookings.Count == 0)
                 {
                     return Ok(existbookings);
                 }
-                var bookings = CreateCardBookings(existbookings).Result;
+                var bookings = await CreateCardBookings(existbookings);
                 return Ok(bookings);
             }
             catch (Exception ex)
@@ -50,7 +50,7 @@ namespace RezioxAPIs.Controllers
             }
         }
         [HttpGet("GetPendings/{ownerId}")]
-        public async Task<IActionResult> GetPendings([FromRoute] int ownerId)
+        public async Task<IActionResult> GetRequset([FromRoute] int ownerId)
         {
             try
             {
@@ -58,15 +58,14 @@ namespace RezioxAPIs.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existbookings = await _db.Bookings
-                                            .Where(b => b.place.OwnerId == ownerId)
-                                            .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
-                                            .Where(b=>b.BookingDate.DayOfYear>=DateTime.UtcNow.AddHours(3).DayOfYear)
-                                            .Include(u => u.user)
-                                            .Include(b => b.place)
-                                            .ThenInclude(p=>p.Listimage)
-                                            .OrderBy(p => p.BookingDate)
-                                            .ToListAsync();
+                var existbookings = await _db.Bookings.AsNoTracking()
+                                                        .Where(b => b.place.OwnerId == ownerId)
+                                                        .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
+                                                        .Where(b=>b.BookingDate.DayOfYear>=DateTime.UtcNow.AddHours(3).DayOfYear)
+                                                        .Include(u => u.user)
+                                                        .Include(b => b.place)                                            
+                                                        .OrderByDescending(p => p.BookingDate)
+                                                        .ToListAsync();
                 if(existbookings.Count == 0)
                 {
                     return Ok(existbookings);
@@ -79,7 +78,7 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("PaymentConfirmation/{bookingId}")]
+        [HttpPost("PaymentConfirmation/{bookingId}")]
         public async Task<IActionResult> PaymentConfirmation([FromRoute] int bookingId)
         {
             try
@@ -135,7 +134,7 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Approve/{bookingId}")]
+        [HttpPost("Approve/{bookingId}")]
         public async Task<IActionResult> Approve([FromRoute] int bookingId)
         {
             try
@@ -175,7 +174,7 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("Reject/{bookingId}")]
+        [HttpPost("Reject/{bookingId}")]
         public async Task<IActionResult> Reject([FromRoute] int bookingId)
         {
             try
@@ -221,17 +220,19 @@ namespace RezioxAPIs.Controllers
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $" 23 hours from start.. ";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift- 1}AM";
                     dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
                 }
+                var days = dif.Days != 0 ? $"{dif.Days} Day &" :null;
+                var hours = dif.Hours != 0 ? $"{dif.Hours}H:" :null;
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
                     BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToString(),
+                    BookingDate = booking.BookingDate.ToShortDateString(),
                     Time = rangetime,
-                    CountDown = $"{dif.Days} day & {dif.Hours} hour"
+                    CountDown = $"{days}{hours}{dif.Minutes}M"
 
                 });
             }
@@ -254,7 +255,7 @@ namespace RezioxAPIs.Controllers
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $"{booking.place.MorrningShift} - {booking.place.MorrningShift - 1}  (23 hours) ";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
                 }
                 cardbookings.Add(new dtoCardRequsetOwner
                 {
@@ -264,8 +265,9 @@ namespace RezioxAPIs.Controllers
                     UserName=booking.user.UserName,
                     BaseImage = booking.user.UserImage,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToString(),
-                    Time = rangetime
+                    BookingDate = booking.BookingDate.ToShortDateString(),
+                    Time = rangetime,
+                    IsApproved=booking.StatusBooking==MyStatus.approve? true:false
                 });
             }
             return cardbookings;

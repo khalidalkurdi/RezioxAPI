@@ -132,11 +132,11 @@ namespace RezioxAPIs.Controllers
                     return NotFound($"place {placeid} not found."); ;
                 }
                 //check if have not any booking        &&      if have it can not deleted
-                var existbookins = await _db.Bookings
+                var existbookins = await _db.Bookings.AsNoTracking()
                                         .Where(p => p.PlaceId == existplace.PlaceId)
                                         .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
-                                        .AnyAsync();
-                if (existbookins)
+                                        .ToListAsync();
+                if (existbookins.Count != 0)
                 {
                     await _notification.SentAsync(existplace.OwnerId, "Confirmation of impossibility", $"Can not delet your chalete because it has bookings!");
                     return BadRequest("it has bookings!");
@@ -163,12 +163,12 @@ namespace RezioxAPIs.Controllers
                     return BadRequest("0 id is not correct");
                 }
 
-                var ownerplaces = await _db.Places
-                                           .Where(p => p.OwnerId == ownerId)
-                                           .Where(p => p.PlaceStatus == MyStatus.approve)
-                                           .Include(p => p.Listimage.OrderBy(i => i.ImageId))
-                                           .OrderBy(p => p.PlaceId)
-                                           .ToListAsync();
+                var ownerplaces = await _db.Places.AsNoTracking()
+                                                   .Where(p => p.OwnerId == ownerId)
+                                                   .Where(p => p.PlaceStatus == MyStatus.approve)
+                                                   .Include(p => p.Listimage.OrderBy(i => i.ImageId))
+                                                   .OrderBy(p => p.PlaceId)
+                                                   .ToListAsync();
                 if (ownerplaces.Count == 0)
                 {
                     return Ok(ownerplaces);
@@ -195,7 +195,7 @@ namespace RezioxAPIs.Controllers
                     City = place.City.ToString(),
                     Visitors = place.Visitors,
                     Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.FirstOrDefault().ImageUrl : null
+                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.Where(i=>i.ImageStatus==MyStatus.approve).FirstOrDefault().ImageUrl : null
                 });
             }
             return cardplaces;

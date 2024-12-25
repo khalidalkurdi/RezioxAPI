@@ -27,12 +27,12 @@ namespace Reziox.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existnotifications = await _db.Notifications
-                                                    .Where(n => n.UserId == userId)
-                                                    .Where(n => n.CreatedAt.DayOfYear >= DateTime.UtcNow.DayOfYear - 7)
-                                                    //order form new to old
-                                                    .OrderByDescending(n => n.CreatedAt)
-                                                    .ToListAsync();
+                var existnotifications = await _db.Notifications.AsNoTracking()
+                                                                .Where(n => n.UserId == userId)
+                                                                .Where(n => n.CreatedAt.DayOfYear >= DateTime.UtcNow.DayOfYear - 7)
+                                                                //order form new to old
+                                                                .OrderByDescending(n => n.CreatedAt)
+                                                                .ToListAsync();
 
                 if (existnotifications.Count == 0)
                 {
@@ -54,7 +54,7 @@ namespace Reziox.Controllers
             }
         }
 
-        [HttpGet("Readed/{notificationId}")]
+        [HttpPost("Readed/{notificationId}")]
         public async Task<IActionResult> Readed([FromRoute] int notificationId)
         {
             try

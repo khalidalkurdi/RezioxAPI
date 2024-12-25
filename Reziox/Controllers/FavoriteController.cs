@@ -38,7 +38,8 @@ namespace Reziox.Controllers
                     return NotFound("no found this user");
                 }
 
-                var existfavorites = await _db.Favorites.Where(f => f.UserId == userId)
+                var existfavorites = await _db.Favorites.AsNoTracking()
+                                                         .Where(f => f.UserId == userId)
                                                          .Include(f => f.place)
                                                          .ThenInclude(p => p.Listimage)
                                                          .Where(p => p.place.PlaceStatus == MyStatus.approve)
@@ -148,7 +149,7 @@ namespace Reziox.Controllers
                     Visitors = place.Visitors,
                     Rating = place.Rating,
                     BaseImage = place.Listimage.Count != 0 ? place.Listimage.OrderBy(i => i.ImageId)
-                                                                            //.Where(i => i.ImageStatus == MyStatus.approve)                                                                            
+                                                                            .Where(i => i.ImageStatus == MyStatus.approve)                                                                            
                                                                             .FirstOrDefault().ImageUrl : null
                 });
             }

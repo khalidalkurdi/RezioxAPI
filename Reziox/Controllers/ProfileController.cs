@@ -27,7 +27,8 @@ namespace Reziox.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existUser = await _db.Users.Where(u => u.UserId == userId)
+                var existUser = await _db.Users.AsNoTracking()
+                                                .Where(u => u.UserId == userId)
                                                .Include(u => u.Myplaces)
                                                .Include(u => u.Mybookings)
                                                .FirstOrDefaultAsync();

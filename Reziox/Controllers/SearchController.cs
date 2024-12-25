@@ -200,7 +200,7 @@ namespace Reziox.Controllers
                     City = place.City.ToString(),
                     Visitors = place.Visitors,
                     Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null
+                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null
                 });
             }
             return cardplaces;

@@ -79,7 +79,7 @@ namespace Reziox.Controllers
                     return BadRequest(ModelState);
                 }
                 //find the user by email
-                var existUser = await _db.Users.Where(u => u.Email == loginRequest.Email.ToLower()).FirstOrDefaultAsync();
+                var existUser = await _db.Users.AsNoTracking().Where(u => u.Email == loginRequest.Email.ToLower()).FirstOrDefaultAsync();
                 if (existUser == null)
                 {
                     return Unauthorized("invalid email");

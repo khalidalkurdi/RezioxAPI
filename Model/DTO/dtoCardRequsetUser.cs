@@ -10,6 +10,8 @@ namespace Model.DTO
     public class dtoCardRequsetUser
     {
         [Required]
+        public int PlaceId { get; set; }
+        [Required]
         public string City { get; set; }
         [Required]
         public string PlaceName { get; set; }

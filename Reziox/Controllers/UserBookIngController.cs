@@ -20,7 +20,7 @@ namespace Rezioxgithub.Controllers
             _db = db;
             _notification = notification;            
         }
-
+        //get
         [HttpPost("Check")]
         public async Task<IActionResult> FirstAddBooking(int placeId, int userId, DateOnly datebooking)
         {
@@ -35,8 +35,12 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("this date in the past");
                 }
                 //find exist place and user
-                var existplace = await _db.Places.Where(p => p.PlaceId == placeId).FirstOrDefaultAsync();
-                var existuser = await _db.Users.Where(u => u.UserId == userId).FirstOrDefaultAsync();
+                var existplace = await _db.Places.AsNoTracking()
+                                                .Where(p => p.PlaceId == placeId)
+                                                .FirstOrDefaultAsync();
+                var existuser = await _db.Users.AsNoTracking()
+                                                .Where(u => u.UserId == userId)
+                                                .FirstOrDefaultAsync();
                 if (existplace == null || existuser == null)
                 {
                     return NotFound("User or Place not found.");
@@ -46,7 +50,7 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("can not booking your chalet !");
                 }
                 //check already user booked this place
-                var existalreadybooking = await _db.Bookings
+                var existalreadybooking = await _db.Bookings.AsNoTracking()
                                             .Where(b => b.PlaceId == placeId)
                                             .Where(b => b.UserId == existuser.UserId)
                                             .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
@@ -71,7 +75,7 @@ namespace Rezioxgithub.Controllers
                 //end check is booked or not
 
                 //check is booked or not
-                var existbooking = await _db.Bookings
+                var existbooking = await _db.Bookings.AsNoTracking()
                                             .Where(b => b.PlaceId == placeId)
                                             .Where(b => b.UserId != existuser.UserId)
                                             .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
@@ -118,8 +122,12 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("this date in the past");
                 }
                 //find exist place and user
-                var existplace = await _db.Places.Where(p => p.PlaceId == placeId).FirstOrDefaultAsync();
-                var existuser = await _db.Users.Where(u => u.UserId == userId).FirstOrDefaultAsync();
+                var existplace = await _db.Places.AsNoTracking()
+                                                .Where(p => p.PlaceId == placeId)
+                                                .FirstOrDefaultAsync();
+                var existuser = await _db.Users.AsNoTracking()
+                                                .Where(u => u.UserId == userId)
+                                                .FirstOrDefaultAsync();
                 if (existplace == null || existuser == null)
                 {
                     return NotFound("User or Place not found.");
@@ -129,10 +137,15 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("can not booking your chalet !");
                 }
                 //check already user booked this place
-                var existalreadybooking = await _db.Bookings
+                if (!Enum.TryParse(bookinshift.ToLower(), out MyShifts typeshift))
+                {                    
+                    return BadRequest($"can not convert this enum{bookinshift}");
+                }
+                var existalreadybooking = await _db.Bookings.AsNoTracking()
                                             .Where(b => b.PlaceId == placeId)
                                             .Where(b => b.UserId == existuser.UserId)
                                             .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
+                                            .Where(b => b.Typeshifts == typeshift)
                                             .Where(b => b.StatusBooking == MyStatus.confirmation || b.StatusBooking == MyStatus.pending||b.StatusBooking == MyStatus.approve)
                                             .FirstOrDefaultAsync();
                 if (existalreadybooking != null && existalreadybooking.Typeshifts == MyShifts.full)
@@ -152,12 +165,8 @@ namespace Rezioxgithub.Controllers
                 }
                 //end check place is working
 
-                if (!Enum.TryParse(bookinshift.ToLower(), out MyShifts typeshift))
-                {                    
-                    return BadRequest($"can not convert this enum{bookinshift}");
-                }
                 //start check is booked or not
-                var existbooking = await _db.Bookings
+                var existbooking = await _db.Bookings.AsNoTracking()
                                             .Where(b => b.PlaceId == placeId)
                                             .Where(b => b.UserId != existuser.UserId)
                                             .Where(b => b.BookingDate.DayOfYear == datebooking.DayOfYear)
@@ -169,7 +178,9 @@ namespace Rezioxgithub.Controllers
                     return BadRequest("this palce is booking now!");
                 }
                 //end check is booked or not
-                var toMakeTime = typeshift == MyShifts.night ? existplace.NightShift : existplace.MorrningShift;  
+                //real time of start booking 
+                var toMakeTime = typeshift == MyShifts.night ? existplace.MorrningShift + Math.Abs(existplace.MorrningShift-existplace.NightShift)+12 : existplace.MorrningShift; 
+                
                 var mybooking = new Booking { PlaceId = existplace.PlaceId, UserId = existuser.UserId, BookingDate = datebooking.ToDateTime(TimeOnly.MinValue.AddHours(toMakeTime)), Typeshifts = typeshift };
                 await _db.Bookings.AddAsync(mybooking);
                 await _notification.SentAsync(existplace.OwnerId, "New Requset booking", $"A place {existplace.PlaceName } you own is reserved on date {datebooking}");
@@ -227,9 +238,8 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existbooking = await _db.Bookings
-                                             .Where(p => p.BookingId == bookingId)
-                                             .Where(b => b.StatusBooking == MyStatus.confirmation)
+                var existbooking = await _db.Bookings.AsNoTracking()
+                                             .Where(p => p.BookingId == bookingId)                                             
                                              .Include(u => u.user)
                                              .Include(b => b.place)                                                                                          
                                              .FirstOrDefaultAsync();
@@ -251,7 +261,7 @@ namespace Rezioxgithub.Controllers
                 }
                 if (existbooking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $"{existbooking.place.MorrningShift} - {existbooking.place.MorrningShift - 1}:23 hours ";
+                    rangetime = $"{existbooking.place.MorrningShift}AM - {existbooking.place.MorrningShift - 1}AM";
                 }
                 var detailsbooking = new dtoDetailsBooking
                 {
@@ -259,7 +269,7 @@ namespace Rezioxgithub.Controllers
                     PlaceId = existbooking.PlaceId,
                     PlaceName = existbooking.place.PlaceName,
                     PlacePhone = existbooking.place.PlacePhone,
-                    BookingDate = $"{existbooking.BookingDate.DayOfWeek}-{existbooking.BookingDate}",
+                    BookingDate = $"{existbooking.BookingDate.DayOfWeek}/{existbooking.BookingDate}",
                     Time = rangetime,
                     Price = existbooking.place.Price,
                     Firstpayment=existbooking.place.Firstpayment,
@@ -284,7 +294,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existbookings = await _db.Bookings
+                var existbookings = await _db.Bookings.AsNoTracking()
                                              .Where(b => b.UserId == userId)
                                              .Where(b => b.StatusBooking == MyStatus.confirmation)
                                              .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
@@ -313,7 +323,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existbookings = await _db.Bookings
+                var existbookings = await _db.Bookings.AsNoTracking()
                                              .Where(b => b.UserId == userId)
                                              .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve || b.StatusBooking == MyStatus.approve)
                                              .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
@@ -330,9 +340,11 @@ namespace Rezioxgithub.Controllers
                 {
                     cardBookings.Add(new dtoCardRequsetUser
                     {
-                        BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                        PlaceId=booking.PlaceId,
+                        BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                         PlaceName = booking.place.PlaceName,
-                        Status = booking.StatusBooking.ToString()
+                        Status = booking.StatusBooking.ToString(),
+                        City = booking.place.City.ToString()
                     });
                 }
                 return Ok(cardBookings);
@@ -351,7 +363,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest("0 id is not correct !");
                 }
-                var existbookings = await _db.Bookings
+                var existbookings = await _db.Bookings.AsNoTracking()
                                              .Where(b => b.UserId == userId)
                                              .Where(b => b.StatusBooking == MyStatus.confirmation)
                                              .Where(b => b.BookingDate.DayOfYear<DateTime.UtcNow.AddHours(3).DayOfYear)
@@ -385,21 +397,22 @@ namespace Rezioxgithub.Controllers
                 }
                 if (booking.Typeshifts == MyShifts.night)
                 {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
-                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
+                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";                    
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $" 23 hours from start.. ";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
                 }
+                var days = dif.Days != 0 ? $"{dif.Days} Day & ":null; 
+                var hours = dif.Hours != 0 ? $"{dif.Hours}H:":null;
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
                     BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToString(),
+                    BookingDate = booking.BookingDate.ToShortDateString(),
                     Time = rangetime,
-                    CountDown = $"{dif.Days} day & {dif.Hours}h : {dif.Minutes}m"
+                    CountDown = $"{days}{hours}{Math.Abs(dif.Minutes)}M"
                 });
             }
             return cardbookings;
@@ -418,21 +431,20 @@ namespace Rezioxgithub.Controllers
                 if (booking.Typeshifts == MyShifts.night)
                 {
                     rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
-                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $" 23 hours from start.. ";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
                 }
                 cardbookings.Add(new dtoHistory
                 {
                     PlaceId=booking.PlaceId,
                     BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToString(),
+                    BookingDate = booking.BookingDate.ToShortDateString(),
                     Time = rangetime,
-                    CountDown = $"{dif.Days} day"                    
+                    CountDown = $"{dif.Days} Day"                    
                 });
             }
             return cardbookings;

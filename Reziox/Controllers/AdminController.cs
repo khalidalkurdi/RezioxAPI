@@ -143,15 +143,14 @@ namespace RezioxAPIs.Controllers
                 return BadRequest("0 id is not correct !");
             }
             var existEditingPlace = await _db.EditingPlaces
-                                    .Where(p => p.EditingPlaceId == editingPlaceId)
-                                    .Where(p => p.PlaceStatus == MyStatus.pending || p.PlaceStatus == MyStatus.reject)
-                                    .Include(p=>p.Listimage)
-                                    .FirstOrDefaultAsync();
+                                            .Where(p => p.EditingPlaceId == editingPlaceId)
+                                            .Where(p =>  p.PlaceStatus == MyStatus.reject)
+                                            .Include(p=>p.Listimage)
+                                            .FirstOrDefaultAsync();
             if (existEditingPlace == null)
             {
                 return NotFound("is not found or approve");
-            }
-            
+            }            
             if (existEditingPlace.PlaceId != 0 && existEditingPlace.PlaceId !=null)
             {                
                 var existplace = await _db.Places
@@ -196,7 +195,7 @@ namespace RezioxAPIs.Controllers
                 existplace.Volleyball = existEditingPlace.Volleyball;
                 //end update felds                
                 //delete old image !
-                foreach (var image in existplace.Listimage)
+                foreach (var image in existplace.Listimage.Where(i=>i.ImageStatus==MyStatus.approve))
                 {
                     image.ImageStatus = MyStatus.deleted;
                 }
@@ -272,7 +271,7 @@ namespace RezioxAPIs.Controllers
             }
             var existplace = await _db.Places
                                     .Where(p => p.PlaceId == placeId)
-                                    .Where(p => p.PlaceStatus == MyStatus.pending || p.PlaceStatus == MyStatus.approve)
+                                    .Where(p => p.PlaceStatus == MyStatus.approve)
                                     .FirstOrDefaultAsync();
             if (existplace == null)
             {
@@ -298,8 +297,8 @@ namespace RezioxAPIs.Controllers
             }
             return Ok(existbookings);
         }
-        [HttpGet("GetDisabledBookings")]
-        public async Task<IActionResult> GetDisabledBookings()
+        [HttpGet("GetRequsetUsersBookings")]
+        public async Task<IActionResult> GetRequsetUsersBookings()
         {
             var existbookings = await _db.Bookings
                                     .Where(b => b.StatusBooking == MyStatus.reject)
@@ -311,10 +310,22 @@ namespace RezioxAPIs.Controllers
             {
                 return NotFound("is not found");
             }
-            return Ok(existbookings);
+            var cardBookings = new List<dtoCardRequsetUser>();
+            foreach (var booking in existbookings)
+            {
+                cardBookings.Add(new dtoCardRequsetUser
+                {
+                    PlaceId = booking.PlaceId,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    PlaceName = booking.place.PlaceName,
+                    Status = booking.StatusBooking.ToString(),
+                    City = booking.place.City.ToString()
+                });
+            }
+            return Ok(cardBookings);
         }
-        [HttpGet("GetPendingBookings")]
-        public async Task<IActionResult> GetPendingBookings()
+        [HttpGet("GetRequsetOwnerBookings")]
+        public async Task<IActionResult> GetRequsetOwnerBookings()
         {
             var existbookings = await _db.Bookings
                                         .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
@@ -326,7 +337,8 @@ namespace RezioxAPIs.Controllers
             {
                 return NotFound("is not found");
             }
-            return Ok(existbookings);
+            var cardBookings = await CreateCardRequst(existbookings);
+            return Ok(cardBookings);
         }
         private async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
         {
@@ -341,7 +353,7 @@ namespace RezioxAPIs.Controllers
                     Price = place.Price,
                     City = place.City.ToString(),
                     Visitors = place.Visitors,
-                    BaseImage = place.Listimage.Count != 0 ? place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null
+                    BaseImage = place.Listimage.Count != 0 ? place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null
                 });
             }
             return cardplaces;
@@ -363,6 +375,74 @@ namespace RezioxAPIs.Controllers
                 });
             }
             return cardplaces;
-        }        
+        }
+        private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
+        {
+            string rangetime = "hh:mm";
+            var cardbookings = new List<dtoCardBookingSchedule>();
+            foreach (var booking in bookings)
+            {
+                TimeSpan dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
+
+                if (booking.Typeshifts == MyShifts.morning)
+                {
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
+                }
+                if (booking.Typeshifts == MyShifts.night)
+                {
+                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
+                }
+                if (booking.Typeshifts == MyShifts.full)
+                {
+                    rangetime = $" 23 hours from start.. ";
+                }
+                cardbookings.Add(new dtoCardBookingSchedule
+                {
+                    BookingId = booking.BookingId,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    PlaceName = booking.place.PlaceName,
+                    BookingDate = booking.BookingDate.ToString(),
+                    Time = rangetime,
+                    CountDown = $"{dif.Days} day & {dif.Hours}h : {dif.Minutes}m"
+                });
+            }
+            return cardbookings;
+        }
+        private async Task<List<dtoCardRequsetOwner>> CreateCardRequst(List<Booking> bookings)
+        {
+            string rangetime = "";
+            var cardbookings = new List<dtoCardRequsetOwner>();
+            foreach (var booking in bookings)
+            {
+
+                if (booking.Typeshifts == MyShifts.morning)
+                {
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
+                }
+                if (booking.Typeshifts == MyShifts.night)
+                {
+                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
+                }
+                if (booking.Typeshifts == MyShifts.full)
+                {
+                    rangetime = $"23 hours from start..";
+                }
+                cardbookings.Add(new dtoCardRequsetOwner
+                {
+                    BookingId = booking.BookingId,
+                    PlaceId = booking.PlaceId,
+                    UserId = booking.UserId,
+                    UserName = booking.user.UserName,
+                    BaseImage = booking.user.UserImage,
+                    PlaceName = booking.place.PlaceName,
+                    BookingDate = booking.BookingDate.ToString(),
+                    Time = rangetime,
+                    IsApproved = booking.StatusBooking == MyStatus.approve ? true : false
+                });
+            }
+            return cardbookings;
+        }
+
     }
+
 }
