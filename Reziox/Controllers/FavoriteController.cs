@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Model.DTO;
+using Model;
 using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
@@ -54,7 +54,7 @@ namespace Reziox.Controllers
                 {
                     placs.Add(fav.place);
                 }
-                var Cardplacs = await CreateCardPlaces(placs);
+                var Cardplacs = Card.CardPlaces(placs);
                 return Ok(Cardplacs);
             }
             catch (Exception ex)
@@ -134,27 +134,7 @@ namespace Reziox.Controllers
             }
             
         }
-        private async Task<List<dtoCardPlace>> CreateCardPlaces(IEnumerable<Place> places)
-        {
-
-            var cardplaces = new List<dtoCardPlace>();
-            foreach (var place in places.OrderBy(p => Guid.NewGuid()))
-            {
-                cardplaces.Add(new dtoCardPlace()
-                {
-                    PlaceId = place.PlaceId,
-                    PlaceName = place.PlaceName,
-                    Price = place.Price,
-                    City = place.City.ToString(),
-                    Visitors = place.Visitors,
-                    Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ? place.Listimage.OrderBy(i => i.ImageId)
-                                                                            .Where(i => i.ImageStatus == MyStatus.approve)                                                                            
-                                                                            .FirstOrDefault().ImageUrl : null
-                });
-            }
-            return cardplaces;
-        }
+       
 
 
     }

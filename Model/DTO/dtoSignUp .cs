@@ -19,7 +19,6 @@ namespace Model.DTO
         [Phone]
         [StringLength(10)]
         public string PhoneNumber { get; set; }
-        public string? UserImage { get; set; }
         [Required]
         public string City { get; set; }
 

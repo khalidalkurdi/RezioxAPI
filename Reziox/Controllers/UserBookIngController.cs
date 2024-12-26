@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
 using Model.DTO;
 using DataAccess.PublicClasses;
+using Model;
 
 namespace Rezioxgithub.Controllers
 {
@@ -22,7 +23,7 @@ namespace Rezioxgithub.Controllers
         }
         //get
         [HttpPost("Check")]
-        public async Task<IActionResult> FirstAddBooking(dtoSelectBooking dtoSelect)
+        public async Task<IActionResult> FirstAddBooking([FromBody]dtoSelectBooking dtoSelect)
         {
             try
             {
@@ -109,7 +110,7 @@ namespace Rezioxgithub.Controllers
             }
         }
         [HttpPost("Confirm")]
-        public async Task<IActionResult> SecondAddBooking(dtoSelectBooking dtoSelect)
+        public async Task<IActionResult> SecondAddBooking([FromBody]dtoSelectBooking dtoSelect)
         {
             try
             {
@@ -312,7 +313,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return Ok(existbookings);
                 }
-                var bookings = await CreateCardBookings(existbookings);
+                var bookings = Card.CardBookings(existbookings);
                 return Ok(bookings);
             }
             catch (Exception ex)
@@ -381,7 +382,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return Ok(existbookings);
                 }
-                var bookings = await CreateCardHistory(existbookings);
+                var bookings = Card.CardUserHistory(existbookings);
                 return Ok(bookings);
             }
             catch (Exception ex)
@@ -389,71 +390,6 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
-        {
-            string rangetime = "hh:mm";
-            var cardbookings = new List<dtoCardBookingSchedule>();
-            foreach (var booking in bookings)
-            {
-                TimeSpan dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
-
-                if (booking.Typeshifts == MyShifts.morning)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
-                }
-                if (booking.Typeshifts == MyShifts.night)
-                {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";                    
-                }
-                if (booking.Typeshifts == MyShifts.full)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
-                }
-                var days = dif.Days != 0 ? $"{dif.Days} Day & ":null; 
-                var hours = dif.Hours != 0 ? $"{dif.Hours}H:":null;
-                cardbookings.Add(new dtoCardBookingSchedule
-                {
-                    BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
-                    PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToShortDateString(),
-                    Time = rangetime,
-                    CountDown = $"{days}{hours}{Math.Abs(dif.Minutes)}M"
-                });
-            }
-            return cardbookings;
-        }
-        private async Task<List<dtoHistory>> CreateCardHistory(List<Booking> bookings)
-        {   string rangetime="hh:mm";
-            var cardbookings = new List<dtoHistory>();
-            foreach (var booking in bookings)
-            {
-                TimeSpan dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
-
-                if (booking.Typeshifts == MyShifts.morning)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
-                }
-                if (booking.Typeshifts == MyShifts.night)
-                {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
-                }
-                if (booking.Typeshifts == MyShifts.full)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
-                }
-                cardbookings.Add(new dtoHistory
-                {
-                    PlaceId=booking.PlaceId,
-                    BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
-                    PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToShortDateString(),
-                    Time = rangetime,
-                    CountDown = $"{dif.Days} Day"                    
-                });
-            }
-            return cardbookings;
-        }
+        
     }
 }

@@ -22,8 +22,7 @@ namespace Reziox.Model.ThePlace
         public MyStatus StatusBooking { get; set; } = MyStatus.pending;
         [Required]        
         public User user { get; set; }
-        [Required]
-        
+        [Required]        
         public Place place { get; set; }
     }
 }

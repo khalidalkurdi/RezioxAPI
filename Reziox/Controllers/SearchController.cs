@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Model;
 using Model.DTO;
 using Reziox.DataAccess;
 using Reziox.Model;
@@ -120,7 +121,7 @@ namespace Reziox.Controllers
                     }//end booked?
                 }
 
-                var cardplaces = await CreateCardPlaces(results);
+                var cardplaces = Card.CardPlaces(results);
                 return Ok(cardplaces);
             }
             catch (Exception ex)
@@ -186,25 +187,6 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        private  async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
-        {
-
-            var cardplaces = new List<dtoCardPlace>();
-            foreach (var place in places.OrderBy(p=>Guid.NewGuid()))
-            {
-                cardplaces.Add(new dtoCardPlace
-                {
-                    PlaceId = place.PlaceId,
-                    PlaceName = place.PlaceName,
-                    Price = place.Price,
-                    City = place.City.ToString(),
-                    Visitors = place.Visitors,
-                    Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null
-                });
-            }
-            return cardplaces;
-        }      
     }
 
 }

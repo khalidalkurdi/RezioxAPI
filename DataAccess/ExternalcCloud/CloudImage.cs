@@ -19,7 +19,7 @@ namespace DataAccess.ExternalcCloud
         public async Task<string> SaveImageAsync(IFormFile image)
         {
             if (image == null || image.Length == 0)
-                return null;
+                throw new Exception();
             //requst
             using var stream = image.OpenReadStream();
             var uploadParams = new ImageUploadParams
@@ -28,7 +28,7 @@ namespace DataAccess.ExternalcCloud
             };
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
             if (uploadResult.Error != null)
-                return null;
+                throw new Exception();
             return uploadResult.SecureUrl.ToString();
         }
 

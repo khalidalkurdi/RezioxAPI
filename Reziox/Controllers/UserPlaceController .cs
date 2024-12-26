@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Model;
 using Model.DTO;
 using Reziox.DataAccess;
 using Reziox.Model;
@@ -146,7 +147,7 @@ namespace Reziox.Controllers
                 {
                     return Ok(suggestlist);
                 }
-                var cardplaces = await CreateCardPlaces(suggestlist);
+                var cardplaces = Card.CardPlaces(suggestlist);
                 return Ok(cardplaces);
             }
             catch (Exception ex)
@@ -180,7 +181,7 @@ namespace Reziox.Controllers
                 {
                     return NotFound("is not found now !");
                 }*/
-                var cardplaces = await CreateCardPlaces(mostplaces);
+                var cardplaces = Card.CardPlaces(mostplaces);
                 return Ok(cardplaces);
             }
             catch (Exception ex)
@@ -204,7 +205,7 @@ namespace Reziox.Controllers
                 }
                 var randomplaces = existplaces.Take(30)
                                               .ToList();
-                var cardPlaces = await CreateCardPlaces(randomplaces);
+                var cardPlaces = Card.CardPlaces(randomplaces);
                 return Ok(cardPlaces);
             }
             catch (Exception ex)
@@ -212,27 +213,6 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
-        }
-        private  async Task<List<dtoCardPlace>> CreateCardPlaces(IEnumerable<Place> places)
-        {
-
-            var cardplaces = new List<dtoCardPlace>();
-            foreach (var place in places.OrderBy(p => Guid.NewGuid()))
-            {
-                cardplaces.Add(new dtoCardPlace
-                {
-                    PlaceId = place.PlaceId,
-                    PlaceName = place.PlaceName,
-                    Price = place.Price,
-                    City = place.City.ToString(),
-                    Visitors = place.Visitors,
-                    Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.Where(i=>i.ImageStatus==MyStatus.approve)
-                                                                            .OrderBy(i=>i.ImageId)
-                                                                            .FirstOrDefault().ImageUrl : null
-                });
-            }
-            return cardplaces;
         }
        
     }

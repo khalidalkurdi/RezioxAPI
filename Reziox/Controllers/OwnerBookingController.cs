@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Model.DTO;
+using Model;
 using Reziox.DataAccess;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
@@ -41,7 +41,7 @@ namespace RezioxAPIs.Controllers
                 {
                     return Ok(existbookings);
                 }
-                var bookings = await CreateCardBookings(existbookings);
+                var bookings = Card.CardBookings(existbookings);
                 return Ok(bookings);
             }
             catch (Exception ex)
@@ -70,7 +70,7 @@ namespace RezioxAPIs.Controllers
                 {
                     return Ok(existbookings);
                 }
-                var requstbookings = await CreateCardRequst(existbookings);
+                var requstbookings = Card.CardOwnerRequst(existbookings);
                 return Ok(requstbookings);
             }
             catch (Exception ex)
@@ -200,77 +200,6 @@ namespace RezioxAPIs.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-        }
-        private async Task<List<dtoCardBookingSchedule>> CreateCardBookings(List<Booking> bookings)
-        {
-            string rangetime = "";
-            var cardbookings = new List<dtoCardBookingSchedule>();
-            foreach (var booking in bookings)
-            {
-                TimeSpan dif= booking.BookingDate - DateTime.UtcNow.AddHours(3); 
-
-                if (booking.Typeshifts == MyShifts.morning)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
-                }
-                if (booking.Typeshifts == MyShifts.night)
-                {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
-                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
-                }
-                if (booking.Typeshifts == MyShifts.full)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift- 1}AM";
-                    dif = booking.BookingDate - DateTime.UtcNow.AddHours(3);
-                }
-                var days = dif.Days != 0 ? $"{dif.Days} Day &" :null;
-                var hours = dif.Hours != 0 ? $"{dif.Hours}H:" :null;
-                cardbookings.Add(new dtoCardBookingSchedule
-                {
-                    BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
-                    PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToShortDateString(),
-                    Time = rangetime,
-                    CountDown = $"{days}{hours}{dif.Minutes}M"
-
-                });
-            }
-            return cardbookings;
-        }
-        private async Task<List<dtoCardRequsetOwner>> CreateCardRequst(List<Booking> bookings)
-        {
-            string rangetime = "";
-            var cardbookings = new List<dtoCardRequsetOwner>();
-            foreach (var booking in bookings)
-            {
-                
-                if (booking.Typeshifts == MyShifts.morning)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
-                }
-                if (booking.Typeshifts == MyShifts.night)
-                {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
-                }
-                if (booking.Typeshifts == MyShifts.full)
-                {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
-                }
-                cardbookings.Add(new dtoCardRequsetOwner
-                {
-                    BookingId = booking.BookingId,
-                    PlaceId=booking.PlaceId,
-                    UserId=booking.UserId,
-                    UserName=booking.user.UserName,
-                    BaseImage = booking.user.UserImage,
-                    PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToShortDateString(),
-                    Time = rangetime,
-                    IsApproved=booking.StatusBooking==MyStatus.approve? true:false
-                });
-            }
-            return cardbookings;
         }
     }
 }

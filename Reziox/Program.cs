@@ -14,7 +14,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("SomeeConnections
 
 //inject nececcry interfaces services
 builder.Services.AddScoped<ICloudImag, CloudImage>();
-builder.Services.AddSingleton<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 //config cloudinary
 builder.Services.AddSingleton(x =>
@@ -32,7 +32,7 @@ builder.Services.AddControllers();
 
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile("reziox-e09bfee364b1.json")
+    Credential = GoogleCredential.FromFile("FirebaseKey.json")
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

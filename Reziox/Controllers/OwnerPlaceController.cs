@@ -8,6 +8,7 @@ using Reziox.Model;
 using Microsoft.EntityFrameworkCore;
 using DataAccess.ExternalcCloud;
 using DataAccess.PublicClasses;
+using Model;
 
 
 namespace RezioxAPIs.Controllers
@@ -109,7 +110,10 @@ namespace RezioxAPIs.Controllers
                 }
                 var existUser = await _db.Users.AsNoTracking().Where(u => u.UserId == dtoPlace.OwnerId).FirstOrDefaultAsync();
                 await _db.EditingPlaces.AddAsync(thisplace);
-                await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Waiting Confirmation", $"Your chalete is Pending ,admin will check  it soon.. !");
+                if (existUser != null)
+                {
+                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Waiting Confirmation", $"Your chalete is Pending ,admin will check  it soon.. !");
+                }
                 await _db.SaveChangesAsync();
                 return Ok("place sent to admin");
             }
@@ -175,7 +179,7 @@ namespace RezioxAPIs.Controllers
                 {
                     return Ok(ownerplaces);
                 }
-                var cardplaces = await CreateCardPlaces(ownerplaces);
+                var cardplaces = Card.CardPlaces(ownerplaces);
                 return Ok(cardplaces);
             }
             catch (Exception ex)
@@ -183,25 +187,5 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-        private async Task<List<dtoCardPlace>> CreateCardPlaces(List<Place> places)
-        {
-            var cardplaces = new List<dtoCardPlace>();
-            foreach (var place in places)
-            {
-                cardplaces.Add(new dtoCardPlace
-                {
-                    PlaceId = place.PlaceId,
-                    PlaceName = place.PlaceName,
-                    Price = place.Price,
-                    City = place.City.ToString(),
-                    Visitors = place.Visitors,
-                    Rating = place.Rating,
-                    BaseImage = place.Listimage.Count != 0 ?place.Listimage.Where(i=>i.ImageStatus==MyStatus.approve).FirstOrDefault().ImageUrl : null
-                });
-            }
-            return cardplaces;
-        }
-        
     }
 }

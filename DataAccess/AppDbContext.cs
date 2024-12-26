@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Model;
-
-using Model.TheUsers;
 using Reziox.Model;
 using Reziox.Model.ThePlace;
 using Reziox.Model.TheUsers;
@@ -39,9 +37,8 @@ namespace Reziox.DataAccess
                     PhoneNumber = "0781234567",
                     City = MyCitys.zarqa,
                     DiviceToken="",
-                });
-
-
+                }
+            );
         }
     }
 }
