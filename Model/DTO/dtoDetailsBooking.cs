@@ -14,9 +14,9 @@ namespace Model.DTO
 {
     public class dtoDetailsBooking
     {
-        [Required]
+        
         public int UserId { get; set; }
-        [Required]
+        
         public int PlaceId { get; set; }
         [Required]
         public string PlaceName { get; set; }

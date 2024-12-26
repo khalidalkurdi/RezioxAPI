@@ -71,7 +71,7 @@ namespace Rezioxgithub.Controllers
                 }
                 if ((existplace.WorkDays & day) != day)
                 {
-                    return BadRequest("the chalete is not working !");
+                    return BadRequest("The chalete is not working in this day !");
                 }
                 //end check is booked or not
 
@@ -82,20 +82,18 @@ namespace Rezioxgithub.Controllers
                                             .Where(b => b.BookingDate.DayOfYear == dtoSelect.datebooking.DayOfYear)
                                             .Where(b => b.StatusBooking == MyStatus.confirmation)
                                             .FirstOrDefaultAsync();
-                if (existbooking != null && existbooking.Typeshifts == MyShifts.full)
-                {
-                    return Content("this palce is booking now!");
-                }
-                //end check is booked or not
+                // card shift
                 bool aviableNightShift = true;
                 bool aviableMornningShift = true;
                 if (existbooking != null)
                 {
-                    aviableMornningShift = existbooking.Typeshifts != MyShifts.morning;
-                    aviableNightShift = existbooking.Typeshifts != MyShifts.night;
+                    aviableMornningShift = (existbooking.Typeshifts != MyShifts.morning && existbooking.Typeshifts != MyShifts.full);
+                    aviableNightShift = (existbooking.Typeshifts != MyShifts.night && existbooking.Typeshifts != MyShifts.full);
                 }
                 var mornningtime = $"{existplace.MorrningShift} AM - {existplace.NightShift - 1} PM";
                 var nighttime = $"{existplace.NightShift} PM - {existplace.MorrningShift - 1} AM";
+                //end card shift                
+                //end check is booked or not
                 return Ok(new
                 {
                     Mornning = aviableMornningShift,
@@ -184,10 +182,12 @@ namespace Rezioxgithub.Controllers
                 //end check is booked or not
                 //real time of start booking 
                 var toMakeTime = typeshift == MyShifts.night ? existPlace.MorrningShift + Math.Abs(existPlace.MorrningShift-existPlace.NightShift)+12 : existPlace.MorrningShift; 
-                
                 var mybooking = new Booking { PlaceId = existPlace.PlaceId, UserId = existUser.UserId, BookingDate = dtoSelect.datebooking.ToDateTime(TimeOnly.MinValue.AddHours(toMakeTime)), Typeshifts = typeshift };
                 await _db.Bookings.AddAsync(mybooking);
-                await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "New Requset booking", $"A place {existPlace.PlaceName } you own is reserved on date {dtoSelect.datebooking}");
+                if (existOwner != null)
+                {
+                     await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "New Requset booking", $"A place {existPlace.PlaceName } you own is reserved on date {dtoSelect.datebooking}");
+                }
                 await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Requset booking Confirmation", $"Bookingis on date {dtoSelect.datebooking} is pending and sent successfully to owner, please waite the of owner");
                 await _db.SaveChangesAsync();
                 return Ok("booking is pending and sent successfully to owner, please waite the of owner");
@@ -196,6 +196,109 @@ namespace Rezioxgithub.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }           
+        }
+        [HttpGet("ReviewBooking")]
+        public async Task<IActionResult> ReviewBooking([FromBody] dtoSelectBooking dtoSelect)
+        {
+            try
+            {
+                if (dtoSelect.placeId == 0 || dtoSelect.userId == 0)
+                {
+                    return BadRequest($" 0 id is not correct ");
+                }
+                if (dtoSelect.datebooking.DayOfYear < DateTime.Today.DayOfYear)
+                {
+                    return BadRequest("this date in the past");
+                }
+                //find exist place and user
+                var existPlace = await _db.Places.AsNoTracking()
+                                                .Where(p => p.PlaceId == dtoSelect.placeId)
+                                                .FirstOrDefaultAsync();
+                var existUser = await _db.Users.AsNoTracking()
+                                                .Where(u => u.UserId == dtoSelect.userId)
+                                                .FirstOrDefaultAsync();
+                if (existPlace == null || existUser == null)
+                {
+                    return NotFound("User or Place not found.");
+                }
+                if (existUser.UserId == existPlace.OwnerId)
+                {
+                    return BadRequest("can not booking your chalet !");
+                }
+                if (!Enum.TryParse(dtoSelect.bookinshift.ToLower(), out MyShifts typeShift))
+                {
+                    return BadRequest($"can not convert this enum{dtoSelect.bookinshift}");
+                }
+                var existalreadybooking = await _db.Bookings.AsNoTracking()
+                                            .Where(b => b.PlaceId == dtoSelect.placeId)
+                                            .Where(b => b.UserId == existUser.UserId)
+                                            .Where(b => b.BookingDate.DayOfYear == dtoSelect.datebooking.DayOfYear)
+                                            .Where(b => b.Typeshifts == typeShift)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation || b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
+                                            .FirstOrDefaultAsync();
+                if (existalreadybooking != null && existalreadybooking.Typeshifts == MyShifts.full)
+                {
+                    return BadRequest("you already booked this place");
+                }
+                //end check already user booked this place
+                //check place is working
+                var daybooking = dtoSelect.datebooking.DayOfWeek.ToString();
+                if (!Enum.TryParse(daybooking.ToLower(), out MYDays day))
+                {
+                    return BadRequest($"invalid day :{daybooking}");
+                }
+                if ((existPlace.WorkDays & day) != day)
+                {
+                    return BadRequest("the chalete is not working !");
+                }
+                //end check place is working
+
+                //start check is booked or not
+                var existbooking = await _db.Bookings.AsNoTracking()
+                                            .Where(b => b.PlaceId == dtoSelect.placeId)
+                                            .Where(b => b.UserId != dtoSelect.userId)
+                                            .Where(b => b.BookingDate.DayOfYear == dtoSelect.datebooking.DayOfYear)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation)
+                                            .Where(b => (b.Typeshifts & typeShift) == typeShift)
+                                            .FirstOrDefaultAsync();
+                if (existbooking != null)
+                {
+                    return BadRequest("this palce is booking now!");
+                }
+                //end check is booked or not
+                // set range time 
+                var rangetime = "";
+                if (typeShift == MyShifts.morning)
+                {
+                    rangetime = $"{existPlace.MorrningShift}AM - {existPlace.NightShift - 1}PM";
+                }
+                if (typeShift == MyShifts.night)
+                {
+                    rangetime = $"{existPlace.NightShift}PM - {existPlace.MorrningShift - 1}AM";
+                }
+                if (typeShift == MyShifts.full)
+                {
+                    rangetime = $"{existPlace.MorrningShift}AM - {existPlace.MorrningShift - 1}AM";
+                }
+                var detailsbooking = new dtoDetailsBooking
+                {
+                    PlaceName = existPlace.PlaceName,
+                    PlacePhone = existPlace.PlacePhone,
+                    BookingDate = $"{dtoSelect.datebooking.DayOfWeek}/{dtoSelect.datebooking}",
+                    Time = rangetime,
+                    Price = existPlace.Price,
+                    Firstpayment = existPlace.Firstpayment,
+                    City = existPlace.City.ToString(),
+                    MaxGust = existPlace.Visitors,
+                    UserName = existUser.UserName,
+                    UserPhone = existUser.PhoneNumber
+                };
+                return Ok(detailsbooking);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
         [HttpDelete("Cancel/{bookingId}")]
         public async Task<IActionResult> Cancel([FromRoute] int bookingId)
@@ -225,9 +328,11 @@ namespace Rezioxgithub.Controllers
                 //add notifiacation for  owner and user
                 var existUser = await _db.Users.AsNoTracking().Where(u => u.UserId == existbooking.UserId).FirstOrDefaultAsync();
                 var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existbooking.place.OwnerId).FirstOrDefaultAsync();
-
+                if (existOwner != null && existUser!=null)
+                {
                 await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "Cancel Confirmation", $"A booking at your place has been canceled for the date {existbooking.BookingDate}");
                 await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Cancel Confirmation", $"You canceled the booking on date {existbooking.BookingDate}");
+                }
                 await _db.SaveChangesAsync();
                 return Ok("Booking canceled successfully..");
             }

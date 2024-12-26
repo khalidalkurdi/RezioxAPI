@@ -40,6 +40,10 @@ namespace RezioxAPIs.Controllers
                 {
                     return BadRequest("please , upload at least  5 images for your place ");
                 }
+                if (images.Count>20)
+                {
+                    return BadRequest("please , upload less than 20 images for your place");
+                }
                 if (!Enum.TryParse(dtoPlace.City.ToLower(), out MyCitys cityEnum))
                 {
                     return BadRequest($"invalid city :{dtoPlace.City}");
@@ -142,7 +146,7 @@ namespace RezioxAPIs.Controllers
                                         .Where(p => p.PlaceId == existplace.PlaceId)
                                         .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
                                         .ToListAsync();
-                if (existbookins.Count != 0)
+                if (existbookins.Count != 0 && existUser!=null)
                 {
                     await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirmation of impossibility", $"Can not delet your chalete because it has bookings!");
                     return BadRequest("it has bookings!");
@@ -150,7 +154,10 @@ namespace RezioxAPIs.Controllers
                 //end check if have not any booking 
 
                 existplace.PlaceStatus = MyStatus.reject;
-                await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirm Delet", $"your chalete{existplace.PlaceName} is deleted !");
+                if (existUser != null)
+                {
+                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirm Delet", $"your chalete{existplace.PlaceName} is deleted !");
+                }
                 await _db.SaveChangesAsync();
                 return Ok("place deleted successfuly ! ");
             }

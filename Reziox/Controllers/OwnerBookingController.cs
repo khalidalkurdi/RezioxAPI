@@ -61,10 +61,10 @@ namespace RezioxAPIs.Controllers
                 var existbookings = await _db.Bookings.AsNoTracking()
                                                         .Where(b => b.place.OwnerId == ownerId)
                                                         .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
-                                                        .Where(b=>b.BookingDate.DayOfYear>=DateTime.UtcNow.AddHours(3).DayOfYear)
+                                                        .Where(b => b.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
                                                         .Include(u => u.user)
-                                                        .Include(b => b.place)                                            
-                                                        .OrderByDescending(p => p.BookingDate)
+                                                        .Include(b => b.place)
+                                                        .OrderBy(p => p.BookingDate)                                                        
                                                         .ToListAsync();
                 if(existbookings.Count == 0)
                 {
@@ -125,7 +125,10 @@ namespace RezioxAPIs.Controllers
                 }
                 // end check if find another booking in this date
                 existbooking.StatusBooking = MyStatus.confirmation;
-                await _notification.SentAsync(existbooking.user.DiviceToken, existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
+                if (existbooking.user != null)
+                {
+                     await _notification.SentAsync(existbooking.user.DiviceToken, existbooking.UserId, "Payment Confirmation", "The chalet owner accept your booking and it added to your bookings schedule");
+                }
                 await _db.SaveChangesAsync();
                 return Ok("Confirm booking successfuly");
             }
