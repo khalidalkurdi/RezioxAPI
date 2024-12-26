@@ -31,7 +31,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest($" 0 id is not correct ");
                 }
-                if (dtoSelect.datebooking.DayOfYear < DateTime.Today.DayOfYear)
+                if (dtoSelect.datebooking.ToDateTime(TimeOnly.MinValue) < DateTime.Today)
                 {
                     return BadRequest("this date in the past");
                 }
@@ -116,7 +116,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest($" 0 id is not correct ");
                 }
-                if (dtoSelect.datebooking.DayOfYear < DateTime.Today.DayOfYear)
+                if (dtoSelect.datebooking.ToDateTime(TimeOnly.MinValue) < DateTime.Today)
                 {
                     return BadRequest("this date in the past");
                 }
@@ -197,7 +197,7 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }           
         }
-        [HttpGet("ReviewBooking")]
+        [HttpPost("ReviewBooking")]
         public async Task<IActionResult> ReviewBooking([FromBody] dtoSelectBooking dtoSelect)
         {
             try
@@ -206,7 +206,7 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest($" 0 id is not correct ");
                 }
-                if (dtoSelect.datebooking.DayOfYear < DateTime.Today.DayOfYear)
+                if (dtoSelect.datebooking.ToDateTime(TimeOnly.MinValue) < DateTime.Today)
                 {
                     return BadRequest("this date in the past");
                 }
