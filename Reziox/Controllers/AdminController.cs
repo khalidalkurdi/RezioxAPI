@@ -10,6 +10,7 @@ using Reziox.Model.ThePlace;
 using static System.Net.Mime.MediaTypeNames;
 using DataAccess.PublicClasses;
 using Model;
+using DataAccess.ExternalcCloud;
 
 
 namespace RezioxAPIs.Controllers
@@ -20,12 +21,14 @@ namespace RezioxAPIs.Controllers
     {
         private readonly AppDbContext _db;
         private readonly INotificationService _notification;
+        private readonly ICloudImag _cloudImag;
 
 
-        public AdminController(AppDbContext db,INotificationService notification)
+        public AdminController(AppDbContext db,INotificationService notification,ICloudImag cloudImag)
         {
             _db = db;
             _notification = notification;
+            _cloudImag = cloudImag;
         }
         [HttpGet("GetUsers")]
         public async Task<IActionResult> GetUsers()
@@ -149,7 +152,7 @@ namespace RezioxAPIs.Controllers
             }
             var existEditingPlace = await _db.EditingPlaces
                                             .Where(p => p.EditingPlaceId == editingPlaceId)
-                                            .Where(p =>  p.PlaceStatus == MyStatus.reject)
+                                            .Where(p =>  p.PlaceStatus == MyStatus.pending)
                                             .Include(p=>p.Listimage)
                                             .FirstOrDefaultAsync();
             if (existEditingPlace == null)
@@ -161,6 +164,7 @@ namespace RezioxAPIs.Controllers
                 var existplace = await _db.Places
                                            .Where(p => p.PlaceId == existEditingPlace.PlaceId)
                                            .Where(p=>p.PlaceStatus==MyStatus.approve)
+                                           .Include(p=>p.Listimage)
                                            .FirstOrDefaultAsync();
                 if (existplace == null)
                 {
@@ -200,9 +204,9 @@ namespace RezioxAPIs.Controllers
                 existplace.Volleyball = existEditingPlace.Volleyball;
                 //end update felds                
                 //delete old image !
-                foreach (var image in existplace.Listimage.Where(i=>i.ImageStatus==MyStatus.approve))
+                foreach (var image in existplace.Listimage)
                 {
-                    image.ImageStatus = MyStatus.deleted;
+                    _db.PlaceImages.Remove(image);               
                 }
                 //end delete old image !
                 //uploaded images       
@@ -271,16 +275,16 @@ namespace RezioxAPIs.Controllers
             await _db.SaveChangesAsync();
             return Ok("place approve succfuly!");
         }
-        [HttpGet("DisablePlace/{placeId}")]
-        public async Task<IActionResult> DisablePlace(int placeId)
+        [HttpGet("DisablePlace/{editingPlaceId}")]
+        public async Task<IActionResult> DisablePlace(int editingPlaceId)
         {
-            if (placeId == 0)
+            if (editingPlaceId == 0)
             {
                 return BadRequest("0 id is not correct !");
             }
-            var existplace = await _db.Places
-                                    .Where(p => p.PlaceId == placeId)
-                                    .Where(p => p.PlaceStatus == MyStatus.approve)
+            var existplace = await _db.EditingPlaces
+                                    .Where(p => p.PlaceId == editingPlaceId)
+                                    .Where(p => p.PlaceStatus == MyStatus.pending)
                                     .FirstOrDefaultAsync();
             if (existplace == null)
             {
@@ -326,7 +330,7 @@ namespace RezioxAPIs.Controllers
             var cardBookings = new List<dtoCardRequsetUser>();
             foreach (var booking in existbookings)
             {
-                string? baseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve)
+                string? baseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage
                                                                            .OrderBy(i => i.ImageId)
                                                                            .FirstOrDefault()?.ImageUrl : null;
                 if (baseImage == null)

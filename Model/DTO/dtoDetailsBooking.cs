@@ -39,6 +39,7 @@ namespace Model.DTO
         [Required]
 
         public string UserPhone { get; set; }        
+        public string Shift { get; set; }        
         
        
     }

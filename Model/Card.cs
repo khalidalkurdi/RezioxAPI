@@ -11,13 +11,13 @@ namespace Model
 {
     public class Card
     {
-        public static List<dtoCardPlace> CardPlaces(IEnumerable<Place> places)
+        public static List<dtoCardPlace> CardPlaces(List<Place> places)
         {
 
             var cardplaces = new List<dtoCardPlace>();
             foreach (var place in places.OrderBy(p => Guid.NewGuid()))
             {
-                string? baseImage = place.Listimage.Count != 0 ? place.Listimage.Where(i => i.ImageStatus == MyStatus.approve)
+                string? baseImage = place.Listimage.Count != 0 ? place.Listimage
                                                                            .OrderBy(i => i.ImageId)
                                                                            .FirstOrDefault()?.ImageUrl : null;
                 if (baseImage == null)
@@ -72,11 +72,11 @@ namespace Model
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 13}PM"; //if -12 convert 24 to 12 
                 }
                 if (booking.Typeshifts == MyShifts.night)
                 {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.NightShift-12}PM - {booking.place.MorrningShift - 1}AM";
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
@@ -87,9 +87,9 @@ namespace Model
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
                     BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToShortDateString(),
+                    BookingDate = booking.BookingDate.ToString("d"),
                     Time = rangetime,
                     CountDown = $"{days}{hours}{Math.Abs(dif.Minutes)}M"
                 });
@@ -106,11 +106,11 @@ namespace Model
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
+                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 13}PM";
                 }
                 if (booking.Typeshifts == MyShifts.night)
                 {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.NightShift - 12}PM - {booking.place.MorrningShift - 1}AM";
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
@@ -120,9 +120,9 @@ namespace Model
                 {
                     PlaceId = booking.PlaceId,
                     BookingId = booking.BookingId,
-                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.Where(i => i.ImageStatus == MyStatus.approve).OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToShortDateString(),
+                    BookingDate = booking.BookingDate.ToString("d"),
                     Time = rangetime,
                     CountDown = $"{dif.Days} Day"
                 });
@@ -156,12 +156,28 @@ namespace Model
                     UserName = booking.user.UserName,
                     BaseImage = booking.user.UserImage,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToShortDateString(),
+                    BookingDate = booking.BookingDate.ToString("d"),
                     Time = rangetime,
                     IsApproved = booking.StatusBooking == MyStatus.approve ? true : false
                 });
             }
             return cardbookings;
+        }
+        public static List<dtoCardRequsetUser> CardUserRequst(List<Booking> bookings)
+        {
+            var cardBookings = new List<dtoCardRequsetUser>();
+            foreach (var booking in bookings)
+            {
+                cardBookings.Add(new dtoCardRequsetUser
+                {
+                    PlaceId = booking.PlaceId,
+                    BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
+                    PlaceName = booking.place.PlaceName,
+                    Status = booking.StatusBooking.ToString(),
+                    City = booking.place.City.ToString()
+                });
+            }
+            return cardBookings;
         }
     }
 }

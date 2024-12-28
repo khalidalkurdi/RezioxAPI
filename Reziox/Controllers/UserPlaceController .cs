@@ -76,7 +76,7 @@ namespace Reziox.Controllers
                     Tennis = existplace.Tennis,
                     Volleyball = existplace.Volleyball                   
                 };
-                // check is favorited
+                // check if favorited
                 var existfavorite = await _db.Favorites.Where(f => f.PlaceId == placeId)                                                 
                                                        .Where(f => f.UserId==userId)
                                                        .FirstOrDefaultAsync();
@@ -84,7 +84,16 @@ namespace Reziox.Controllers
                 {
                     dtoDetailsPlace.Favorited = true;
                 }
-                //end check is favorited
+                //end check if favorited
+                // check if rated
+                var existRating = await _db.Reviews.Where(f => f.PlaceId == placeId)                                                 
+                                                       .Where(f => f.UserId==userId)
+                                                       .FirstOrDefaultAsync();
+                if (existRating != null)
+                {
+                    dtoDetailsPlace.Rated = existRating.Rating;
+                }
+                //end check if rated
                 //convert days from flag to string
                 if ((existplace.WorkDays & MYDays.sunday) == MYDays.sunday)
                     dtoDetailsPlace.WorkDays.Add(MYDays.sunday.ToString());
@@ -109,9 +118,9 @@ namespace Reziox.Controllers
                 //end convert
                 if (existplace.Listimage.Count != 0)
                 {                    
-                    foreach (var image in existplace.Listimage.OrderBy(i => i.ImageId).Where(i => i.ImageStatus == MyStatus.approve))
-                    {                        
-                        dtoDetailsPlace.ListImage.Add(image.ImageUrl);                        
+                    foreach (var image in existplace.Listimage.OrderBy(i => i.ImageId))
+                    {
+                         dtoDetailsPlace.ListImage.Add(image.ImageUrl);                        
                     }
                 }                
                 return Ok(dtoDetailsPlace);

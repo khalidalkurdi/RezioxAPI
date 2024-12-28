@@ -68,7 +68,9 @@ namespace Model.DTO
         public bool Ballpool { get; set; }         
         public bool Tennis { get; set; }        
         public bool Volleyball { get; set; } 
+
         public bool Favorited { get; set; } 
+        public double Rated { get; set; } 
 
 
     }

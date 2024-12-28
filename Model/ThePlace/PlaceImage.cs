@@ -10,9 +10,7 @@ namespace Reziox.Model.ThePlace
         
         [Required]
         [ForeignKey("place")]
-        public int? PlaceId { get; set; }
-        [Required]
-        public MyStatus ImageStatus { get; set; } = MyStatus.approve;
+        public int? PlaceId { get; set; }        
         [Required]        
         public Place place { get; set; }       
     }

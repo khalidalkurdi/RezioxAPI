@@ -29,7 +29,7 @@ namespace Reziox.Controllers
                 }
                 var existnotifications = await _db.Notifications.AsNoTracking()
                                                                 .Where(n => n.UserId == userId)
-                                                                .Where(n => n.CreatedAt.DayOfYear >= DateTime.UtcNow.DayOfYear - 7)
+                                                                .Where(n => n.CreatedAt >= DateTime.UtcNow.AddDays(-7))
                                                                 //order form new to old
                                                                 .OrderByDescending(n => n.CreatedAt)
                                                                 .ToListAsync();
@@ -41,7 +41,7 @@ namespace Reziox.Controllers
                 var dtoNotifications = new List<dtoNotification>();
                 foreach (var notification in existnotifications)
                 {
-                    var difDate = notification.CreatedAt - DateTime.UtcNow.AddHours(3);
+                    var difDate =  DateTime.UtcNow.AddHours(3) - notification.CreatedAt;
                     var countdown = difDate.Days < 0 ? $"{difDate.Days} day " : $"{difDate.Hours} hour";
                     dtoNotifications.Add(new dtoNotification {NotificationId=notification.NotificationId, Title = notification.Title, Message = notification.Message, CreatedAt = $"{countdown}",IsRead=notification.IsRead });
                 }

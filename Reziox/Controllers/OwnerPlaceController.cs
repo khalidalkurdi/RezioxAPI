@@ -144,7 +144,7 @@ namespace RezioxAPIs.Controllers
                 //check if have not any booking        &&      if have it can not deleted
                 var existbookins = await _db.Bookings.AsNoTracking()
                                         .Where(p => p.PlaceId == existplace.PlaceId)
-                                        .Where(p => p.BookingDate.DayOfYear >= DateTime.UtcNow.AddHours(3).DayOfYear)
+                                        .Where(p => p.BookingDate >= DateTime.UtcNow.AddHours(3))
                                         .ToListAsync();
                 if (existbookins.Count != 0 && existUser!=null)
                 {

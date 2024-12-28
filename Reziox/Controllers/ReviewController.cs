@@ -55,7 +55,7 @@ namespace Reziox.Controllers
                                                     .Where(b=>b.StatusBooking==MyStatus.confirmation)
                                                     .FirstOrDefaultAsync();
 
-                if(existbokking == null || existbokking.BookingDate.DayOfYear < DateTime.Today.DayOfYear)
+                if(existbokking == null || existbokking.BookingDate >  DateTime.UtcNow)
                 {
                     return BadRequest("can not review this place, you must try the chalet and try review later !");
                 }

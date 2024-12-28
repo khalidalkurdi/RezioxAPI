@@ -10,6 +10,21 @@ namespace DataAccess.ExternalcCloud
         {
             _cloudinary = cloudinary;
         }
+
+        public bool RemoveImage(string Url)
+        {
+            string publicId = Path.GetFileNameWithoutExtension(new Uri(Url).Segments.Last());
+            var deletionParams = new DeletionParams(publicId)
+            {
+                ResourceType = ResourceType.Image
+            };
+
+            var result = _cloudinary.Destroy(deletionParams);
+            if (result.Result == "ok")
+                return true;
+            return false;
+        }
+
         public async Task<string> SaveImageAsync(IFormFile image)
         {
             if (image == null || image.Length == 0)
@@ -26,5 +41,6 @@ namespace DataAccess.ExternalcCloud
             return uploadResult.SecureUrl.ToString();
         }
 
+        
     }
 }

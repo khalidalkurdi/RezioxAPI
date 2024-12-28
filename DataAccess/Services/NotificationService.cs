@@ -25,8 +25,7 @@ namespace DataAccess.PublicClasses
                         Notification = new FirebaseAdmin.Messaging.Notification
                         {
                             Title = title,
-                            Body =alert
-                        }
+                            Body =alert}
                     };
                     await FirebaseMessaging.DefaultInstance.SendAsync(message);
                 }
