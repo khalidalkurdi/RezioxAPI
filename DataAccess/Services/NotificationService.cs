@@ -13,7 +13,7 @@ namespace DataAccess.PublicClasses
         {
             _db = db;
         }
-        public async Task SentAsync(string diviceToken, int userid, string title, string alert)
+        public async Task SentAsync(string diviceToken, int userid, string title, string alert ,MyScreen moveto)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace DataAccess.PublicClasses
                     await FirebaseMessaging.DefaultInstance.SendAsync(message);
                 }
 
-                await _db.Notifications.AddAsync(new Reziox.Model.Notification { UserId = userid, Title = title, Message = alert });
+                await _db.Notifications.AddAsync(new Reziox.Model.Notification { UserId = userid, Title = title, Message = alert , MoveTo = moveto });
             }
             catch (Exception ex)
             {

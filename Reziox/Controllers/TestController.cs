@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Model.DTO;
 using Reziox.DataAccess;
+using Reziox.Model;
 using System.Text.Json;
 
 namespace Rezioxgithub.Controllers
@@ -32,7 +33,7 @@ namespace Rezioxgithub.Controllers
         {
             try
             {
-                await _notification.SentAsync(token, 1007, "test", alert);
+                await _notification.SentAsync(token, 1007, "test", alert,MyScreen.None);
                 return Ok();
             }
             catch (Exception ex) 

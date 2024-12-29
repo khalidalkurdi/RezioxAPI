@@ -1,8 +1,10 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using Reziox.DataAccess;
 using Reziox.Model;
+using Reziox.Model.TheUsers;
 
 
 namespace Reziox.Controllers
@@ -38,12 +40,16 @@ namespace Reziox.Controllers
                 {
                     return Ok(existnotifications);
                 }
+               
                 var dtoNotifications = new List<dtoNotification>();
                 foreach (var notification in existnotifications)
                 {
                     var difDate =  DateTime.UtcNow.AddHours(3) - notification.CreatedAt;
-                    var countdown = difDate.Days < 0 ? $"{difDate.Days} day " : $"{difDate.Hours} hour";
-                    dtoNotifications.Add(new dtoNotification {NotificationId=notification.NotificationId, Title = notification.Title, Message = notification.Message, CreatedAt = $"{countdown}",IsRead=notification.IsRead });
+                    var days = difDate.Days > 0 ? $"{difDate.Days} Day " : null;
+                    var hours = difDate.Hours > 0 && days == null? $"{difDate.Hours} h " : null;
+                    var minutes = difDate.Minutes > 0 && hours== null && days==null? $"{difDate.Minutes} m " : null;
+                    var countdown = $"{days}{hours}{minutes}";
+                    dtoNotifications.Add(new dtoNotification {NotificationId=notification.NotificationId, Title = notification.Title, Message = notification.Message, CreatedAt = $"{countdown}",IsRead=notification.IsRead, MoveTo=(int)notification.MoveTo });
                 }
 
                 return Ok(dtoNotifications);
@@ -72,8 +78,28 @@ namespace Reziox.Controllers
                     return NotFound("is not found");
                 }
                 existNotification.IsRead=true;
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
                 return Ok("done!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [HttpGet("Alert/{userId}")]
+        public async Task<IActionResult> Alert([FromRoute] int userId)
+        {
+            try
+            {
+                var existnotifications = await _db.Notifications.AsNoTracking()
+                                                                .Where(n => n.UserId == userId)
+                                                                .Where(n => n.CreatedAt >= DateTime.UtcNow.AddDays(-7))                                                                
+                                                                .ToListAsync();                
+                if (existnotifications.Any(n => n.IsRead == false))
+                {
+                    return Ok(true);
+                }
+                return Ok(false);
             }
             catch (Exception ex)
             {

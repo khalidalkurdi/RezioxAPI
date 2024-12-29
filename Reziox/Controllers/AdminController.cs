@@ -138,7 +138,7 @@ namespace RezioxAPIs.Controllers
             var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existplace.OwnerId).FirstOrDefaultAsync();
             if(existOwner != null)
             {
-                 await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "Delete Confirmation", "The admin delete your chalet..");
+                 await _notification.SentAsync(existOwner.DiviceToken,existOwner.UserId, "Delete Confirmation", "The admin delete your chalet..",MyScreen.None);
             }
             await _db.SaveChangesAsync();
             return Ok("place deleted succfuly!");
@@ -270,7 +270,7 @@ namespace RezioxAPIs.Controllers
             var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existEditingPlace.OwnerId).FirstOrDefaultAsync();
             if(existOwner != null)
             {
-                 await _notification.SentAsync(existOwner.DiviceToken, existOwner.UserId, "Acceptance Confirmation", "The admin accept your chalet and it added to your chalets");
+                 await _notification.SentAsync(existOwner.DiviceToken, existOwner.UserId, "Acceptance Confirmation", "The admin accept your chalet and it added to your chalets",MyScreen.OwnerPlaces);
             }
             await _db.SaveChangesAsync();
             return Ok("place approve succfuly!");
@@ -294,7 +294,7 @@ namespace RezioxAPIs.Controllers
             var existOwner = await _db.Users.AsNoTracking().Where(u => u.UserId == existplace.OwnerId).FirstOrDefaultAsync();
             if (existOwner != null)
             {
-                 await _notification.SentAsync(existOwner.DiviceToken, existOwner.UserId, "Rejection Confirmation", "The admin reject your chalet");
+                 await _notification.SentAsync(existOwner.DiviceToken, existOwner.UserId, "Rejection Confirmation", "The admin reject your chalet", MyScreen.None);
             }            
             await _db.SaveChangesAsync();
             return Ok("place disabled succfuly!");

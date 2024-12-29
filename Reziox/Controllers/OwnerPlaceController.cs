@@ -116,7 +116,7 @@ namespace RezioxAPIs.Controllers
                 await _db.EditingPlaces.AddAsync(thisplace);
                 if (existUser != null)
                 {
-                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Waiting Confirmation", $"Your chalete is Pending ,admin will check  it soon.. !");
+                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Waiting Confirmation", $"Your chalete is Pending ,admin will check  it soon.. !", MyScreen.None);
                 }
                 await _db.SaveChangesAsync();
                 return Ok("place sent to admin");
@@ -148,7 +148,7 @@ namespace RezioxAPIs.Controllers
                                         .ToListAsync();
                 if (existbookins.Count != 0 && existUser!=null)
                 {
-                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirmation of impossibility", $"Can not delet your chalete because it has bookings!");
+                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirmation of impossibility", $"Can not delet your chalete because it has bookings!", MyScreen.OwnerSchedule);
                     return BadRequest("it has bookings!");
                 }
                 //end check if have not any booking 
@@ -156,7 +156,7 @@ namespace RezioxAPIs.Controllers
                 existplace.PlaceStatus = MyStatus.reject;
                 if (existUser != null)
                 {
-                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirm Delet", $"your chalete{existplace.PlaceName} is deleted !");
+                    await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirm Delet", $"your chalete{existplace.PlaceName} is deleted !",MyScreen.None);
                 }
                 await _db.SaveChangesAsync();
                 return Ok("place deleted successfuly ! ");

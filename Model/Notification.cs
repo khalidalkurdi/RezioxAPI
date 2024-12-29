@@ -21,7 +21,8 @@ namespace Reziox.Model
         [Required]
         public bool IsRead { get; set; }
         [Required]
-        
+        public MyScreen MoveTo { get; set; }
+        [Required]
         public User user { get; set; }
     }
 }

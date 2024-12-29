@@ -74,7 +74,8 @@ namespace Reziox.Controllers
                     BabyFoot = existplace.BabyFoot,
                     Ballpool = existplace.Ballpool,
                     Tennis = existplace.Tennis,
-                    Volleyball = existplace.Volleyball                   
+                    Volleyball = existplace.Volleyball,
+                    Rating=existplace.Rating                    
                 };
                 // check if favorited
                 var existfavorite = await _db.Favorites.Where(f => f.PlaceId == placeId)                                                 
@@ -91,7 +92,7 @@ namespace Reziox.Controllers
                                                        .FirstOrDefaultAsync();
                 if (existRating != null)
                 {
-                    dtoDetailsPlace.Rated = existRating.Rating;
+                    dtoDetailsPlace.Rated = existRating.Rating>0.0? existRating.Rating:null;
                 }
                 //end check if rated
                 //convert days from flag to string

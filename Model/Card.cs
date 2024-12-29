@@ -82,16 +82,16 @@ namespace Model
                 {
                     rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
                 }
-                var days = dif.Days != 0 ? $"{dif.Days} Day & " : null;
-                var hours = dif.Hours != 0 ? $"{dif.Hours}H:" : null;
+                var days = dif.Days > 0 ? $"{dif.Days} Day & " : null;
+                var hours = dif.Hours > 0 ? $"{dif.Hours}h & " : null;
                 cardbookings.Add(new dtoCardBookingSchedule
                 {
                     BookingId = booking.BookingId,
                     BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToString("d"),
+                    BookingDate = booking.BookingDate.ToString("yyyy-MM-dd"),
                     Time = rangetime,
-                    CountDown = $"{days}{hours}{Math.Abs(dif.Minutes)}M"
+                    CountDown = $"{days}{hours}{Math.Abs(dif.Minutes)}m"
                 });
             }
             return cardbookings;
@@ -122,7 +122,7 @@ namespace Model
                     BookingId = booking.BookingId,
                     BaseImage = booking.place.Listimage.Count != 0 ? booking.place.Listimage.OrderBy(i => i.ImageId).FirstOrDefault().ImageUrl : null,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToString("d"),
+                    BookingDate = booking.BookingDate.ToString("yyyy-MM-dd"),
                     Time = rangetime,
                     CountDown = $"{dif.Days} Day"
                 });
@@ -156,7 +156,7 @@ namespace Model
                     UserName = booking.user.UserName,
                     BaseImage = booking.user.UserImage,
                     PlaceName = booking.place.PlaceName,
-                    BookingDate = booking.BookingDate.ToString("d"),
+                    BookingDate = booking.BookingDate.ToString("yyyy-MM-dd"),
                     Time = rangetime,
                     IsApproved = booking.StatusBooking == MyStatus.approve ? true : false
                 });

@@ -56,27 +56,24 @@ namespace Reziox.Controllers
                 {
                     foreach (var feature in dtoSearch.Features)
                     {
-                        if (feature != "string")
+                        switch (feature.ToLower())
                         {
-                            switch (feature.ToLower())
-                            {
-                                case "wifi": query = query.Where(p => p.WiFi == true); break;
-                                case "paymentbycard": query = query.Where(p => p.PaymentByCard == true); break;
-                                case "airconditioning": query = query.Where(p => p.AirConditioning == true); break;
-                                case "barbecue": query = query.Where(p => p.Barbecue == true); break;
-                                case "eventarea": query = query.Where(p => p.EventArea == true); break;
-                                case "childrensplayground": query = query.Where(p => p.ChildrensPlayground == true); break;
-                                case "childrenspool": query = query.Where(p => p.ChildrensPool == true); break;
-                                case "parking": query = query.Where(p => p.Parking == true); break;
-                                case "jacuzzi": query = query.Where(p => p.Jacuzzi == true); break;
-                                case "heatedswimmingpool": query = query.Where(p => p.HeatedSwimmingPool == true); break;
-                                case "football": query = query.Where(p => p.Football == true); break;
-                                case "babyfoot": query = query.Where(p => p.BabyFoot == true); break;
-                                case "ballpool": query = query.Where(p => p.Ballpool == true); break;
-                                case "tennis": query = query.Where(p => p.Tennis == true); break;
-                                case "volleyball": query = query.Where(p => p.Volleyball == true); break;
-                            }
-                        }
+                            case "wifi": query = query.Where(p => p.WiFi == true); break;
+                            case "paymentbycard": query = query.Where(p => p.PaymentByCard == true); break;
+                            case "airconditioning": query = query.Where(p => p.AirConditioning == true); break;
+                            case "barbecue": query = query.Where(p => p.Barbecue == true); break;
+                            case "eventarea": query = query.Where(p => p.EventArea == true); break;
+                            case "childrensplayground": query = query.Where(p => p.ChildrensPlayground == true); break;
+                            case "childrenspool": query = query.Where(p => p.ChildrensPool == true); break;
+                            case "parking": query = query.Where(p => p.Parking == true); break;
+                            case "jacuzzi": query = query.Where(p => p.Jacuzzi == true); break;
+                            case "heatedswimmingpool": query = query.Where(p => p.HeatedSwimmingPool == true); break;
+                            case "football": query = query.Where(p => p.Football == true); break;
+                            case "babyfoot": query = query.Where(p => p.BabyFoot == true); break;
+                            case "ballpool": query = query.Where(p => p.Ballpool == true); break;
+                            case "tennis": query = query.Where(p => p.Tennis == true); break;
+                            case "volleyball": query = query.Where(p => p.Volleyball == true); break;
+                        }                        
                     }
                 }
                 var results = await query.ToListAsync();
@@ -85,7 +82,7 @@ namespace Reziox.Controllers
                     return Ok(results);
                 }
                 //fillter rating
-                if (dtoSearch.Rating != 0)
+                if (dtoSearch.Rating > 0)
                 {
                     results.RemoveAll(p=>p.Rating < dtoSearch.Rating);                   
                 }
@@ -94,13 +91,13 @@ namespace Reziox.Controllers
                 {
                     // is workeing ?
                     var daybooking = dtoSearch.ChoicDate.DayOfWeek.ToString();
-                    if (!Enum.TryParse(daybooking.ToLower(), out MYDays daydate))
+                    if (!Enum.TryParse(daybooking.ToLower(), out MYDays choicDay))
                     {
                         return BadRequest($"invalid day :{daybooking}");
                     }
-                    query = query.Where(p => (p.WorkDays & daydate) == daydate);
+                    query = query.Where(p => (p.WorkDays & choicDay) == choicDay);
                     //end is working?
-                    // is booked?
+                    // remove places not avaliable
                     if (!Enum.TryParse(dtoSearch.TypeShift.ToLower(), out MyShifts TypeShift))
                     {
                         return BadRequest($"invalid type shift :{dtoSearch.TypeShift}");
@@ -115,7 +112,7 @@ namespace Reziox.Controllers
                         {
                             results.Remove(place);
                         }
-                    }//end is booked?
+                    }//end remove 
                 }
 
                 var cardplaces = Card.CardPlaces(results);

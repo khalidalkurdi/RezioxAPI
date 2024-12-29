@@ -13,5 +13,7 @@ namespace Reziox.Model
         public string CreatedAt { get; set; }
         [Required]
         public bool IsRead { get; set; }
+        [Required]
+        public int MoveTo{ get; set; }
     }
 }

@@ -42,4 +42,14 @@
         maan = 11,
         salt = 12
     }
+    public enum MyScreen
+    {
+        None= 0,
+        Support= 1,
+        UserSchedule = 2,
+        UserRequsets = 3,
+        OwnerRequests = 4,
+        OwnerSchedule = 5,
+        OwnerPlaces = 6
+    }
 }
