@@ -149,6 +149,7 @@ namespace RezioxAPIs.Controllers
                 if (existbookins.Count != 0 && existUser!=null)
                 {
                     await _notification.SentAsync(existUser.DiviceToken,existUser.UserId, "Confirmation of impossibility", $"Can not delet your chalete because it has bookings!", MyScreen.OwnerSchedule);
+                    await _db.SaveChangesAsync();
                     return BadRequest("it has bookings!");
                 }
                 //end check if have not any booking 

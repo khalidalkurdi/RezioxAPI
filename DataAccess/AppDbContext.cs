@@ -25,6 +25,7 @@ namespace Reziox.DataAccess
         public DbSet<Favorite> Favorites { get; set; }
         public DbSet<Notification> Notifications{ get; set; }
         public DbSet<Support> Supports { get; set; }
+        public DbSet<Verification> Verifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasData(

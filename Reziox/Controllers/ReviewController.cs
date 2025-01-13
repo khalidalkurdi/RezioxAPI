@@ -47,7 +47,7 @@ namespace Reziox.Controllers
                                                    .FirstOrDefaultAsync();
                 if(existreview != null)
                 {
-                    return Content("can not review this place, already you review this chalet  !");
+                    return BadRequest("You already review this chalet !");
                 }
                 var existbokking = await _db.Bookings.AsNoTracking()
                                                     .Where(b => b.UserId == userreview.UserId )
@@ -55,7 +55,7 @@ namespace Reziox.Controllers
                                                     .Where(b=>b.StatusBooking==MyStatus.confirmation)
                                                     .FirstOrDefaultAsync();
 
-                if(existbokking == null || existbokking.BookingDate >  DateTime.UtcNow)
+                if(existbokking == null || existbokking.BookingDate >  DateTime.UtcNow.AddHours(+12))
                 {
                     return BadRequest("can not review this place, you must try the chalet and try review later !");
                 }

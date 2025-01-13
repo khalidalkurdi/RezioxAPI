@@ -1,10 +1,12 @@
 using CloudinaryDotNet;
 using DataAccess.ExternalcCloud;
 using DataAccess.PublicClasses;
+using DataAccess.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Reziox.DataAccess;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("SomeeConnections
 //inject nececcry interfaces services
 builder.Services.AddScoped<ICloudImag, CloudImage>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 //config cloudinary
 builder.Services.AddSingleton(x =>
@@ -34,6 +37,7 @@ FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile("FirebaseKey.json")
 });
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -75,7 +75,8 @@ namespace Reziox.Controllers
                     Ballpool = existplace.Ballpool,
                     Tennis = existplace.Tennis,
                     Volleyball = existplace.Volleyball,
-                    Rating=existplace.Rating                    
+                    Rating=existplace.Rating,
+                    CountReviews=existplace.CountReviews
                 };
                 // check if favorited
                 var existfavorite = await _db.Favorites.Where(f => f.PlaceId == placeId)                                                 
@@ -208,13 +209,13 @@ namespace Reziox.Controllers
                 var existplaces = await _db.Places.AsNoTracking()
                                        .Where(p => p.PlaceStatus == MyStatus.approve)
                                        .Include(p => p.Listimage)
+                                       .Include(p => p.ListReviews)
                                        .ToListAsync();
                 if (existplaces.Count == 0)
                 {
                     return NotFound("is not found !");
                 }
-                var randomplaces = existplaces.Take(30)
-                                              .ToList();
+                var randomplaces = existplaces.Take(30).ToList();
                 var cardPlaces = Card.CardPlaces(randomplaces);
                 return Ok(cardPlaces);
             }

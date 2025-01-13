@@ -32,7 +32,7 @@ namespace RezioxAPIs.Controllers
                 var existbookings = await _db.Bookings.AsNoTracking()
                                                         .Where(p => p.place.OwnerId == ownerId)
                                                         .Where(p => p.StatusBooking == MyStatus.confirmation)
-                                                        .Where(p => p.BookingDate >= DateTime.UtcNow.AddHours(3))
+                                                        .Where(p => p.BookingDate >= DateTime.UtcNow.AddHours(-12))
                                                         .Include(b => b.place)
                                                         .ThenInclude(p => p.Listimage)
                                                         .OrderBy(p => p.BookingDate)
@@ -61,7 +61,7 @@ namespace RezioxAPIs.Controllers
                 var existbookings = await _db.Bookings.AsNoTracking()
                                                         .Where(b => b.place.OwnerId == ownerId)
                                                         .Where(b => b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
-                                                        .Where(b => b.BookingDate >= DateTime.UtcNow.AddHours(3))
+                                                        .Where(b => b.BookingDate >= DateTime.UtcNow.AddHours(-12))
                                                         .Include(u => u.user)
                                                         .Include(b => b.place)
                                                         .OrderBy(p => p.BookingDate)                                                        
@@ -96,24 +96,30 @@ namespace RezioxAPIs.Controllers
                 {
                     return NotFound("is not found");
                 }
-                
-                //check if find another booking in this date
-                var booked = await _db.Bookings
-                                              .Where(b => b.PlaceId == existbooking.PlaceId)
-                                              .Where(b => b.UserId == existbooking.UserId)
-                                              .Where(b => b.BookingDate.Date == existbooking.BookingDate.Date)
-                                              .Where(b => b.StatusBooking == MyStatus.confirmation)
-                                              .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
-                                              .FirstOrDefaultAsync();
-                if (booked != null)
+
+                //check already booked
+                var userHasBookings = await _db.Bookings
+                                      .Where(b => b.PlaceId != existbooking.PlaceId)
+                                      .Where(b => b.UserId == existbooking.UserId)
+                                      .Where(b => b.BookingDate == existbooking.BookingDate)
+                                      .Where(b => b.StatusBooking == MyStatus.approve || b.StatusBooking == MyStatus.pending)
+                                      .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
+                                      .ToListAsync();
+                if (userHasBookings.Count != 0)
                 {
-                    await Reject(existbooking.BookingId);
-                    return BadRequest(" already booked");
+                    foreach (var booking in userHasBookings)
+                    {                        
+                        booking.StatusBooking = MyStatus.reject;
+                        await _notification.SentAsync(existbooking.user.DiviceToken, existbooking.UserId, "Rejection Confirmation", "The bookings reject automatic because of you have booking now ", MyScreen.UserRequsets);                        
+                    }
                 }
+                //end check already booked 
+
+                //check if find another booking in this date
                 var anotherpendingbookings = await _db.Bookings
                                                       .Where(b => b.PlaceId == existbooking.PlaceId)
                                                       .Where(b => b.UserId != existbooking.UserId)
-                                                      .Where(b => b.BookingDate.Date == existbooking.BookingDate.Date)
+                                                      .Where(b => b.BookingDate == existbooking.BookingDate)
                                                       .Where(b => b.StatusBooking == MyStatus.approve || b.StatusBooking== MyStatus.pending)
                                                       .Where(b => (b.Typeshifts & existbooking.Typeshifts) == existbooking.Typeshifts)
                                                       .ToListAsync();
@@ -191,7 +197,7 @@ namespace RezioxAPIs.Controllers
                 }
                 var existbooking = await _db.Bookings
                                             .Where(p => p.BookingId == bookingId)
-                                            .Where(p => p.StatusBooking == MyStatus.pending || p.StatusBooking == MyStatus.approve)
+                                            .Where(p => p.StatusBooking == MyStatus.pending)
                                             .Include(b => b.user)
                                             .FirstOrDefaultAsync();
                 if (existbooking == null)

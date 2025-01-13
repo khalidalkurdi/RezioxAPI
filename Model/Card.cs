@@ -72,15 +72,15 @@ namespace Model
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 13}PM"; //if -12 convert 24 to 12 
+                    rangetime = $"{booking.place.MorrningShift} AM - {booking.place.NightShift - 13} PM"; //if -12 convert 24 to 12 
                 }
                 if (booking.Typeshifts == MyShifts.night)
                 {
-                    rangetime = $"{booking.place.NightShift-12}PM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.NightShift-12} PM - {booking.place.MorrningShift - 1} AM";
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.MorrningShift} AM - {booking.place.MorrningShift - 1} AM";
                 }
                 var days = dif.Days > 0 ? $"{dif.Days} Day & " : null;
                 var hours = dif.Hours > 0 ? $"{dif.Hours}h & " : null;
@@ -106,15 +106,15 @@ namespace Model
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 13}PM";
+                    rangetime = $"{booking.place.MorrningShift} AM - {booking.place.NightShift - 13} PM";
                 }
                 if (booking.Typeshifts == MyShifts.night)
                 {
-                    rangetime = $"{booking.place.NightShift - 12}PM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.NightShift - 12} PM - {booking.place.MorrningShift - 1} AM";
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.MorrningShift} AM - {booking.place.MorrningShift - 1} AM";
                 }
                 cardbookings.Add(new dtoHistory
                 {
@@ -138,15 +138,15 @@ namespace Model
 
                 if (booking.Typeshifts == MyShifts.morning)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.NightShift - 1}PM";
+                    rangetime = $"{booking.place.MorrningShift} AM - {booking.place.NightShift - 13} PM";
                 }
                 if (booking.Typeshifts == MyShifts.night)
                 {
-                    rangetime = $"{booking.place.NightShift}PM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.NightShift-12} PM - {booking.place.MorrningShift - 1}AM";
                 }
                 if (booking.Typeshifts == MyShifts.full)
                 {
-                    rangetime = $"{booking.place.MorrningShift}AM - {booking.place.MorrningShift - 1}AM";
+                    rangetime = $"{booking.place.MorrningShift} AM - {booking.place.MorrningShift - 1} AM";
                 }
                 cardbookings.Add(new dtoCardRequsetOwner
                 {

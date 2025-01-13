@@ -45,20 +45,32 @@ namespace Rezioxgithub.Controllers
                 {
                     return BadRequest("can not booking your chalet !");
                 }
+                
                 //check already user booked this place
-                var existAlreadyBooking = await _db.Bookings.AsNoTracking()
+                var existAlreadyBookings = await _db.Bookings.AsNoTracking()
                                             .Where(b => b.PlaceId == dtoSelect.placeId)
                                             .Where(b => b.UserId == existuser.UserId)
                                             .Where(b => b.BookingDate.DayOfYear == dtoSelect.datebooking.DayOfYear)
                                             .Where(b => b.StatusBooking == MyStatus.confirmation || b.StatusBooking == MyStatus.pending || b.StatusBooking == MyStatus.approve)
-                                            .FirstOrDefaultAsync();
-                if (existAlreadyBooking != null && existAlreadyBooking.Typeshifts == MyShifts.full)
+                                            .ToListAsync();
+                if (existAlreadyBookings.Count == 2 || existAlreadyBookings.Any(b => b.Typeshifts == MyShifts.full))
                 {
                     return BadRequest("you already booked this place");
                 }
                 //end check already user booked this place
-
-                //check place is working
+                //check if user has booking in same date
+                var existBookingSamedate = await _db.Bookings.AsNoTracking()
+                                            .Where(b => b.PlaceId != dtoSelect.placeId)
+                                            .Where(b => b.UserId == existuser.UserId)
+                                            .Where(b => b.BookingDate.DayOfYear == dtoSelect.datebooking.DayOfYear)
+                                            .Where(b => b.StatusBooking == MyStatus.confirmation)
+                                            .FirstOrDefaultAsync();
+                if (existBookingSamedate != null)
+                {
+                    return BadRequest("you already has booking in this date");
+                }
+                //end check if user has booking in same date
+                //check place is working 
                 var daybooking = dtoSelect.datebooking.DayOfWeek.ToString();
                 if (!Enum.TryParse(daybooking.ToLower(), out MYDays day))
                 {
@@ -80,10 +92,10 @@ namespace Rezioxgithub.Controllers
                 //end check is booked or not
                 bool aviableNightShift = true;
                 bool aviableMornningShift = true;
-                if (existAlreadyBooking!=null)
-                {   
-                    aviableMornningShift = (existAlreadyBooking.Typeshifts != MyShifts.morning);
-                    aviableNightShift = (existAlreadyBooking.Typeshifts != MyShifts.night);
+                if (existAlreadyBookings.Count != 0)
+                {                  
+                    aviableMornningShift = (existAlreadyBookings.FirstOrDefault().Typeshifts != MyShifts.morning);
+                    aviableNightShift = (existAlreadyBookings.FirstOrDefault().Typeshifts != MyShifts.night);                    
                 }
                 // card shift
                 if (existbooking != null)
@@ -91,6 +103,10 @@ namespace Rezioxgithub.Controllers
                     aviableMornningShift = (existbooking.Typeshifts != MyShifts.morning && existbooking.Typeshifts != MyShifts.full);
                     aviableNightShift = (existbooking.Typeshifts != MyShifts.night && existbooking.Typeshifts != MyShifts.full);
                 }
+                if (dtoSelect.datebooking.DayOfYear == DateTime.Today.DayOfYear && DateTime.UtcNow.AddHours(3) > DateTime.MinValue.AddHours(existplace.MorrningShift))
+                {
+                    aviableMornningShift = false;
+                }                
                 //if user send requset to book one shift and try to book another shift in same date
                 var mornningtime = $"{existplace.MorrningShift} AM - {existplace.NightShift - 13} PM";
                 var nighttime = $"{existplace.NightShift-12} PM - {existplace.MorrningShift - 1} AM";
@@ -133,15 +149,15 @@ namespace Rezioxgithub.Controllers
                 var rangetime = "";
                 if (typeShift == MyShifts.morning)
                 {
-                    rangetime = $"{existPlace.MorrningShift}AM - {existPlace.NightShift - 1}PM";
+                    rangetime = $"{existPlace.MorrningShift} AM - {existPlace.NightShift - 13} PM";
                 }
                 if (typeShift == MyShifts.night)
                 {
-                    rangetime = $"{existPlace.NightShift}PM - {existPlace.MorrningShift - 1}AM";
+                    rangetime = $"{existPlace.NightShift-12} PM - {existPlace.MorrningShift - 1} AM";
                 }
                 if (typeShift == MyShifts.full)
                 {
-                    rangetime = $"{existPlace.MorrningShift}AM - {existPlace.MorrningShift - 1}AM";
+                    rangetime = $"{existPlace.MorrningShift} AM - {existPlace.MorrningShift - 1} AM";
                 }
                 var detailsbooking = new dtoDetailsBooking
                 {   
