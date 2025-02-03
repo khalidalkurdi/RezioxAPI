@@ -5,6 +5,7 @@ using DataAccess.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
+using Model.Configuration;
 using Reziox.DataAccess;
 using System.Net;
 
@@ -14,9 +15,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("SomeeConnections")));
 
-//inject nececcry interfaces services
+// service interfaces 
 builder.Services.AddScoped<ICloudImag, CloudImage>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+//smtp configuration
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("SmtpSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 //config cloudinary
@@ -33,6 +37,7 @@ builder.Services.AddSingleton(x =>
 );
 builder.Services.AddControllers();
 
+//bush notifaction
 FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile("FirebaseKey.json")

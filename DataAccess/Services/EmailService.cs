@@ -1,21 +1,26 @@
 ﻿using MailKit.Net.Smtp;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MimeKit;
+using Model.Configuration;
 
 namespace DataAccess.Services
 {
     public class EmailService : IEmailService
     {
-            string host = "smtp.gmail.com";
-            string email = "rezioxapp@gmail.com";
-            string pass = "lgwqqflzvdyrhuor";
-            
+        
+        private readonly EmailSettings _configuration;
 
+        public EmailService(IOptions<EmailSettings> configuration)
+        {
+            _configuration = configuration.Value;
+        }
         public async Task SendVerificationCodeAsync(string toEmail, string VerificationCode)
         {
             try
             {
                 var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("Reziox App", email));
+                message.From.Add(new MailboxAddress("Reziox App", _configuration.Username));
                 message.To.Add(new MailboxAddress("", toEmail));
                 message.Subject = "Verification Code";
 
@@ -26,8 +31,8 @@ namespace DataAccess.Services
 
                 using (var client = new SmtpClient())
                 {
-                    await client.ConnectAsync(host, 465, true);
-                    await client.AuthenticateAsync(email, pass);
+                    await client.ConnectAsync(_configuration.Host,_configuration.Port, true);
+                    await client.AuthenticateAsync(_configuration.Username,_configuration.Password);
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);
                 }
