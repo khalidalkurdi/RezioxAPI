@@ -16,9 +16,10 @@
 ### Other: 🚩
 - Gmail SMTP (for email verification & notifications)
 - Cloudinary (for image upload)
+- FirebaseAdmin ( for send notifications)
 - Dependency Injection
 - Repository Pattern
-- maintainable and scalable 
+- SOLID principles
   
 ---
 
