@@ -16,6 +16,11 @@ namespace Reziox.Controllers
         {
             _db = db;
         }
+        /// <summary>
+        /// take inquery information then added it 
+        /// </summary>
+        /// <param name="dtoSupport"></param>
+        /// <returns>status code</returns>
         [HttpPost("Requset")]
         public async Task<IActionResult> Requset([FromBody] dtoSupport dtoSupport)
         {
@@ -40,6 +45,11 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take user id 
+        /// </summary>
+        /// <param name="UserId"></param>
+        /// <returns>the list of inquery for user</returns>
         [HttpGet("Get/{UserId}")]
         public async Task<IActionResult> Get([FromRoute] int UserId)
         {

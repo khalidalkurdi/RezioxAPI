@@ -11,6 +11,11 @@ namespace DataAccess.ExternalcCloud
             _cloudinary = cloudinary;
         }
 
+        /// <summary>
+        /// take old url then remove it
+        /// </summary>
+        /// <param name="Url"></param>
+        /// <returns> bool value</returns>
         public bool RemoveImage(string Url)
         {
             string publicId = Path.GetFileNameWithoutExtension(new Uri(Url).Segments.Last());
@@ -24,7 +29,12 @@ namespace DataAccess.ExternalcCloud
                 return true;
             return false;
         }
-
+        /// <summary>
+        /// take image then add it to cloud
+        /// </summary>
+        /// <param name="image"></param>
+        /// <returns> url of image at cloud</returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> SaveImageAsync(IFormFile image)
         {
             if (image == null || image.Length == 0)

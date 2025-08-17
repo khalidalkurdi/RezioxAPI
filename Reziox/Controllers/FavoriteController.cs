@@ -21,7 +21,11 @@ namespace Reziox.Controllers
             _db = db;
            
         }
-
+        /// <summary>
+        /// take userid 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>list of favorite chalets </returns>
         [HttpGet("Gets/{userId}")]
         public async Task<IActionResult> Gets([FromRoute] int userId)
         {
@@ -63,6 +67,12 @@ namespace Reziox.Controllers
             }
             
         }
+        /// <summary>
+        /// take user id and chalet id  for add the chalet to the favorite list
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="placeId"></param>
+        /// <returns>status code</returns>
         [HttpPost("Add/{userId}/{placeId}")]
         public async Task<IActionResult> Add([FromRoute]int userId,int placeId)
         {
@@ -105,6 +115,12 @@ namespace Reziox.Controllers
             }
             
         }
+        /// <summary>
+        /// take user id and chalet id for remove chalet from favorite list
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="placeId"></param>
+        /// <returns>status code</returns>
         [HttpDelete("Remove/{userId}/{placeId}")]
         public async Task<IActionResult> Remove([FromRoute]int userId,int placeId)
         {

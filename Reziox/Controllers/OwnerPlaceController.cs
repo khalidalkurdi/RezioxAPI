@@ -26,6 +26,12 @@ namespace RezioxAPIs.Controllers
             _cloudImag = cloudImag;
             _notification = notification;
         }
+        /// <summary>
+        /// take the information of chalet with images if exist it will update or create new chalet
+        /// </summary>
+        /// <param name="dtoPlace"></param>
+        /// <param name="images"></param>
+        /// <returns> status code</returns>
         [HttpPost("UpSert")]
         public async Task<IActionResult> Upsert([FromForm] dtoEditingPlace dtoPlace, ICollection<IFormFile> images)
         {
@@ -126,6 +132,11 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take chalet id for remove it
+        /// </summary>
+        /// <param name="placeid"></param>
+        /// <returns> status code</returns>
         [HttpDelete("Remove/{placeid}")]
         public async Task<IActionResult> Remove([FromRoute] int placeid)
         {
@@ -167,6 +178,11 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take owner id 
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns> list of owner's chalets </returns>
         [HttpGet("GetPlaces/{ownerId}")]
         public async Task<IActionResult> GetPlaces([FromRoute] int ownerId)
         {

@@ -22,7 +22,11 @@ namespace Reziox.Controllers
             _db = db;
            
         }
-                
+        /// <summary>
+        /// take values of filter 
+        /// </summary>
+        /// <param name="dtoSearch"></param>
+        /// <returns> the list of chalet after apply filter</returns>
         [HttpPost("SmartSearch")]
         public async Task<IActionResult> SmartSearch([FromBody]dtoSearch dtoSearch)
         {
@@ -123,6 +127,11 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take name of spesific chalet 
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns> information of spesific chalet</returns>
         [HttpGet("Search/{Name}")]
         public async Task<IActionResult> Search([FromRoute]string Name)
         {
@@ -145,6 +154,10 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// it is for suggest names while search about spesific chalet
+        /// </summary>
+        /// <returns>list of name chalets</returns>
         [HttpGet("SuggestSearch")]
         public async Task<IActionResult> Suggests()
         {

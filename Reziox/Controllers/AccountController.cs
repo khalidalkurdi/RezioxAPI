@@ -22,9 +22,13 @@ namespace Reziox.Controllers
             _db = db;
             _email = email;
         }
-
+        /// <summary>
+        /// take an email, password,username, phone, city and token of device 
+        /// </summary>
+        /// <param name="dtosignUp"></param>
+        /// <returns> return profile of the user</returns>
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp([FromBody] dtoSignUp dtosignUpRequest)
+        public async Task<IActionResult> SignUp([FromBody] dtoSignUp dtosignUp)
         {
             try
             {
@@ -33,26 +37,26 @@ namespace Reziox.Controllers
                     return BadRequest(ModelState);
                 }
                 //checked if the email already exists
-                var existemail = await _db.Users.Where(u => u.Email == dtosignUpRequest.Email.ToLower()).FirstOrDefaultAsync();
+                var existemail = await _db.Users.Where(u => u.Email == dtosignUp.Email.ToLower()).FirstOrDefaultAsync();
                 if (existemail != null)
                 {
                     return BadRequest("email is already in use , change it.");
                 }
                 //convert password to hash for more scurity 
-                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dtosignUpRequest.Password);
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dtosignUp.Password);
                 //convert string to enum value
-                if (!Enum.TryParse(dtosignUpRequest.City.ToLower(), out MyCitys cityEnum))
+                if (!Enum.TryParse(dtosignUp.City.ToLower(), out MyCitys cityEnum))
                 {
-                    return BadRequest($"City :{dtosignUpRequest.City}");
+                    return BadRequest($"City :{dtosignUp.City}");
                 }
                 var user = new User
                 {
-                    UserName = dtosignUpRequest.UserName,
-                    Email = dtosignUpRequest.Email.ToLower(),
+                    UserName = dtosignUp.UserName,
+                    Email = dtosignUp.Email.ToLower(),
                     Password = hashedPassword,
-                    PhoneNumber = dtosignUpRequest.PhoneNumber,
+                    PhoneNumber = dtosignUp.PhoneNumber,
                     City = cityEnum,
-                    DiviceToken= dtosignUpRequest.DiviceToken
+                    DiviceToken= dtosignUp.DiviceToken
                 };
                 //add user
                 await _db.Users.AddAsync(user);
@@ -74,8 +78,13 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take an email and password
+        /// </summary>
+        /// <param name="dtologin"></param>
+        /// <returns> return profile of the user</returns>
         [HttpPost("LogIn")]
-        public async Task<IActionResult> LogIn([FromBody] dtoLogin dtologinRequest)
+        public async Task<IActionResult> LogIn([FromBody] dtoLogin dtologin)
         {
             try
             {
@@ -84,18 +93,18 @@ namespace Reziox.Controllers
                     return BadRequest(ModelState);
                 }
                 //find the user by email
-                var existUser = await _db.Users.Where(u => u.Email == dtologinRequest.Email.ToLower()).FirstOrDefaultAsync();
+                var existUser = await _db.Users.Where(u => u.Email == dtologin.Email.ToLower()).FirstOrDefaultAsync();
                 if (existUser == null)
                 {
                     return Unauthorized("invalid email");
                 }
                 //verify the password 
-                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dtologinRequest.Password.ToLower(), existUser.Password);
+                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dtologin.Password.ToLower(), existUser.Password);
                 if (!isPasswordValid)
                 {
                     return Unauthorized("invalid password.");
                 }
-                existUser.DiviceToken = dtologinRequest.DiviceToken;
+                existUser.DiviceToken = dtologin.DiviceToken;
                 await _db.SaveChangesAsync();
                 //return user information
 
@@ -115,6 +124,11 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take email then send verification code  to the email
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns> status code </returns>
         [HttpPost("SendCode")]
         public async Task<IActionResult> SendCode([FromBody] string email)
         {
@@ -148,6 +162,11 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take email and verfication code for verify the code is valid
+        /// </summary>
+        /// <param name="dtoVrification"></param>
+        /// <returns> status code</returns>
         [HttpPost("Verification")]
         public async Task<IActionResult> Verification([FromBody] dtoVrification dtoVrification)
         {
@@ -176,6 +195,11 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take an email and new password  for update the password of user
+        /// </summary>
+        /// <param name="dtoReset"></param>
+        /// <returns>status code</returns>
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] dtoResetPassword dtoReset)
         {

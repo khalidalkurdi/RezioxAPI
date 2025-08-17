@@ -20,6 +20,11 @@ namespace RezioxAPIs.Controllers
             _db = db;
             _notification = notification;
         }
+        /// <summary>
+        /// take owner id 
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns>list of confirmation booking for owner</returns>
         [HttpGet("GetBookings/{ownerId}")]
         public async Task<IActionResult> GetBookings([FromRoute]int ownerId)
         {
@@ -49,6 +54,11 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take owner id
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns>list of pending booking for owner</returns>
         [HttpGet("GetPendings/{ownerId}")]
         public async Task<IActionResult> GetRequset([FromRoute] int ownerId)
         {
@@ -78,6 +88,11 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take booking id then change the status of booking from approve to confirm payment status
+        /// </summary>
+        /// <param name="bookingId"></param>
+        /// <returns> status code</returns>
         [HttpPost("PaymentConfirmation/{bookingId}")]
         public async Task<IActionResult> PaymentConfirmation([FromRoute] int bookingId)
         {
@@ -144,6 +159,11 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take booking id then change the status of booking from pending to approve status
+        /// </summary>
+        /// <param name="bookingId"></param>
+        /// <returns> status code</returns>
         [HttpPost("Approve/{bookingId}")]
         public async Task<IActionResult> Approve([FromRoute] int bookingId)
         {
@@ -186,6 +206,11 @@ namespace RezioxAPIs.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take booking id then change the status of booking from pending to reject status
+        /// </summary>
+        /// <param name="bookingId"></param>
+        /// <returns>status code</returns>
         [HttpPost("Reject/{bookingId}")]
         public async Task<IActionResult> Reject([FromRoute] int bookingId)
         {

@@ -19,7 +19,11 @@ namespace Reziox.Controllers
             _db = db;
 
         }
-
+        /// <summary>
+        /// take user id 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns> list of notifications for user</returns>
         [HttpGet("Gets/{userId}")]
         public async Task<IActionResult> Gets([FromRoute]int userId)
         {
@@ -59,7 +63,11 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
+        /// <summary>
+        /// take notification and flag it as readed
+        /// </summary>
+        /// <param name="notificationId"></param>
+        /// <returns></returns>
         [HttpPost("Readed/{notificationId}")]
         public async Task<IActionResult> Readed([FromRoute] int notificationId)
         {
@@ -86,6 +94,11 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take user id check if the user has any notifications do not read        
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns> bool >> it turn off the red dot if return true</returns>
         [HttpGet("Alert/{userId}")]
         public async Task<IActionResult> Alert([FromRoute] int userId)
         {

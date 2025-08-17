@@ -11,6 +11,11 @@ namespace Model
 {
     public class Card
     {
+        /// <summary>
+        /// take list of Place
+        /// </summary>
+        /// <param name="places"></param>
+        /// <returns>  list of Plac card for screen  </returns>
         public static List<dtoCardPlace> CardPlaces(List<Place> places)
         {
 
@@ -37,6 +42,11 @@ namespace Model
             }
             return cardplaces;
         }
+        /// <summary>
+        /// take list of place 
+        /// </summary>
+        /// <param name="places"></param>
+        /// <returns>lsit of card of pending place </returns>
         public static List<dtoCardPlace> CardEditingPlaces(List<EditingPlace> places)
         {
 
@@ -62,6 +72,11 @@ namespace Model
             }
             return cardplaces;
         }
+        /// <summary>
+        /// take list of booking
+        /// </summary>
+        /// <param name="bookings"></param>
+        /// <returns> cards of bookings for screen </returns>
         public static List<dtoCardBookingSchedule> CardBookings(List<Booking> bookings)
         {
             string rangetime = "hh:mm";
@@ -96,6 +111,11 @@ namespace Model
             }
             return cardbookings;
         }
+        /// <summary>
+        /// take list of bookings
+        /// </summary>
+        /// <param name="bookings"></param>
+        /// <returns>card of history screen</returns>
         public static List<dtoHistory> CardUserHistory(List<Booking> bookings)
         {
             string rangetime = "hh:mm";
@@ -129,6 +149,11 @@ namespace Model
             }
             return cardbookings;
         }
+        /// <summary>
+        /// take list of bookings
+        /// </summary>
+        /// <param name="bookings"></param>
+        /// <returns>list of booking for owner panel of booking</returns>
         public static List<dtoCardRequsetOwner> CardOwnerRequst(List<Booking> bookings)
         {
             string rangetime = "";
@@ -163,6 +188,11 @@ namespace Model
             }
             return cardbookings;
         }
+        /// <summary>
+        /// take list of bookings
+        /// </summary>
+        /// <param name="bookings"></param>
+        /// <returns> list of card bookings for user in screen requset</returns>
         public static List<dtoCardRequsetUser> CardUserRequst(List<Booking> bookings)
         {
             var cardBookings = new List<dtoCardRequsetUser>();

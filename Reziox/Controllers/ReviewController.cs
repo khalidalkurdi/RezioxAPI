@@ -18,7 +18,11 @@ namespace Reziox.Controllers
         {
             _db = db;
         }
-
+        /// <summary>
+        /// take review information then added it to chalet
+        /// </summary>
+        /// <param name="userreview"></param>
+        /// <returns> status code</returns>
         [HttpPost("Add")]
         public async Task<IActionResult> Add([FromBody] dtoReview userreview)
         {

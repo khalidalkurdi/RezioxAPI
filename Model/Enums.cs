@@ -42,6 +42,9 @@
         maan = 11,
         salt = 12
     }
+    /// <summary>
+    /// for navegation to specific screen after click on notification
+    /// </summary>
     public enum MyScreen
     {
         None= 0,

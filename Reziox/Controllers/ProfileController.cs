@@ -18,6 +18,11 @@ namespace Reziox.Controllers
             _db = db;
             _cloudImag = cloudImag;
         }
+        /// <summary>
+        /// take user id 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>profile information for user </returns>
         [HttpGet("Get/{userId}")]
         public async Task<IActionResult> Get([FromRoute]int userId)
         {
@@ -55,6 +60,12 @@ namespace Reziox.Controllers
             }
                   
         }
+        /// <summary>
+        /// take new information of user then updated it
+        /// </summary>
+        /// <param name="updatedProfile"></param>
+        /// <param name="editUserImage"></param>
+        /// <returns> profile information for user</returns>
         [HttpPut("Edit")]
         public async Task<IActionResult> Edit([FromForm] dtoUpdateProfile updatedProfile, IFormFile? editUserImage)
         {

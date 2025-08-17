@@ -12,8 +12,8 @@ using Reziox.DataAccess;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241223184748_add")]
-    partial class add
+    [Migration("20241228172258_removeimagestatus")]
+    partial class removeimagestatus
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,7 +42,6 @@ namespace DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Response")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
@@ -413,9 +412,6 @@ namespace DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
 
-                    b.Property<int>("ImageStatus")
-                        .HasColumnType("int");
-
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -497,6 +493,10 @@ namespace DataAccess.Migrations
                     b.Property<int>("City")
                         .HasColumnType("int");
 
+                    b.Property<string>("DiviceToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -526,6 +526,7 @@ namespace DataAccess.Migrations
                         {
                             UserId = 1,
                             City = 2,
+                            DiviceToken = "",
                             Email = "khalid@gmail.com",
                             Password = "khalid1234",
                             PhoneNumber = "0781234567",

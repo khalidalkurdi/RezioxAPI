@@ -22,6 +22,12 @@ namespace Reziox.Controllers
             _db = db;
            
         }
+        /// <summary>
+        /// take chalet id and user id 
+        /// </summary>
+        /// <param name="placeId"></param>
+        /// <param name="userId"></param>
+        /// <returns>the details of specific chalet</returns>
         [HttpGet("Details/{placeId}/{userId}")]
         public async Task<IActionResult> Details([FromRoute] int placeId, int userId)
         {
@@ -133,6 +139,11 @@ namespace Reziox.Controllers
             }
             
         }
+        /// <summary>
+        /// take user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns> list of chalet near from the user</returns>
         [HttpGet("Suggests/{userId}")]
         public async Task<IActionResult> GetSameZone([FromRoute] int userId)
         {
@@ -166,6 +177,10 @@ namespace Reziox.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>list of top rate chalet</returns>
         [HttpGet("Mosts")]
         public async Task<IActionResult> GetMost()
         {
@@ -201,6 +216,10 @@ namespace Reziox.Controllers
             }
             
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>list of random chalet</returns>
         [HttpGet("Randomly")]
         public async Task<IActionResult> GetRandomly()
         {

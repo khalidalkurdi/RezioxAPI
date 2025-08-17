@@ -21,6 +21,11 @@ namespace Rezioxgithub.Controllers
             _db = db;
             _notification = notification;            
         }
+        /// <summary>
+        /// take information of bookink like date
+        /// </summary>
+        /// <param name="dtoSelect"></param>
+        /// <returns> the avaliable shifts for spesfic date </returns>
         [HttpPost("Check")]
         public async Task<IActionResult> FirstAddBooking([FromBody]dtoSelectBooking dtoSelect)
         {
@@ -125,6 +130,11 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take information of booking
+        /// </summary>
+        /// <param name="dtoSelect"></param>
+        /// <returns> bill of bookink before added</returns>
         [HttpPost("ReviewBooking")]
         public async Task<IActionResult> ReviewBooking([FromBody] dtoSelectBooking dtoSelect)
         {
@@ -180,6 +190,11 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take information of booking for confirme it
+        /// </summary>
+        /// <param name="dtoSelect"></param>
+        /// <returns>status code</returns>
         [HttpPost("Confirm")]
         public async Task<IActionResult> confirmBooking([FromBody]dtoSelectBooking dtoSelect)
         {
@@ -222,6 +237,11 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }           
         }
+        /// <summary>
+        /// take booking id for cancel it
+        /// </summary>
+        /// <param name="bookingId"></param>
+        /// <returns> status code</returns>
         [HttpDelete("Cancel/{bookingId}")]
         public async Task<IActionResult> Cancel([FromRoute] int bookingId)
         {
@@ -263,6 +283,11 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }          
         }
+        /// <summary>
+        /// take booking id
+        /// </summary>
+        /// <param name="bookingId"></param>
+        /// <returns>the details of booking</returns>
         [HttpGet("Details/{bookingId}")]
         public async Task<IActionResult> Details([FromRoute] int bookingId)
         {
@@ -319,6 +344,11 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>list of confirme bookings of spesfic user</returns>
         [HttpGet("GetBookings/{userId}")]
         public async Task<IActionResult> GetBookings([FromRoute] int userId)
         {
@@ -348,6 +378,11 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>list of pending and appprove and reject bookings</returns>
         [HttpGet("GetBookingRequsets/{userId}")]
         public async Task<IActionResult> GetBookingRequsets([FromRoute] int userId)
         {
@@ -377,6 +412,11 @@ namespace Rezioxgithub.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        /// <summary>
+        /// take user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>list of previous bookings </returns>
         [HttpGet("History/{userId}")]
         public async Task<IActionResult> History([FromRoute] int userId)
         {
