@@ -130,7 +130,7 @@ namespace Reziox.Controllers
         /// <param name="email"></param>
         /// <returns> status code </returns>
         [HttpPost("SendCode")]
-        public async Task<IActionResult> SendCode([FromBody] string email)
+        public async Task<IActionResult> SendVerificationCode([FromBody] string email)
         {
             try
             {
@@ -168,7 +168,7 @@ namespace Reziox.Controllers
         /// <param name="dtoVrification"></param>
         /// <returns> status code</returns>
         [HttpPost("Verification")]
-        public async Task<IActionResult> Verification([FromBody] dtoVrification dtoVrification)
+        public async Task<IActionResult> VerifiyCode([FromBody] dtoVrification dtoVrification)
         {
             try
             {

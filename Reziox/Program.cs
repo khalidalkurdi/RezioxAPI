@@ -26,9 +26,10 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 //config cloudinary
 builder.Services.AddSingleton(x =>
 {
+    //it is array
     var config = builder.Configuration.GetSection("Cloudinary");
     return new Cloudinary(new Account(
-        //as array
+        
         config["CloudName"],
         config["ApiKey"],
         config["ApiSecret"]
